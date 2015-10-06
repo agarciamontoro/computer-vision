@@ -116,6 +116,8 @@
           \item \textbf{32FC2}: dato flotante de 32 bits, dos canales.
           \item \textbf{32FC3}: dato flotante de 32 bits, tres canales.
       \end{itemize}
+
+      Si se intenta visualizar una matriz con dos canales, OpenCV da un error diciendo que para reproducir una imagen su codificación asociada tiene que tener 1, 3 o 4 canales. Por tanto, ni 8UC2, ni 32SC2 ni 32FC2 se corresponden con imágenes. Intentar visualizar matrices en cualesquiera de los otros tipos no da ningún problema, así que estos son los que están asociados a imágenes.
   \end{solucion}
 
   \begin{cuestion}
@@ -222,7 +224,7 @@
               \end{itemize}
       \end{itemize}
 
-      El tipo visual de una imagen no sólo comprende el número de canales que esta tiene, sino la forma en la que los datos están estructurados dentro de la matriz. Así, por ejemplo, una imagen en RGB tiene una codificación diferente a como la tiene una imagen en CIE L*a*b*, que no guarda los datos en los valores separados de rojo, verde y azul sino en luminosidad y valor en los ejes rojo-verde y amarillo-azul. No tiene sentido, por tanto, juntar las funciones que modifican los tipos de estructura y los que modifican los espacios de color.
+      El tipo visual de una imagen no sólo comprende el número de canales que esta tiene, sino la forma en la que los datos están estructurados dentro de la matriz. Así, por ejemplo, una imagen en RGB tiene una codificación diferente a como la tiene una imagen en CIE L*a*b*, que no guarda los datos en los valores separados de rojo, verde y azul sino en luminosidad y valor en los ejes rojo-verde y amarillo-azul. No tiene sentido, por tanto, juntar las funciones que modifican los tipos de estructura y las que modifican los espacios de color.
 
       Como ejemplo de esta discusión, veamos que las imágenes en RGB y en CIE L*a*b*, dos espacios de color diferentes, tienen el mismo tipo de estructura de datos:
 
@@ -244,11 +246,11 @@
   \begin{solucion}
       \leavevmode
       \begin{lstlisting}
-      def leeimagen(file_name, flag_color=true):
+      def leeimagen(file_name, flag_color=True):
           #Valor por defecto
           cv_flag = cv2.IMREAD_COLOR
 
-          if flag_color == false:
+          if flag_color == False:
               cv_flag =cv2.IMREAD_GRAYSCALE
 
           return cv2.imread(file_name, cv_flag)

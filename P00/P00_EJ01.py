@@ -1,11 +1,11 @@
 import cv2
 import numpy as np
 
-def leeimagen(file_name, flag_color=true):
+def leeimagen(file_name, flag_color=True):
     #Valor por defecto
     cv_flag = cv2.IMREAD_COLOR
 
-    if flag_color == false:
+    if flag_color == False:
         cv_flag =cv2.IMREAD_GRAYSCALE
 
     return cv2.imread(file_name, cv_flag)
@@ -52,9 +52,8 @@ def setPXvalue(img, px_coord, value=[0,0,255]):
 ####################################################################
 
 if __name__ == "__main__":
-
     #Leemos la misma imagen en modo gris y modo color
-    imagen_gris  = leeimagen("../IMG/lena.jpg", false)
+    imagen_gris  = leeimagen("../IMG/lena.jpg", False)
     imagen_color = leeimagen("../IMG/lena.jpg")
 
     #Creamos una lista de coordenadas para usar en la modificacion de la imagen:
