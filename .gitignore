@@ -2,3 +2,11 @@
 obj/*.o
 bin/*
 imagenes/*
+
+## Core latex/pdflatex auxiliary files:
+Cuestionarios/*.aux
+Cuestionarios/*.fdb_latexmk
+Cuestionarios/*.fls
+Cuestionarios/*.log
+Cuestionarios/*.out
+Cuestionarios/*.synctex.gz

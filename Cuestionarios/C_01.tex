@@ -1,0 +1,144 @@
+\documentclass[a4paper, 11pt]{article}
+
+%Comandos para configurar el idioma
+\usepackage[spanish,activeacute]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc} %Necesario para el uso de las comillas latinas.
+
+%Importante que esta sea la última órden del preámbulo
+\usepackage{hyperref}
+\hypersetup{
+  pdftitle={Cuestionario de teoría - 1},
+  pdfauthor={Alejandro García Montoro},
+  unicode,
+  plainpages=false,
+  colorlinks,
+  citecolor=black,
+  filecolor=black,
+  linkcolor=black,
+  urlcolor=black,
+}
+\newcommand\fnurl[2]{%
+  \href{#2}{#1}\footnote{\url{#2}}%
+}
+
+%Paquetes matemáticos
+\usepackage{amsmath,amsfonts,amsthm}
+\usepackage[all]{xy} %Para diagramas
+\usepackage{enumerate} %Personalización de enumeraciones
+\usepackage{tikz} %Dibujos
+
+%Tipografía escalable
+\usepackage{lmodern}
+%Legibilidad
+\usepackage{microtype}
+
+%Código
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{Cuestionario de teoría \\ 1}
+\author{Alejandro García Montoro\\
+    \href{mailto:agarciamontoro@correo.ugr.es}{agarciamontoro@correo.ugr.es}}
+\date{\today}
+
+\theoremstyle{definition}
+\newtheorem{ejercicio}{Ejercicio}
+\newtheorem*{solucion}{Solución}
+
+\theoremstyle{theorem}
+\newtheorem{cuestion}{Cuestión}
+\newtheorem{bonus}{Bonus}
+
+\begin{document}
+
+  \maketitle
+
+  \section{Cuestiones}
+
+  \begin{cuestion}
+      ¿Cuáles son los objetivos principales de las técnicas de visión por computador? Poner algún ejemplo si lo necesita.
+  \end{cuestion}
+
+  \begin{cuestion}
+      ¿Una máscara de convolución para imágenes debe ser siempre una matriz 2D? ¿Tiene sentido considerar máscaras definidas a partir de matrices de varios canales como p.e. el tipo de OpenCV CV\_8UC3? Discutir y justificar la respuesta.
+  \end{cuestion}
+
+  \begin{cuestion}
+      Expresar y justificar las diferencias y semejanzas entre correlación y convolución. Justificar la respuesta.
+  \end{cuestion}
+
+  \begin{cuestion}
+      ¿Los filtros de convolución definen funciones lineales sobre las imágenes? ¿y los de mediana? Justificar la respuesta.
+  \end{cuestion}
+
+  \begin{cuestion}
+      ¿La aplicación de un filtro de alisamiento debe ser una operación local o global sobre la imagen? Justificar la respuesta.
+  \end{cuestion}
+
+  \begin{cuestion}
+      Para implementar una función que calcule la imagen gradiente de una imagen dada pueden plantearse dos alternativas:
+      \begin{enumerate}
+          \item Primero alisar la imagen y después calcular las derivadas sobre la imagen alisada.
+          \item Primero calcular las imágenes derivadas y después alisar dichas imágenes.
+      \end{enumerate}
+
+      Discutir y decir que estrategia es la más adecuada, si alguna lo es. Justificar la decisión.
+  \end{cuestion}
+
+  \begin{cuestion}
+      Verificar matemáticamente que las primeras derivadas (respecto de x e y) de la Gaussiana 2D se puede expresar como núcleos de convolución separables por filas y columnas. Interpretar el papel de dichos núcleos en el proceso de convolución.
+  \end{cuestion}
+
+  \begin{cuestion}
+      Verificar matemáticamente que la Laplaciana de la Gaussiana se puede implementar a partir de núcleos de convolución separables por filas y columnas. Interpretar el papel de dichos núcleos en el proceso de convolución.
+  \end{cuestion}
+
+  \begin{cuestion}
+      ¿Cuáles son las operaciones básicas en la reducción del tamaño de una imagen? Justificar el papel de cada una de ellas.
+  \end{cuestion}
+
+  \begin{cuestion}
+      ¿Qué información de la imagen original se conserva cuando vamos subiendo niveles en una pirámide Gausssiana? Justificar la respuesta.
+  \end{cuestion}
+
+  \begin{cuestion}
+      ¿Cuál es la diferencia entre una Pirámide Gaussiana y una Pirámide Lapalaciana? ¿Qué nos aporta cada uan de ellas? Justificar la respuesta. (Mirar en el artículo de Burt-Adelson).
+  \end{cuestion}
+
+  \begin{cuestion}
+      Cual es la aportación del filtro de Canny al cálculo de fronteras frente a filtros como Sobel o Robert. Justificar detalladamente la respuesta.
+  \end{cuestion}
+
+  \begin{cuestion}
+      Buscar e identificar una aplicación real en la que el filtro de Canny garantice unas fronteras que sean interpretables y por tanto sirvan para solucionar un problema de visión por computador. Justificar con todo detalle la bondad de la elección.
+  \end{cuestion}
+
+  \section{Bonus}
+
+  \begin{bonus}
+      Usando la descomposición SVD (Singular Value Decomposition) de una matriz, deducir la complejidad computacional que es posible alcanzar en la implementación de la convolución 2D de una imagen con una máscara 2D de valores y tamaño cualesquiera (suponer la máscara de tamaño inferior a la imagen).
+  \end{bonus}
+
+\end{document}
