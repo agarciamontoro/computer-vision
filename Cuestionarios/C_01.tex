@@ -269,9 +269,27 @@
       ¿Cuáles son las operaciones básicas en la reducción del tamaño de una imagen? Justificar el papel de cada una de ellas.
   \end{cuestion}
 
+  \begin{solucion}
+      La primera aproximación a la reducción del tamaño de una imagen es evidente: si queremos reducir la imagen a la mitad, eliminamos una de cada dos filas y una de cada dos columnas. Esto es lo que se conoce como submuestreo. Sin embargo, haciendo sólo esto se consiguen resultados muy pobres: aparece el \emph{aliasing}, que ocurre cuando el muestreo que se hace de una señal no es lo suficientemente grande como para capturar las frecuencias más altas. En el caso de las imágenes, lo que ocurre es que perdemos mucho detalle.
+
+      Sin embargo, si queremos reducir una imagen a la mitad, la solución no puede pasar por tomar más muestras de las que consideramos al principio. Por tanto, la solución tiene que pasar por eliminar las frecuencias más altas para que el muestreo original no sufra de \emph{aliasing}; esto es, debemos suavizar la imagen. Esto se consigue, como hemos visto en teoría, con un filtro Gaussiano previo al submuestreo.
+
+      Así, los dos pasos que se siguen en la reducción del tamaño de una imagen son:
+      \begin{enumerate}
+          \item Filtro Gaussiano de la imagen original.
+          \item Submuestreo de la imagen tras el filtro.
+      \end{enumerate}
+  \end{solucion}
+
   \begin{cuestion}
       ¿Qué información de la imagen original se conserva cuando vamos subiendo niveles en una pirámide Gausssiana? Justificar la respuesta.
   \end{cuestion}
+
+  \begin{solucion}
+      Las pirámides Gaussianas no son más que sucesiones de filtros gaussianos y submuestreos, como hemos visto en la anterior pregunta, para reducir el tamaño de la imagen original. Por tanto, sabemos que las altas frecuencias se pierden, o al menos se atenúan o se suavizan.
+
+      Por tanto, es claro que la información visual que se conserva en los niveles superiores de una pirámide Gaussiana es aquella relacionada con las frecuencias bajas; es decir, aquellas zonas sin cambios bruscos de luminosidad. En definitiva, se consigue conservar la \emph{estructura} general de la imagen ---formas generalesy  zonas grandes sin cambios--- sacrificando los pequeños detalles, que se pierden con el filtro Gaussiano.
+  \end{solucion}
 
   \begin{cuestion}
       ¿Cuál es la diferencia entre una Pirámide Gaussiana y una Pirámide Lapalaciana? ¿Qué nos aporta cada uan de ellas? Justificar la respuesta. (Mirar en el artículo de Burt-Adelson).
