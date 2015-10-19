@@ -81,21 +81,106 @@
       ¿Cuáles son los objetivos principales de las técnicas de visión por computador? Poner algún ejemplo si lo necesita.
   \end{cuestion}
 
+  \begin{solucion}
+      El objetivo último de la visión por computador es el de extraer \emph{significado} de forma automatizada de las imágenes que recibe un ordenador. Qué es el \emph{significado} y cómo hacemos esa automatización son preguntas cuyas respuestas intenta abordar la visión por computador.
+
+      Así, el tipo de significado ---esto es, de información--- que se intenta extraer es amplio y depende del uso que le demos a esta técnica; por ejemplo, podemos nombrar algunos tipos de información que se puede extraer de una imagen:
+      \begin{itemize}
+          \item Información semántica: determinar qué objetos aparecen en una imagen, qué papel juegan en la escena retratada, deducir sentimientos por las expresiones faciales...
+          \item Información geométrica: determinar cómo está formada geométricamente la escena retratada, medir distancias, determinar la profundidad relativa de cada objeto que aparece, extraer la perspectiva...
+      \end{itemize}
+
+      La automatización de esta extracción de significado es la parte técnica de la visión por computador; requiere del desarrollo de modelos matemáticos, de algoritmos y del estudio de la ejecución de estos últimos para que sean viables.
+  \end{solucion}
+
   \begin{cuestion}
       ¿Una máscara de convolución para imágenes debe ser siempre una matriz 2D? ¿Tiene sentido considerar máscaras definidas a partir de matrices de varios canales como p.e. el tipo de OpenCV CV\_8UC3? Discutir y justificar la respuesta.
   \end{cuestion}
+
+  \begin{solucion}
+      La definición de operador de convolución que se ha dado en teoría no sólo restringe las máscaras a ser de dos dimensiones sino a que sean cuadradas,
+      \begin{align*}
+          \star_{H,F}: I \times J &\longrightarrow \mathbb{R} \\
+          (i,j) &\longmapsto (H \star F) (i,j) = \sum_{u=-k}^k\sum_{v=-k}^k H(u,v)F(i-u,j-v)
+      \end{align*}
+      pues los índices de las sumatorias van de $-k$ a $k$, donde $k$ es el lado en píxeles de la máscara.
+
+      Sin embargo, matemáticamente, y también en el ámbito de la visión por computador, las máscaras de convolución pueden ser, por ejemplo, de una sola dimensión. Esto además puede encajar en la definición vista en teoría si la máscara que conceptualmente es de una dimensión la vemos como de dos dimensiones asignando un peso nulo a los píxeles que no nos interesan.
+
+      De hecho, cuando las máscaras de convolución son separables, como la Gaussiana, la convolución se hace en dos pasos: el primero con una máscara de una dimensión horizontal y el segundo con una máscara de una dimensión vertical.
+
+      Con respecto a máscaras de convolución tridimensionales, habría que estudiar qué filtro se quiere realizar. La convolución pretende hacer una transformación continua de los píxeles de la imagen, teniendo en cuenta para el valor del nuevo píxel un entorno del píxel original; si nuestro filtro depende, por ejemplo, de los colores del píxel original \emph{y} de los píxeles adyacentes al original, entonces no habría problema en considerar máscaras tridimensionales que recogieran los colores de cada píxel.
+
+      Sin embargo, lo habitual para los filtros que se usan regularmente es usar matrices de dos dimensiones que, en el caso de tratar con imágenes con más de un canal, operan sobre cada uno de los canales por separado y hacen después la reconstrucción.
+  \end{solucion}
 
   \begin{cuestion}
       Expresar y justificar las diferencias y semejanzas entre correlación y convolución. Justificar la respuesta.
   \end{cuestion}
 
+  \begin{solucion}
+      El concepto de correlación y convolución es esencialmente el mismo: se trata de una operación local sobre los píxeles de una imagen tal que para cada uno de ellos se tienen en cuenta los píxeles adyacentes ponderados de alguna manera. Cómo se elige el entorno y la ponderación de los píxeles son los factores claves a la hora de desarrollar un filtro con significado visual diferente a otro. Y hasta aquí las dos operaciones son iguales.
+
+      Sin embargo, ténicamente son diferentes: si bien la correlación tiene en cuenta la máscara ---que define el entorno y la ponderación--- de forma directa, la convolución refleja la máscara en horizontal y vertical antes de aplicarla.
+
+      Por tanto, es directo el cómo hay que redefinir una máscara inicialmente diseñada para correlación para usarla en convolución: basta hacer el reflejo inverso tanto horizontal como vertical.
+
+      Así, aunque la definición es diferente, sus posibles usos en visión por computador son esencialmente iguales.
+  \end{solucion}
+
   \begin{cuestion}
       ¿Los filtros de convolución definen funciones lineales sobre las imágenes? ¿y los de mediana? Justificar la respuesta.
   \end{cuestion}
 
+  \begin{solucion}
+      Los filtros de convolución definen funciones lineales. Para demostrarlo, tomemos la definición de convolución anterior y sean $\lambda\in\mathbb{R}$ una constante y $F_1,F_2$ dos imágenes. Entonces:
+      \begin{align*}
+          H\star(\lambda(F_1+F_2)) &= \sum_{u=-k}^k\sum_{v=-k}^k H(u,v)\lambda\biggl(F_1(i-u,j-v)+F_2(i-u,j-v)\biggr) = \\
+          &= \lambda\biggl(\sum_{u=-k}^k\sum_{v=-k}^k H(u,v)(F_1(i-u,j-v)+F_2(i-u,j-v))\biggr) = \\
+          &= \lambda\biggl(\sum_{u=-k}^k\sum_{v=-k}^k H(u,v)F_1(i-u,j-v) + \\
+          &+ \sum_{u=-k}^k\sum_{v=-k}^k H(u,v)F_2(i-u,j-v)\biggr) = \\
+          &= \lambda(H\star F_1 + H\star F_2)
+      \end{align*}
+
+      Es evidente, por otro lado, que los filtros de mediana no son lineales, al no serlo la operación \emph{mediana de un conjunto de píxeles}. Sean por ejemplo $F_1$ y $F_2$ las dos imágenes siguientes, cuya suma también inidicamos:
+      \[
+      F_1 = \left(
+      \begin{array}{ccc}
+          0 & 0 & 0 \\
+          0 & 2 & 5 \\
+          7 & 6 & 9 \\
+      \end{array}
+      \right);
+      F_2 = \left(
+      \begin{array}{ccc}
+          0 & 0 & 0 \\
+          4 & 5 & 0 \\
+          9 & 6 & 5 \\
+      \end{array}
+      \right);
+      F_1+F_2 = \left(
+      \begin{array}{ccc}
+          0 & 0 & 0 \\
+          4 & 7 & 5 \\
+          16 & 12 & 14 \\
+      \end{array}
+      \right)
+      \]
+
+      El filtro de mediana con una máscara $3\times3$ sobre los píxeles centrales evidencia que no es una operación lineal, pues en $F_1$ vale 2, en $F_2$ vale 4 y en $F_1+F_2$ vale $5\neq2+4$.
+  \end{solucion}
+
   \begin{cuestion}
       ¿La aplicación de un filtro de alisamiento debe ser una operación local o global sobre la imagen? Justificar la respuesta.
   \end{cuestion}
+
+  \begin{solucion}
+      Los filtros de alisamiento suavizan los bordes, los grandes contrastes, los cambios bruscos de iluminación..., en definitiva, trabajan siempre sobre los lugares donde hay un cambio rápido en la intensidad lumínica; esto es, sobre los extremos de la derivada de la función intensidad.
+
+      Como la derivada es una operación local, es natural que la construcción de filtros de alisamiento sea con operaciones locales.
+
+      No tendría sentido aplicar una operación globalmente sobre la imagen cuando lo que buscamos es aplicar una modificación a los entornos donde la derivada cambia brusamente.
+  \end{solucion}
 
   \begin{cuestion}
       Para implementar una función que calcule la imagen gradiente de una imagen dada pueden plantearse dos alternativas:
@@ -104,16 +189,81 @@
           \item Primero calcular las imágenes derivadas y después alisar dichas imágenes.
       \end{enumerate}
 
-      Discutir y decir que estrategia es la más adecuada, si alguna lo es. Justificar la decisión.
+      Discutir y decir qué estrategia es la más adecuada, si alguna lo es. Justificar la decisión.
   \end{cuestion}
+
+  \begin{solucion}
+      Las dos alternativas que se nos presentan son las siguientes:
+      \begin{enumerate}
+          \item $\nabla f=[\frac{\partial}{\partial x}(h \star f), \frac{\partial}{\partial y}(h \star f)]$
+          \item $\nabla f=[h \star \frac{\partial}{\partial x}f, h \star \frac{\partial}{\partial y}f]$
+      \end{enumerate}
+
+      Fijémonos en el número de operaciones que hace cada una: en el primer caso se hacen tres ---una convolución y dos derivadas--- y, en el segundo, cuatro ---dos convoluciones y dos derivadas---. Por tanto, parece que computacionalmente la primera opción es la más adecuada por ser la más eficiente.
+
+      El resultado de ambas alternativas va a ser exactamente igual ya que, en virtud del teorema de derivación de la convolución, tenemos que:
+      \[
+      \frac{\partial}{\partial x} (h \star f) = (\frac{\partial}{\partial x}h) \star f = h \star (\frac{\partial}{\partial x} f)
+      \]
+
+      Como el resultado final no depende de la alternativa y, computacionalmente, la primera de ellas es más eficiente, podemos concluir que la primera es la más adecuada.
+  \end{solucion}
 
   \begin{cuestion}
       Verificar matemáticamente que las primeras derivadas (respecto de x e y) de la Gaussiana 2D se puede expresar como núcleos de convolución separables por filas y columnas. Interpretar el papel de dichos núcleos en el proceso de convolución.
   \end{cuestion}
+  \begin{solucion}
+      La Gaussiana en dos dimensiones es:
+      \[
+      G_\sigma(x,y) = \frac{1}{2\pi\sigma^2}e^{-\frac{x^2+y^2}{2\sigma^2}}
+      \]
+
+      Sus derivadas parciales son simétricas por serlo la Gaussiana:
+
+      \begin{align*}
+          \frac{\partial}{\partial x} G_\sigma(x,y) = -\frac{1}{2\pi\sigma^4}xe^{-\frac{x^2+y^2}{2\sigma^2}} \\
+          \frac{\partial}{\partial y} G_\sigma(x,y) = -\frac{1}{2\pi\sigma^4}ye^{-\frac{x^2+y^2}{2\sigma^2}}
+      \end{align*}
+
+      Ambas son separables, en el sentido de que se pueden expresar como una función en $x$ por una función en $y$:
+
+      \begin{align*}
+          \frac{\partial}{\partial x} G_\sigma(x,y) = \left(-\frac{1}{2\pi\sigma^4}xe^{-\frac{x^2}{2\sigma^2}}\right)\left(e^{-\frac{y^2}{2\sigma^2}}\right) \\
+          \frac{\partial}{\partial y} G_\sigma(x,y) = \left(-\frac{1}{2\pi\sigma^4}e^{-\frac{x^2}{2\sigma^2}}\right)\left(ye^{-\frac{y^2}{2\sigma^2}}\right)
+      \end{align*}
+
+      En el proceso de convolución, el papel de dichos núcleos es simétrico: en el caso de $\frac{\partial}{\partial x} G_\sigma(x,y)$, la convolución dará como resultado una imagen en la que se resalten los cambios de intensidad en el eje $X$, esto es, se resaltarán los bordes verticales; en el caso de $\frac{\partial}{\partial y} G_\sigma(x,y)$ se resaltarán los cambios de intensidad en el eje $Y$, es decir, los bordes horizontales.
+
+  \end{solucion}
 
   \begin{cuestion}
       Verificar matemáticamente que la Laplaciana de la Gaussiana se puede implementar a partir de núcleos de convolución separables por filas y columnas. Interpretar el papel de dichos núcleos en el proceso de convolución.
   \end{cuestion}
+
+  \begin{solucion}
+      La Laplaciana de la Gaussiana está definida como sigue:
+      \[
+      \nabla^2 G_\sigma(x,y) =  \frac{\partial^2}{\partial x^2} G_\sigma(x,y) + \frac{\partial^2}{\partial y^2} G_\sigma(x,y)
+      \]
+
+      Calculamos por tanto las derivadas que necesitamos:
+      \begin{align*}
+          \frac{\partial^2}{\partial x^2} G_\sigma(x,y) =  -\frac{1}{2\pi\sigma^4}e^{-\frac{x^2+y^2}{2\sigma^2}}\left(1 - \frac{x^2}{\sigma^2}\right) \\
+          \frac{\partial^2}{\partial y^2} G_\sigma(x,y) =  -\frac{1}{2\pi\sigma^4}e^{-\frac{x^2+y^2}{2\sigma^2}}\left(1 - \frac{y^2}{\sigma^2}\right) \\
+      \end{align*}
+
+      Así, podemos escribir la Laplaciana de la Gaussiana como una suma de productos de funciones en $x$ por funciones en $y$; esto es, podemos implementar la Laplaciada de la Gaussiana como una sucesión de núcleos de convolución tales que todos ellos son separables por filas y columnas:
+
+      \begin{align*}
+          \nabla^2 G_\sigma(x,y) &=  \frac{\partial^2}{\partial x^2} G_\sigma(x,y) + \frac{\partial^2}{\partial y^2} G_\sigma(x,y) = \\
+          &= -\frac{1}{2\pi\sigma^4}e^{-\frac{x^2+y^2}{2\sigma^2}}\left(1 - \frac{x^2}{\sigma^2}\right) - \frac{1}{2\pi\sigma^4}e^{-\frac{x^2+y^2}{2\sigma^2}}\left(1 - \frac{y^2}{\sigma^2}\right) = \\
+          &= -\frac{1}{2\pi\sigma^4}e^{-\frac{x^2}{2\sigma^2}}e^{-\frac{y^2}{2\sigma^2}}\left(2 - \frac{x^2}{\sigma^2} - \frac{y^2}{\sigma^2}\right) = \\
+          &= -\frac{2}{2\pi\sigma^4}e^{-\frac{x^2}{2\sigma^2}}e^{-\frac{y^2}{2\sigma^2}} + \frac{x^2}{2\pi\sigma^6}e^{-\frac{x^2}{2\sigma^2}}e^{-\frac{y^2}{2\sigma^2}} + \frac{y^2}{2\pi\sigma^6}e^{-\frac{x^2}{2\sigma^2}}e^{-\frac{y^2}{2\sigma^2}} \\
+          &= \left(-\frac{2}{2\pi\sigma^4}e^{-\frac{x^2}{2\sigma^2}}\right)\left(e^{-\frac{y^2}{2\sigma^2}}\right) +\\
+          &+ \left(\frac{x^2}{2\pi\sigma^6}e^{-\frac{x^2}{2\sigma^2}}\right)\left(e^{-\frac{y^2}{2\sigma^2}}\right) +\\
+          &+ \left(e^{-\frac{x^2}{2\sigma^2}}\right)\left(\frac{y^2}{2\pi\sigma^6}e^{-\frac{y^2}{2\sigma^2}}\right)
+      \end{align*}
+  \end{solucion}
 
   \begin{cuestion}
       ¿Cuáles son las operaciones básicas en la reducción del tamaño de una imagen? Justificar el papel de cada una de ellas.
