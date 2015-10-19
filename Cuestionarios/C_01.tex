@@ -288,15 +288,27 @@
   \begin{solucion}
       Las pirámides Gaussianas no son más que sucesiones de filtros gaussianos y submuestreos, como hemos visto en la anterior pregunta, para reducir el tamaño de la imagen original. Por tanto, sabemos que las altas frecuencias se pierden, o al menos se atenúan o se suavizan.
 
-      Por tanto, es claro que la información visual que se conserva en los niveles superiores de una pirámide Gaussiana es aquella relacionada con las frecuencias bajas; es decir, aquellas zonas sin cambios bruscos de luminosidad. En definitiva, se consigue conservar la \emph{estructura} general de la imagen ---formas generalesy  zonas grandes sin cambios--- sacrificando los pequeños detalles, que se pierden con el filtro Gaussiano.
+      Por tanto, es claro que la información visual que se conserva en los niveles superiores de una pirámide Gaussiana es \emph{aquella relacionada con las frecuencias bajas}; es decir, aquellas zonas sin cambios bruscos de intensidad. En definitiva, se consigue conservar la \emph{estructura} general de la imagen ---formas generales y  zonas grandes sin cambios--- sacrificando los pequeños detalles, que se pierden con el filtro Gaussiano.
   \end{solucion}
 
   \begin{cuestion}
-      ¿Cuál es la diferencia entre una Pirámide Gaussiana y una Pirámide Lapalaciana? ¿Qué nos aporta cada uan de ellas? Justificar la respuesta. (Mirar en el artículo de Burt-Adelson).
+      ¿Cuál es la diferencia entre una Pirámide Gaussiana y una Pirámide Laplaciana? ¿Qué nos aporta cada una de ellas? Justificar la respuesta. (Mirar en el artículo de Burt-Adelson).
   \end{cuestion}
 
+  \begin{solucion}
+      Sean $G_i$ y $G_{i+1}$ dos niveles sucesivos de una pirámide gaussiana, que ya hemos visto cómo se construye. Sea $G'_{i+1}$ el nivel $G_{i+1}$ pero expandido al tamaño del nivel $G_i$. Entonces, la pirámide laplaciana asociada se construye de forma que el nivel $L_i$ es la diferencia siguiente:
+      \[
+      L_i = G_i - G'_{i+1}
+      \]
+      Si la pirámide Gaussiana tiene $N$ niveles, convenimos que $L_N = G_N$, por no existir $G_{N+1}$.
+
+      La diferencia más clara es entonces la siguiente: mientras las pirámides Gaussianas conservan las frecuencias bajas de la imagen, los sucesivos niveles de las pirámides laplaciana conservan las frecuencias medias y altas, pues a la imagen original le vamos sustrayendo las frecuencias bajas.
+
+      Las aplicaciones de las pirámides laplacianas son varias, pero una de los más útiles es la codificación eficiente de imágenes, como se describe en el artículo \emph{The Laplacian Pyramid as a Compact Image Code}, de Peter J. Burt y Edward H. Adelson. Allí se pone de manifiesto cómo la eficiencia de la compresión es mayor en aquellas imágenes con frecuencias más altas, como las que tenemos en los diferentes niveles de las pirámides laplacianas. La causa de esto es que las imágenes de la pirámide laplaciana tienen una entropía y varianza muy pequeña; así, la codificación se puede hacer de forma más basta sin salirse de los límites de distorsión impuestos por el sistema visual humano.
+  \end{solucion}
+
   \begin{cuestion}
-      Cual es la aportación del filtro de Canny al cálculo de fronteras frente a filtros como Sobel o Robert. Justificar detalladamente la respuesta.
+      ¿Cuál es la aportación del filtro de Canny al cálculo de fronteras frente a filtros como Sobel o Robert? Justificar detalladamente la respuesta.
   \end{cuestion}
 
   \begin{cuestion}
