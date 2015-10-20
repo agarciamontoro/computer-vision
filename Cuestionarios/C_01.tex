@@ -323,16 +323,83 @@
       \end{enumerate}
 
       ¿Qué característica visual añade entonces este filtro? Si bien los filtros Sobel o Roberts daban imágenes gradiente donde los bordes se ven resaltados pero quedan difusos ---muy anchos---, Canny garantiza una imagen donde cada borde tiene un píxel de ancho. La importancia de esto es clara cuando se necesita saber con precisión dónde se encuentra exactamente el borde, pregunta que no podemos responder con bordes anchos y borrosos como los que devuelven los otros dos filtros.
+
+      Además, la salida del filtro Canny es una imagen binaria, con píxeles cuyo valor es 0 o 255. En los otros dos casos, el paso de \emph{thresholding} no existe y se devuelve una imagen en escala de grises.
   \end{solucion}
 
   \begin{cuestion}
       Buscar e identificar una aplicación real en la que el filtro de Canny garantice unas fronteras que sean interpretables y por tanto sirvan para solucionar un problema de visión por computador. Justificar con todo detalle la bondad de la elección.
   \end{cuestion}
 
+  \begin{solucion}
+      En general, entornos industriales donde se tiene total control sobre la iluminación, la imagen capturada y los objetos que se quieren analizar son los mejores escenarios para trabajar con comodidad en problemas de visión por computador.
+
+      Así, una posible aplicación de este filtro puede ser la siguiente: imaginemos una fábrica donde se realizan chips con las últimas técnicas de miniaturización. En el proceso de la construcción de uno de estos chips se requiere soldar componentes de manera que el error tolerable que se puede cometer en la alineación del componente es mínimo.
+
+      Si queremos automatizar el proceso de análisis de la soldadura podemos usar técnicas de visión por computador: en particular, si se requiere, por ejemplo, que el componente sea completamente paralelo a uno de los lados del chip, podemos fotografiar el chip de manera que se garantice que un componente correctamente soldado tendrá sus lados completamente paralelos a los lados de la imagen.
+
+      De este modo, al aplicar un filtro Canny con sus parámetros fijados experimentalmente, con la iluminación controlada de forma que se realce el lado del componente y con total conocimiento de la posición del borde del componente, podemos garantizar que todos los casos en los que la soldadura sea incorrecta serán devueltos por el algoritmo que se use.
+
+      Las razones son las siguientes:
+      \begin{itemize}
+          \item La verticalidad ---u horizontalidad--- del componente es crítica: es en estos casos donde el filtro Canny optimiza su salida, ya que al utilizar las derivadas en $x$ e $y$ los cambios que mejor se detectan son los que se tienen a través las direcciones de los ejes. Así, Canny garantiza encontrar el borde.
+          \item La iluminación controlada es esencial: un estudio previo de la iluminación y su repercusión en el chip nos permitirá fijar experimentalmente los parámetros de forma óptima. Esto permite que tanto los umbrales del filtro Canny como el sigma de la convolución con la máscara Gaussiana sean los precisos para controlar el error de la soldadura a la precisión necesaria.
+          \item La característica principal del filtro Canny ---que los bordes que devuelve sean de un píxel de ancho--- permitirá analizar de forma muy precisa y realmente sencilla si el lado del componente es paralelo al lado de la imagen: esto es, si los píxeles del borde están en una sola columna de la imagen o se mueven a lo largo de varias columnas. Esta precisión en las columnas de píxeles dependerá de la resolución de la cámara, pero podemos hacer un estudio previo como con la iluminación, de manera que el error tolerado devuelva siempre un borde cuyos píxeles estén en una sola columna, y se dispersen en varias si el error es mayor que el umbral.
+      \end{itemize}
+
+      La aplicación anterior es por tanto una en la que el filtro Canny garantiza unas fronteras interpretables que sirven como solución a un problema de visión por computador: automatizar la precisión de una soldadura.
+  \end{solucion}
+
+  \newpage
   \section{Bonus}
 
   \begin{bonus}
       Usando la descomposición SVD (Singular Value Decomposition) de una matriz, deducir la complejidad computacional que es posible alcanzar en la implementación de la convolución 2D de una imagen con una máscara 2D de valores y tamaño cualesquiera (suponer la máscara de tamaño inferior a la imagen).
   \end{bonus}
+
+  \begin{solucion}
+      Sea $F$ una imagen cualquiera de $M \times N$ píxeles y $H$ una máscara de convolución cualquiera de $m \times n$ píxeles, con la única restricción de que $m<M$ y $n<N$.
+
+      Para cada uno de los $MN$ píxeles de la imagen $F$ tenemos que calcular $mn$ operaciones. Por tanto, el coste computacional de la convolución de la máscara $H$ sobre la imagen $F$ es:
+      \[
+      \mathcal{O}(MNmn)
+      \]
+
+      Sabemos, por otro lado, que hay máscaras de convolución separables; esto es, que se pueden escribir como el producto de dos vectores. Si la máscara $H$ es separable, entonces existen un vector columna $h_1$ de orden $m \times 1$ y un vector fila $h_2$ de orden $1 \times n$ tales que
+      \[
+      H = h_1 \cdot h_2
+      \]
+      donde $\cdot$ es el producto matricial.
+
+      En este caso, la convolución se puede hacer de forma sucesiva con las máscaras $h_1$ y $h_2$ por separado. Por tanto, el coste computacional se puede reducir a:
+      \[
+      \mathcal{O}(MNm+MNn) = \mathcal{O}(MN(m+n))
+      \]
+
+      Si por ejemplo tomamos una máscara cuadrada de lado $k$, el coste computacional de la convolución es:
+      \[
+      \mathcal{O}(MN(k+k)) = \mathcal{O}(2MNk) = \mathcal{O}(MNk)
+      \]
+
+      Así que $\mathcal{O}(MNk)$ es el mínimo coste computacional que vamos a poder tener en una convolución. La respuesta de cuándo lo alcanzaremos pasa necesariamente por ver cuándo una máscara de convolución es separable. Hagamos entonces ese estudio:
+
+      Si vemos la máscara de convolución $H$ en el espacio $\mathcal{M}_{M\times N}(\mathbb{R})$ de las matrices de orden $M\times N$ valuadas en los reales, sabemos que existe su descomposición en valores singulares ---SVD por sus siglas en inglés---; esto es, existen matrices $U\in\mathcal{M}_{M\times P}(\mathbb{R})$ y $V\in\mathcal{M}_{P\times N}(\mathbb{R})$ ortonormales ---es decir, que cumplen $U^T\cdot U=V^T\cdot V=I$---, con $P=mín(M,N)$ y una matriz diagonal $S\in\mathcal{M}_{P\times P}(\mathbb{R})$ tales que
+      \[
+      H = USV^T
+      \]
+
+      Llamamos valores singulares a los $\sigma_0, \sigma_1, \dots, \sigma_{p-1}$, que son siempre no negativos y que podemos ordenar de forma que $\sigma_0 \geq \sigma_1 \geq \dots \geq \sigma_{p-1} \geq 0$. Entonces, si existe un único valor singular no nulo, este será $\sigma_0$ y podremos escribir la máscara H como
+      \[
+      H = \sigma_0\cdot u_0 \cdot v_0^T
+      \]
+
+      En ese caso se puede demostrar, como hace P. Perona en su artículo \emph{Deformable kernels for early vision}, que H es separable; es decir, que se puede escribir como un producto de un vector columna por un vector fila y que estos son, de hecho, los siguientes:
+      \[
+      h_1 = \sqrt{\sigma_0}u_0; \;\;\; h_2 = \sqrt{\sigma_0}v_0^T
+      \]
+
+      Faltaría estudiar los demás casos, en los que la eficiencia de la convolución será menor: aquellos en los que la diagonal de $S$ tiene más de un valor singular. El coste computacional en estos casos estará directamente relacionado con el número de $\sigma_i \neq 0$.
+
+  \end{solucion}
 
 \end{document}
