@@ -308,8 +308,22 @@
   \end{solucion}
 
   \begin{cuestion}
-      ¿Cuál es la aportación del filtro de Canny al cálculo de fronteras frente a filtros como Sobel o Robert? Justificar detalladamente la respuesta.
+      ¿Cuál es la aportación del filtro de Canny al cálculo de fronteras frente a filtros como Sobel o Roberts? Justificar detalladamente la respuesta.
   \end{cuestion}
+
+  \begin{solucion}
+      Los filtros Sobel o Roberts simplemente calculan una aproximación al gradiente de la imagen con dos máscaras de convolución consecutivas que, en el caso de Sobel detectan bordes horizontales y verticales y, en el caso de Roberts, funcionan de forma óptima con los bordes a $\pm45º$.
+
+      El filtro de Canny hace un filtro con la derivada de la Gaussiana y encuentra igualmente el gradiente de la imagen. Hasta aquí la naturaleza de los tres filtros es la misma.
+
+      Sin embargo, Canny añade dos pasos más:
+      \begin{enumerate}
+          \item \emph{Supresión de los no-máximos}: Para cada píxel de la imagen gradiente, se compara su intensidad con la de los píxeles adyacentes que están en la misma dirección del gradiente en ese punto. Si su intensidad es máxima en comparación con los otros, se conserva el píxel del borde; si no, se elimina.
+          \item \emph{Histéresis y enlazado}: Se definen dos umbrales: alto y bajo. Los píxeles cuya intensidad supera el umbral alto definirán un borde, que se puede \emph{unir} con píxeles entre los dos umbrales si son adyacentes. Por otro lado, todos los píxeles cuya intensidad es inferior al umbral bajo se eliminan.
+      \end{enumerate}
+
+      ¿Qué característica visual añade entonces este filtro? Si bien los filtros Sobel o Roberts daban imágenes gradiente donde los bordes se ven resaltados pero quedan difusos ---muy anchos---, Canny garantiza una imagen donde cada borde tiene un píxel de ancho. La importancia de esto es clara cuando se necesita saber con precisión dónde se encuentra exactamente el borde, pregunta que no podemos responder con bordes anchos y borrosos como los que devuelven los otros dos filtros.
+  \end{solucion}
 
   \begin{cuestion}
       Buscar e identificar una aplicación real en la que el filtro de Canny garantice unas fronteras que sean interpretables y por tanto sirvan para solucionar un problema de visión por computador. Justificar con todo detalle la bondad de la elección.
