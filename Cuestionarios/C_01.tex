@@ -372,7 +372,7 @@
       \]
       donde $\cdot$ es el producto matricial.
 
-      En este caso, la convolución se puede \emph{descomponer} de forma sucesiva con las máscaras $h_1$ y $h_2$ por separado. En este caso, por cada píxel tendríamos que hacer $m$ operaciones en la convolución con $h_1$ y, después, $n$ operaciones en la convolución con $h_1$. Por tanto, el coste computacional se puede reducir a:
+      En este caso, la convolución se puede \emph{descomponer} de forma sucesiva con las máscaras $h_1$ y $h_2$ por separado. En este caso, por cada píxel tendríamos que hacer $m$ operaciones en la convolución con $h_1$ y, después, $n$ operaciones en la convolución con $h_2$. Por tanto, el coste computacional se puede reducir a:
       \[
       \mathcal{O}(MNm+MNn) = \mathcal{O}(MN(m+n))
       \]
@@ -382,7 +382,7 @@
       \mathcal{O}(MN(k+k)) = \mathcal{O}(2MNk) = \mathcal{O}(MNk)
       \]
 
-      Así que, en general, $\mathcal{O}(MN(m+n))$ es el mínimo coste computacional que vamos a poder tener en una convolución. La respuesta de cuándo lo alcanzaremos pasa necesariamente por ver cuándo una máscara de convolución es separable. Hagamos entonces ese estudio:
+      Así que, en general, $\mathcal{O}(MN(m+n))$ es el mínimo coste computacional que vamos a poder tener en una convolución. La respuesta a la pregunta de cuándo lo alcanzaremos pasa necesariamente por saber cuándo una máscara de convolución es separable. Hagamos entonces ese estudio:
 
       Si vemos la máscara de convolución $H$ en el espacio $\mathcal{M}_{m\times n}(\mathbb{R})$ de las matrices de orden $m\times n$ valuadas en los reales, sabemos que existe su descomposición en valores singulares ---SVD por sus siglas en inglés---; esto es, existen matrices $U\in\mathcal{M}_{m\times p}(\mathbb{R})$ y $V\in\mathcal{M}_{p\times n}(\mathbb{R})$ ortonormales ---es decir, que cumplen $U^T\cdot U=V^T\cdot V=I$---, con $p=mín(m,n)$, y una matriz diagonal $S\in\mathcal{M}_{p\times p}(\mathbb{R})$ tales que
       \begin{equation}
@@ -435,8 +435,25 @@
       \]
 
       La notación $\mathcal{O}$ afirma que el coste computacional de la convolución tiene el mismo orden independientemente del número de valores singulares no-nulos. Esto es así en el marco teórico, pues las constantes se desprecian. Sin embargo, en estas operaciones la constante es muy importante: si la máscara es, por ejemplo, $7\times7$ y todos sus valores singulares son estrictamente positivos, el tiempo de computación se multiplicará por 7, una cantidad bastante significativa.
-
+      
       El estudio hecho hasta ahora es \emph{muy} simplificado, pues estamos despreciando el coste que supone hacer la descomposición SVD y encontrar los vectores fila y columna que hacen la máscara separable.
+      
+      Las implementaciones de la descomposición SVD son variadas, y todas ellas difieren en complejidad computacional. Si tomamos por ejemplo el algoritmo desarrollado por Matthew Brand en su artículo \emph{Incremental singular value decomposition of uncertain data with missing values}, la descomposición de una matriz $m\times n$ tendría un coste computacional de $\mathcal{O}(m^2n).
+      
+      Tomando esa complejidad computacional como referencia, la complejidad de la convolución con una máscara separable sería como sigue:
+      \[
+      \mathcal{O}(MN(m+n)+m^2n)
+      \]
+      
+      Por tanto, teniendo en cuenta que $M>m$ y que $N>n$, tenemos que
+      \[
+       \mathcal{O}(m^2n)\subset\mathcal{O}(MmN) \implies \mathcal{O}(MN(m+n)+m^2n) \subset \mathcal{O}(MN(m+n)+MNm)
+      \]
+      
+      Por último, ahora sí, y siempre teniendo en cuenta la importancia de la selección del algoritmo de descomposición ---en este caso de orden $\mathcal{O}(m^2n)$--- podemos concluir que el coste computacional de la convolución con una máscara separable será del orden de
+      \[
+      \mathcal{O}(MN(2m+n))
+      \]
   \end{solucion}
 
 \end{document}
