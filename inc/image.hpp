@@ -3,6 +3,8 @@
 #include <string>
 #include <math.h>
 
+#include "consts.hpp"
+
 using namespace cv;
 using namespace std;
 
@@ -11,7 +13,8 @@ private:
     Mat image;
 
     double gaussianFunction(double x, double sigma);
-    Mat gaussMask(double sigma);
+    Mat getGaussMask(double sigma);
+    Mat convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id border_type);
 
 public:
     Image(string filename);
