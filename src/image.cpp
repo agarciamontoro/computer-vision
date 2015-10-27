@@ -1,6 +1,7 @@
 #include "image.hpp"
 #include <iostream>
 
+/*************************** PRIVATE METHODS ***************************/
 
 double Image::gaussianFunction(double x, double sigma){
     return exp(-0.5*(x*x)/(sigma*sigma));
@@ -84,6 +85,30 @@ Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id 
     return result;
 }
 
+/**************************** PUBLIC METHODS ****************************/
+
+/*---------------* Constructors *---------------*/
+
+Image::Image(string filename){
+    this->image = imread(filename);
+}
+
+Image::Image(Mat img){
+    this->image = img.clone();
+}
+
+/*---------------* Operators *---------------*/
+
+const Image Image::operator-(const Image rhs) const{
+    Mat result;
+
+    subtract(this->image,rhs.image,result);
+
+    return Image(result);
+}
+
+/*---------------* Other methods *---------------*/
+
 Image Image::convolution2D(double sigma){
     Mat result = Mat(this->image.size(), this->image.type());
 
@@ -111,23 +136,6 @@ Image Image::highFreq(double sigma){
     Image conv_image = this->convolution2D(sigma);
 
     return *this - conv_image;
-}
-
-
-const Image Image::operator-(const Image rhs) const{
-    Mat result;
-
-    subtract(this->image,rhs.image,result);
-
-    return Image(result);
-}
-
-Image::Image(string filename){
-    this->image = imread(filename);
-}
-
-Image::Image(Mat img){
-    this->image = img.clone();
 }
 
 void Image::draw(){
