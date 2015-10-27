@@ -84,7 +84,7 @@ Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id 
     return result;
 }
 
-void Image::convolution2D(double sigma){
+Image Image::convolution2D(double sigma){
     Mat result = Mat(this->image.size(), this->image.type());
 
     Mat gaussMask = getGaussMask(sigma);
@@ -103,13 +103,17 @@ void Image::convolution2D(double sigma){
         transpose(convolution1D(transposed_col, gaussMask, REFLECT), result.col(j));
     }
 
-    // Updates the object
-    this->image = result;
+    // Returns the convoluted image
+    return Image(result);
 }
 
 
 Image::Image(string filename){
     this->image = imread(filename);
+}
+
+Image::Image(Mat img){
+    this->image = img.clone();
 }
 
 void Image::draw(){

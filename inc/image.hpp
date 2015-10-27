@@ -19,8 +19,10 @@ private:
 
 public:
     Image(string filename);
+    Image(Mat img);
 
-    void convolution2D(double sigma);
+
+    Image convolution2D(double sigma);
     void draw();
 
 };

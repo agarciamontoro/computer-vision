@@ -3,8 +3,8 @@
 int main(){
      Image img("imagenes/einstein.bmp");
 
-     img.convolution2D(5.0);
-     img.draw();
+     Image convoluted_img = img.convolution2D(5.0);
+     convoluted_img.draw();
 
      waitKey(0);
      destroyAllWindows();
