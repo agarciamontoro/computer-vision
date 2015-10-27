@@ -15,12 +15,12 @@ private:
     double gaussianFunction(double x, double sigma);
     Mat getGaussMask(double sigma);
     Mat convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id border_type);
-    Mat convolution2D(const Mat& signal_vec, double sigma);
 
 
 public:
     Image(string filename);
 
+    void convolution2D(double sigma);
     void draw();
 
 };

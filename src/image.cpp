@@ -121,25 +121,25 @@ Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id 
     return result;
 }
 
-Mat Image::convolution2D(const Mat& img, double sigma){
-    Mat result = Mat(img.size(), img.type());
+void Image::convolution2D(double sigma){
+    Mat result = Mat(this->image.size(), this->image.type());
 
     Mat gaussMask = getGaussMask(sigma);
 
     Mat result_row;
-    for (int i = 0; i < img.rows; i++) {
+    for (int i = 0; i < result.rows; i++) {
         // We replace the row i for a copy of the convoluted row
-        convolution1D(img.row(i), gaussMask, REFLECT).copyTo(result.row(i));
+        convolution1D(this->image.row(i), gaussMask, REFLECT).copyTo(result.row(i));
     }
 
     Mat transposed_col;
-    for (int j = 0; j < img.cols; j++) {
+    for (int j = 0; j < result.cols; j++) {
         // Same as before but transposing the column into a row and viceversa
         transpose(result.col(j),transposed_col);
         transpose(convolution1D(transposed_col, gaussMask, REFLECT), result.col(j));
     }
 
-    return result;
+    this->image = result;
 }
 
 
@@ -149,7 +149,5 @@ Image::Image(string filename){
 
 void Image::draw(){
     namedWindow( "Display window", WINDOW_AUTOSIZE );
-    //imshow( "Display window", this->image );
-
-    imshow( "Display window", convolution2D(this->image, 5.0));
+    imshow( "Display window", this->image );
 }
