@@ -8,7 +8,7 @@ double Image::gaussianFunction(double x, double sigma){
 
 Mat Image::getGaussMask(double sigma){
     //Gaussian function needs to be smapled between -3*sigma and +3*sigma
-    int mask_size = 2*floor(3*sigma) + 1;
+    int mask_size = 2*round(3*sigma) + 1;
 
     Mat gauss_mask = Mat(1,mask_size,CV_32FC1);
 
@@ -75,7 +75,6 @@ Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id 
     // Number of channels of the image: useful because we have to treat each channel separately
     int num_channels = signal_vec.channels();
 
-
     // Initialization of source vector with additional borders.
     Mat bordered;
     copyMakeBorder(signal_vec,bordered,0,0,border_size,border_size,border_type,0.0);
@@ -91,17 +90,29 @@ Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id 
     split(result, result_channels);
 
     // Per-channel processing
-    Mat masked_source;
+    Mat masked_channel, source_channel, result_channel, converted_mask;
+
+    // The mask and the bordered channels need to have the same type.
+    // Both of them are converted to CV_32FC1 in order not to lose
+    // precision.
+    mask.convertTo(converted_mask,CV_32FC1);
+
     for (int i = 0; i < num_channels; i++) {
+        // Channel type conversion
+        bordered_channels[i].convertTo(source_channel, CV_32FC1);
+        result_channels[i].convertTo(result_channel, CV_32FC1);
+
         for (int j = 0; j < result.cols; j++) {
             // We focus on the zone centered at j with mask width
-            masked_source = bordered_channels[i](Rect(j,0,mask.cols,1));
+            masked_channel = source_channel(Rect(j,0,mask.cols,1));
 
             // Element-wise multiplication of the focused zone with the mask
             // and summatory of the result.
             // sum() returns a Scalar; i.e., a 1x4 vector, but we need the first one.
-            result_channels[i].at<float>(0,j)  = sum(masked_source.mul(mask))[0];
+            result_channel.at<float>(0,j)  = sum(masked_channel.mul(converted_mask))[0];
         }
+
+        result_channel.convertTo(result_channels[i],result_channels[i].type());
     }
 
     // Merging again the processed channels
@@ -110,18 +121,35 @@ Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id 
     return result;
 }
 
+Mat Image::convolution2D(const Mat& img, double sigma){
+    Mat result = Mat(img.size(), img.type());
+
+    Mat gaussMask = getGaussMask(sigma);
+
+    Mat result_row;
+    for (int i = 0; i < img.rows; i++) {
+        // We replace the row i for a copy of the convoluted row
+        convolution1D(img.row(i), gaussMask, REFLECT).copyTo(result.row(i));
+    }
+
+    Mat transposed_col;
+    for (int j = 0; j < img.cols; j++) {
+        // Same as before but transposing the column into a row and viceversa
+        transpose(result.col(j),transposed_col);
+        transpose(convolution1D(transposed_col, gaussMask, REFLECT), result.col(j));
+    }
+
+    return result;
+}
+
+
 Image::Image(string filename){
     this->image = imread(filename);
 }
 
 void Image::draw(){
     namedWindow( "Display window", WINDOW_AUTOSIZE );
-    imshow( "Display window", this->image );
+    //imshow( "Display window", this->image );
 
-    float datos[10] = {0,1,2,3,4,5,6,7,8,9};
-    Mat signal_vec = Mat(1,10,CV_32FC1,datos);
-    cout << signal_vec << endl;
-    Mat mask = getGaussMask(1.2);
-
-    convolution1D(signal_vec,mask,REFLECT);
+    imshow( "Display window", convolution2D(this->image, 5.0));
 }
