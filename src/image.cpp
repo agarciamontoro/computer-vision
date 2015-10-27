@@ -109,6 +109,11 @@ Mat Image::convolution2D(const Mat& signal_mat, const Mat& mask, enum border_id 
 
 /**************************** PUBLIC METHODS ****************************/
 
+/*_---------------* Destructor *_---------------*/
+Image::~Image(){
+    num_images--;
+}
+
 /*---------------* Constructors *---------------*/
 
 Image::Image(string filename, bool flag_color){

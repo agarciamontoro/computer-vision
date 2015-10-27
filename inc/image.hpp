@@ -22,6 +22,8 @@ private:
 
 
 public:
+    ~Image();
+    
     Image(string filename, bool flag_color = true);
     Image(Mat img);
 
