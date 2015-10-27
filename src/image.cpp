@@ -1,6 +1,9 @@
 #include "image.hpp"
 #include <iostream>
 
+// Static attributes
+int Image::num_images = 0;
+
 /*************************** PRIVATE METHODS ***************************/
 
 double Image::gaussianFunction(double x, double sigma){
@@ -69,10 +72,8 @@ Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id 
             // We focus on the zone centered at j with mask width
             masked_channel = source_channel(Rect(j,0,mask.cols,1));
 
-            // Element-wise multiplication of the focused zone with the mask
-            // and summatory of the result.
-            // sum() returns a Scalar; i.e., a 1x4 vector, but we need the first one.
-            result_channel.at<float>(0,j)  = sum(masked_channel.mul(converted_mask))[0];
+            // Scalar product between the ROI'd source and the mask
+            result_channel.at<float>(0,j)  = masked_channel.dot(converted_mask);
         }
 
         // Backwards conversion: the result should have the same type as the input image
@@ -85,39 +86,13 @@ Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id 
     return result;
 }
 
-/**************************** PUBLIC METHODS ****************************/
-
-/*---------------* Constructors *---------------*/
-
-Image::Image(string filename){
-    this->image = imread(filename);
-}
-
-Image::Image(Mat img){
-    this->image = img.clone();
-}
-
-/*---------------* Operators *---------------*/
-
-const Image Image::operator-(const Image rhs) const{
-    Mat result;
-
-    subtract(this->image,rhs.image,result);
-
-    return Image(result);
-}
-
-/*---------------* Other methods *---------------*/
-
-Image Image::convolution2D(double sigma){
-    Mat result = Mat(this->image.size(), this->image.type());
-
-    Mat gaussMask = getGaussMask(sigma);
+Mat Image::convolution2D(const Mat& signal_mat, const Mat& mask, enum border_id border_type){
+    Mat result = Mat(signal_mat.size(), signal_mat.type());
 
     Mat result_row;
     for (int i = 0; i < result.rows; i++) {
         // Row i is replaced with its convolution
-        convolution1D(this->image.row(i), gaussMask, REFLECT).copyTo(result.row(i));
+        convolution1D(this->image.row(i), mask, border_type).copyTo(result.row(i));
     }
 
     Mat transposed_col;
@@ -125,20 +100,77 @@ Image Image::convolution2D(double sigma){
         // Column i is replaced with its convolution ---needs transposing, as convolution1D
         // works with row vectors---.
         transpose(result.col(j),transposed_col);
-        transpose(convolution1D(transposed_col, gaussMask, REFLECT), result.col(j));
+        transpose(convolution1D(transposed_col, mask, border_type), result.col(j));
     }
 
     // Returns the convoluted image
+    return result;
+}
+
+/**************************** PUBLIC METHODS ****************************/
+
+/*---------------* Constructors *---------------*/
+
+Image::Image(string filename, bool flag_color){
+    if(!flag_color)
+        this->image = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+    else
+        this->image = imread(filename);
+
+    this->name = "Image " + to_string(num_images);
+    num_images++;
+}
+
+Image::Image(Mat img){
+    this->image = img.clone();
+    this->name = "Image " + to_string(num_images);
+    num_images++;
+}
+
+/*---------------* Operators *---------------*/
+
+const Image Image::operator-(const Image rhs) const{
+    assert(this->image.size() == rhs.image.size());
+
+    Mat result = this->image - rhs.image;
+
     return Image(result);
 }
 
-Image Image::highFreq(double sigma){
-    Image conv_image = this->convolution2D(sigma);
+const Image Image::operator+(const Image rhs) const{
+    assert(this->image.size() == rhs.image.size());
 
-    return *this - conv_image;
+    Mat result = this->image + rhs.image;
+
+    return Image(result);
+}
+
+int Image::numChannels(){
+    return this->image.channels();
+}
+
+/*---------------* Other methods *---------------*/
+
+Image Image::lowPassFilter(double sigma){
+    Mat gaussMask = getGaussMask(sigma);
+
+    Mat result  = convolution2D(this->image, gaussMask, REFLECT);
+
+    return Image(result);
+}
+
+Image Image::highPassFilter(double sigma){
+    return *this - this->lowPassFilter(sigma);
+}
+
+Image Image::hybrid(Image high_freq, double sigma_low, double sigma_high){
+    assert(this->image.size() == high_freq.image.size());
+
+    return this->lowPassFilter(sigma_low) + high_freq.highPassFilter(sigma_high);
 }
 
 void Image::draw(){
-    namedWindow( "Display window", WINDOW_AUTOSIZE );
-    imshow( "Display window", this->image );
+    cout << this->name << endl;
+    namedWindow( this->name, WINDOW_AUTOSIZE );
+    imshow( this->name, this->image );
 }

@@ -10,21 +10,31 @@ using namespace std;
 
 class Image{
 private:
+    static int num_images;
+
     Mat image;
+    string name;
 
     double gaussianFunction(double x, double sigma);
     Mat getGaussMask(double sigma);
     Mat convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id border_type);
+    Mat convolution2D(const Mat& signal_mat, const Mat& mask, enum border_id border_type);
 
 
 public:
-    Image(string filename);
+    Image(string filename, bool flag_color = true);
     Image(Mat img);
 
     const Image operator-(const Image rhs) const;
+    const Image operator+(const Image rhs) const;
 
-    Image convolution2D(double sigma);
-    Image highFreq(double sigma);
+    int numChannels();
+
+    Image lowPassFilter(double sigma);
+    Image highPassFilter(double sigma);
+
+    Image hybrid(Image high_freq, double sigma_low, double sigma_high);
+
     void draw();
 
 };

@@ -1,10 +1,11 @@
 #include "image.hpp"
 
 int main(){
-     Image img("imagenes/einstein.bmp");
-     Image high_freq = img.highFreq(2.3);
+     Image Bike("imagenes/bicycle.bmp");
+     Image Motorbike("imagenes/motorcycle.bmp",false);
 
-     high_freq.draw();
+     Bike.lowPassFilter(2.0).draw();
+     Motorbike.highPassFilter(2.0).draw();
 
      waitKey(0);
      destroyAllWindows();
