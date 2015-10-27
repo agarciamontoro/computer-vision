@@ -1,5 +1,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include <string>
 #include <math.h>
 
@@ -23,7 +25,7 @@ private:
 
 public:
     ~Image();
-    
+
     Image(string filename, bool flag_color = true);
     Image(Mat img);
 
@@ -31,6 +33,10 @@ public:
     const Image operator+(const Image rhs) const;
 
     int numChannels();
+    int rows();
+    int cols();
+
+    void copyTo(Mat dst);
 
     Image lowPassFilter(double sigma);
     Image highPassFilter(double sigma);
@@ -39,4 +45,5 @@ public:
 
     void draw();
 
+    friend Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_high);
 };

@@ -9,7 +9,9 @@ int main(){
      Image bike("imagenes/bicycle.bmp");
      Image motorbike("imagenes/motorcycle.bmp",false);
 
-     motorbike.hybrid(bike,3.5,2.5).draw();
+     Image hybrid_canvas = makeHybridCanvas(motorbike,bike,3.5,2.5);
+
+     hybrid_canvas.draw();
 
      waitKey(0);
      destroyAllWindows();

@@ -150,11 +150,29 @@ const Image Image::operator+(const Image rhs) const{
     return Image(result);
 }
 
+/*---------------* Other methods *---------------*/
+
 int Image::numChannels(){
     return this->image.channels();
 }
 
-/*---------------* Other methods *---------------*/
+int Image::rows(){
+    return this->image.rows;
+}
+int Image::cols(){
+    return this->image.cols;
+}
+
+void Image::copyTo(Mat dst){
+    if (this->numChannels() < dst.channels()) {
+        Mat aux_3C;
+        cvtColor(this->image,aux_3C,CV_GRAY2RGB);
+        aux_3C.copyTo(dst);
+    }
+    else{
+        this->image.copyTo(dst);
+    }
+}
 
 Image Image::lowPassFilter(double sigma){
     Mat gaussMask = getGaussMask(sigma);
@@ -174,7 +192,7 @@ Image Image::hybrid(Image high_freq, double sigma_low, double sigma_high){
     Mat result;
 
     Image low_passed = this->lowPassFilter(sigma_low);
-    Image high_passed = high_freq.highPassFilter(sigma_low);
+    Image high_passed = high_freq.highPassFilter(sigma_high);
 
     if(low_passed.numChannels() != high_passed.numChannels()){
         int max_channels = max(low_passed.numChannels(), high_passed.numChannels());
@@ -216,7 +234,28 @@ Image Image::hybrid(Image high_freq, double sigma_low, double sigma_high){
 }
 
 void Image::draw(){
-    cout << this->name << endl;
     namedWindow( this->name, WINDOW_AUTOSIZE );
     imshow( this->name, this->image );
+}
+
+Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_high){
+    assert(low.image.size() == high.image.size());
+
+    Image low_passed = low.lowPassFilter(sigma_low);
+    Image high_passed = high.highPassFilter(sigma_high);
+    Image hybrid = low.hybrid(high,sigma_low,sigma_high);
+
+    Mat canvas = Mat(hybrid.rows(),3*hybrid.cols(),hybrid.image.type());
+
+    vector<Mat> slots(3);
+
+    for (int i = 0; i < 3; i++) {
+        slots[i] = canvas( Rect(i*hybrid.cols(),0,hybrid.cols(),hybrid.rows()) );
+    }
+
+    low_passed.copyTo(slots[0]);
+    high_passed.copyTo(slots[1]);
+    hybrid.copyTo(slots[2]);
+
+    return Image(canvas);
 }
