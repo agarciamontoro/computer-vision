@@ -22,7 +22,10 @@ public:
     Image(Mat img);
 
 
+    const Image operator-(const Image rhs) const;
+
     Image convolution2D(double sigma);
+    Image highFreq(double sigma);
     void draw();
 
 };

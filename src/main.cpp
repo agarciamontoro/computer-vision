@@ -2,9 +2,9 @@
 
 int main(){
      Image img("imagenes/einstein.bmp");
+     Image high_freq = img.highFreq(2.3);
 
-     Image convoluted_img = img.convolution2D(5.0);
-     convoluted_img.draw();
+     high_freq.draw();
 
      waitKey(0);
      destroyAllWindows();

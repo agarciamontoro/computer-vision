@@ -107,6 +107,20 @@ Image Image::convolution2D(double sigma){
     return Image(result);
 }
 
+Image Image::highFreq(double sigma){
+    Image conv_image = this->convolution2D(sigma);
+
+    return *this - conv_image;
+}
+
+
+const Image Image::operator-(const Image rhs) const{
+    Mat result;
+
+    subtract(this->image,rhs.image,result);
+
+    return Image(result);
+}
 
 Image::Image(string filename){
     this->image = imread(filename);
