@@ -166,21 +166,48 @@ Image Image::highPassFilter(double sigma){
 Image Image::hybrid(Image high_freq, double sigma_low, double sigma_high){
     assert(this->image.size() == high_freq.image.size());
 
+    Mat result;
+
     Image low_passed = this->lowPassFilter(sigma_low);
     Image high_passed = high_freq.highPassFilter(sigma_low);
 
-    if(this->numChannels() != high_freq.numChannels()){
-        max_channels = max(this->numChannels(), high_freq.numChannels());
+    if(low_passed.numChannels() != high_passed.numChannels()){
+        int max_channels = max(low_passed.numChannels(), high_passed.numChannels());
 
         vector<Mat> low_channels(max_channels);
         vector<Mat> high_channels(max_channels);
 
-        split(this->image, low_channels);
-        split(high_freq, high_channels);
+        split(low_passed.image, low_channels);
+        split(high_passed.image, high_channels);
+
+        if (low_passed.numChannels() < max_channels){
+            int diff = max_channels - low_passed.numChannels();
+
+            for (int i = diff-1; i < max_channels; i++) {
+                low_channels[0].copyTo(low_channels[i]);
+            }
+        }
+        else if (high_passed.numChannels() < max_channels ) {
+            int diff = max_channels - high_passed.numChannels();
+
+            for (int i = diff-1; i < max_channels; i++) {
+                high_channels[0].copyTo(high_channels[i]);
+            }
+        }
+
+        vector<Mat> result_channels(max_channels);
+
+        for (int i = 0; i < max_channels; i++) {
+            result_channels[i] = low_channels[i] + high_channels[i];
+        }
+
+        merge(result_channels, result);
     }
     else{
-        return low_passed + high_passed;
+        result = low_passed.image + high_passed.image;
     }
+
+    return Image(result);
 }
 
 void Image::draw(){
