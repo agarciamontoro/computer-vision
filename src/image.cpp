@@ -52,7 +52,7 @@ Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id 
 
     // The mask and the source/result channels need to have the same type.
     // They are all converted to CV_32FC1 in order not to lose precision.
-    Mat converted_mask
+    Mat converted_mask;
     mask.convertTo(converted_mask,CV_32FC1);
 
     // Per-channel processing
