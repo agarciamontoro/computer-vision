@@ -166,7 +166,21 @@ Image Image::highPassFilter(double sigma){
 Image Image::hybrid(Image high_freq, double sigma_low, double sigma_high){
     assert(this->image.size() == high_freq.image.size());
 
-    return this->lowPassFilter(sigma_low) + high_freq.highPassFilter(sigma_high);
+    Image low_passed = this->lowPassFilter(sigma_low);
+    Image high_passed = high_freq.highPassFilter(sigma_low);
+
+    if(this->numChannels() != high_freq.numChannels()){
+        max_channels = max(this->numChannels(), high_freq.numChannels());
+
+        vector<Mat> low_channels(max_channels);
+        vector<Mat> high_channels(max_channels);
+
+        split(this->image, low_channels);
+        split(high_freq, high_channels);
+    }
+    else{
+        return low_passed + high_passed;
+    }
 }
 
 void Image::draw(){
