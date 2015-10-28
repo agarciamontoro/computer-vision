@@ -10,3 +10,10 @@ Cuestionarios/*.fls
 Cuestionarios/*.log
 Cuestionarios/*.out
 Cuestionarios/*.synctex.gz
+
+Informes/*.aux
+Informes/*.fdb_latexmk
+Informes/*.fls
+Informes/*.log
+Informes/*.out
+Informes/*.synctex.gz
