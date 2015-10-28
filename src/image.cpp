@@ -256,6 +256,39 @@ Image Image::pyramidDown(double sigma){
     return blurred.reduceHalf();
 }
 
+Image Image::makePyramidCanvas(int num_levels){
+    Mat canvas = Mat(this->rows(),round(this->cols()*1.5),this->image.type());
+
+    Image pyramid_level = *this;
+
+    Mat level_zero = canvas( Rect(0,0,this->cols(),this->rows()) );
+    this->copyTo(level_zero);
+
+    Mat level_i;
+
+    int left, top, width, height;
+    left = this->cols();
+    top = 0;
+    height = 0;
+
+    for (int i = 1; i < num_levels; i++) {
+        pyramid_level = pyramid_level.pyramidDown();
+
+        top    += height;
+        width  = pyramid_level.cols();
+        height = pyramid_level.rows();
+
+        cout << "LEFT: " << left << "  TOP: " << top << "  WIDTH: " << width << "  HEIGHT: " << height << endl;
+
+        level_i = canvas( Rect(left,top,width,height) );
+
+        pyramid_level.copyTo(level_i);
+    }
+
+    return Image(canvas);
+
+}
+
 void Image::draw(){
     namedWindow( this->name, WINDOW_AUTOSIZE );
     imshow( this->name, this->image );

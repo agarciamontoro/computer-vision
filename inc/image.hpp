@@ -44,6 +44,7 @@ public:
 
     Image reduceHalf();
     Image pyramidDown(double sigma = 1.0);
+    Image makePyramidCanvas(int num_levels);
 
     void draw();
 

@@ -15,6 +15,9 @@ int main(){
      fish.reduceHalf().draw();
      fish.pyramidDown().draw();
 
+     Image pyramid_canvas = submarine.makePyramidCanvas(5);
+     pyramid_canvas.draw();
+
      waitKey(0);
      destroyAllWindows();
 }
