@@ -425,7 +425,13 @@ Image Image::overlapContours(double low, double high, Scalar color){
 
 void Image::draw(){
     namedWindow( this->name, WINDOW_AUTOSIZE );
-    imshow( this->name, this->image );
+
+    // Converts to 8-bits unsigned int to avoid problems
+    // in OpenCV implementations in Microsoft Windows.
+    Mat image_8U;
+    this->image.convertTo(image_8U, CV_8U);
+
+    imshow( this->name, image_8U );
 }
 
 /**
