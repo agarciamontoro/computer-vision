@@ -76,6 +76,74 @@
 
   \maketitle
 
+  \section{Introducción}
+
+  Las prácticas de esta asignatura se implementarán siguiendo el paradigma de orientación a objetos. Por ser esta la primera práctica, se describe aquí la estructura general que se seguirá durante todo el cuatrimestre.
+
+  La implementación gira en torno a la clase Image, que no es más que un \emph{wrapper} de la clase Mat de OpenCV. Sobre ella se definirán los métodos necesarios, siendo públicos sólo los que sean útiles de cara al usuario final.
+
+  Muchos de los métodos privados recibirán y devolverán objetos Mat, que son la base sobre la que se construye Image, mientras que los públicos trabajarán sobre el nivel de abstracción superior que añade esta clase. Además, se podrán definir como funciones \emph{friend} aquellas que no pertenezcan a la clase pero interactúen con ella de una forma profunda.
+
+  Los métodos se declaran en el fichero Image.hpp y se definen en Image.cpp. Reservamos el fichero consts.hpp para declarar y definir tipos de objetos o constantes que se necesiten en el desarrollo de las prácticas.
+
+  El fichero principal es main.cpp, cuyo método main() se actualizará para satisfacer las necesidades de cada práctica. Normalmente, se colocará un waitKey(0) entre los diferentes apartados de la práctica para facilitar su visionado.
+
+  Como primer contacto con la estructura de las prácticas, se expone aquí el estado de la clase Image tras finalizar este primer trabajo:
+
+  \begin{lstlisting}
+      class Image{
+      private:
+          static int num_images;
+
+          Mat image;
+          string name;
+          int ID;
+
+          void imageInit(string filename, string name, bool flag_color);
+
+          double gaussianFunction(double x, double sigma);
+          Mat getGaussMask(double sigma);
+          Mat convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id border_type);
+          Mat convolution2D(const Mat& signal_mat, const Mat& mask, enum border_id border_type);
+          void copyTo(Mat dst);
+
+
+      public:
+          ~Image();
+
+          Image(string filename );
+          Image(string filename, string name );
+          Image(string filename, bool flag_color);
+          Image(string filename, string name, bool flag_color);
+          Image(Mat img, string name = "Image");
+          Image(const Image& clone);
+
+          const Image operator-(const Image rhs) const;
+          const Image operator+(const Image rhs) const;
+
+          int numChannels();
+          int rows();
+          int cols();
+          string getName();
+          void setName(string name);
+
+          Image lowPassFilter(double sigma);
+          Image highPassFilter(double sigma);
+          Image hybrid(Image high_freq, double sigma_low, double sigma_high);
+
+          Image reduceHalf();
+          Image pyramidDown(double sigma = 1.0);
+          Image makePyramidCanvas(int num_levels);
+
+          Image overlapContours(double low, double high, Scalar color = Scalar(0,0,255));
+
+          void draw();
+
+          friend Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_high);
+      };
+  \end{lstlisting}
+
+  \newpage
   \section{Análisis de la implementación}
 
   \subsection{Función de convolución}
@@ -293,7 +361,7 @@
       }
   \end{lstlisting}
 
-  \subsubsection{Generación de la imagen híbrida}
+  \subsubsection*{Generación de la imagen híbrida}
   La implementación escogida, siguiendo el paradigma de orientación a objetos que se seguirá durante todo el curso, permite llamar al método hybrid() sobre un objeto imagen pasándole como argumento otra imagen. El comportamiento de la función es entonces como sigue: el objeto sobre el que es llamado la función será el usado para generar las frecuencias bajas y, el pasado como argumento, el que se usará para las frecuencias altas.
 
   La implementación no tiene más misterios, aunque de nuevo su código es menos legible debido a todo el trabajo que hay que hacer por separado con cada canal, además de la división y posterior unión de estos canales. El código es como sigue:
@@ -574,4 +642,59 @@
 
   \newpage
   \section{Análisis de resultados}
+
+  \subsection{Función de convolución}
+  El filtro de paso bajo funciona de la forma esperada, como se aprecia en las figuras \ref{gauss_original} y \ref{gauss_resultado}.
+
+  \begin{figure}[ht!]
+      \centering
+      \includegraphics[width=40mm]{../imagenes/capturas/I01-00.png}
+      \caption{Imagen original. \label{gauss_original}}
+  \end{figure}
+
+  \begin{figure}[ht!]
+      \centering
+      \includegraphics[width=40mm]{../imagenes/capturas/I01-01.png}
+      \caption{Imagen tras aplicarle filtro de paso bajo. \label{gauss_resultado}}
+  \end{figure}
+
+  \subsection{Imágenes híbridas}
+  La generación de imágenes híbridas, por otro lado, depende mucho de las imágenes originales y de los parámetros escogidos. La figura \ref{hibrida_1} es un primer ejemplo de su funcionalidad, donde se ven las imágenes intermedias y la imagen híbrida final.
+
+  \begin{figure}[ht!]
+      \centering
+      \includegraphics[width=140mm]{../imagenes/capturas/I01-02.png}
+      \caption{Imagen híbrida. \label{hibrida_1}}
+  \end{figure}
+
+  En este caso, como en el artículo de Oliva, Torralba y Schyns, se ha decidido tomar la imagen de frecuencias bajas en blanco y negro, para que al observar de cerca la imagen híbrida, sus formas se asocien con sombras. Los parámetros usados hacen variar mucho el resultado, y un estudio de su elección queda pendiente.
+
+  Otro ejemplo quizás mejor conseguido es el siguiente, donde las frecuencias altas corresponden a la imagen de un pez y las frecuencias bajas a la de un submarino. En la siguiente sección se ve la pirámide gaussiana construida a partir de este ejemplo, y es claro cómo al disimnuir el tamaño se identifica más el submarino y menos el pez.
+
+  \begin{figure}[ht!]
+      \centering
+      \includegraphics[width=110mm]{../imagenes/capturas/I01-05.png}
+      \caption{Imagen híbrida. \label{hibrida_2}}
+  \end{figure}
+
+
+  \subsection{Pirámide gaussiana}
+
+  La solución de la pirámide gaussiana es tal y como se espera. Tanto la reducción de tamaño como la construcción de la imagen con toda la pirámide son triviales. Mostramos un ejemplo en la figura \ref{piramide}, donde se aprecia, además de la construcción de la pirámide, la bondad del resultado de la imagen híbrida vista anteriormente.
+
+  \begin{figure}[ht!]
+      \centering
+      \includegraphics[width=130mm]{../imagenes/capturas/I01-03.png}
+      \caption{Pirámide gaussiana con imagen híbrida. \label{piramide}}
+  \end{figure}
+
+  \subsection{Bonus: detección de bordes}
+  La implementación de la detección de los bordes es también muy dependiente de los parámetros que se escojan y de la imagen sobre la que se trabaje. La figura \ref{bordes} refleja esta función en acción, donde se detectan los bordes de un avión de forma lejana a la óptima. Un estudio particular de las imágenes y de los parámetros necesarios para mejorar la detección de los bordes queda pendiente.
+
+  \begin{figure}[ht!]
+      \centering
+      \includegraphics[width=80mm]{../imagenes/capturas/I01-04.png}
+      \caption{Detección de bordes. \label{bordes}}
+  \end{figure}
+
 \end{document}
