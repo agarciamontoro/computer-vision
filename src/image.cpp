@@ -6,13 +6,20 @@ int Image::num_images = 0;
 
 /*************************** PRIVATE METHODS ***************************/
 
+/**
+ * Samples the 1D gaussian function at point x with parameter sigma
+ */
 double Image::gaussianFunction(double x, double sigma){
     return exp(-0.5*(x*x)/(sigma*sigma));
 }
 
+/**
+ * Builds a gaussian mask given the parameter sigma. The gaussian function is
+ * sampled in the interval [-3*sigma, 3*sigma].
+ */
 Mat Image::getGaussMask(double sigma){
     // Gaussian function needs to be sampled between -3*sigma and +3*sigma
-    // and the mask has to have an odd dimension
+    // and the mask has to have an odd dimension.
     int mask_size = 2*round(3*sigma) + 1;
 
     Mat gauss_mask = Mat(1,mask_size,CV_32FC1);
@@ -33,6 +40,10 @@ Mat Image::getGaussMask(double sigma){
     return gauss_mask;
 }
 
+/**
+ * Returns the result of convolving the uni-dimensional signal_vec with the
+ * mask, applying one of two types of borders: REFLECT or ZEROS.
+ */
 Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id border_type){
     assert(signal_vec.rows == 1 && mask.rows == 1 && mask.cols < signal_vec.cols);
 
@@ -40,7 +51,6 @@ Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id 
 
     // Initialization of source vector with additional borders.
     int border_size = mask.cols/2;  // Number of pixels added to each side
-
     Mat bordered;
     copyMakeBorder(signal_vec,bordered,0,0,border_size,border_size,border_type,0.0);
 
@@ -59,7 +69,9 @@ Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id 
     Mat converted_mask;
     mask.convertTo(converted_mask,CV_32FC1);
 
-    // Per-channel processing
+    // Per-channel processing: we need the source channels, the masked channels;
+    // i.e., the source channel focused in a ROI of the same size as the mask
+    // and the result channels.
     Mat source_channel, masked_channel, result_channel;
 
     for (int i = 0; i < num_channels; i++) {
@@ -86,15 +98,23 @@ Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id 
     return result;
 }
 
+/**
+ * Returns the result of convolving the two-dimensional signal_vec with a
+ * uni-dimensional mask, applied in both rows and columns with one of two types
+ * of borders: REFLECT or ZEROS.
+ */
 Mat Image::convolution2D(const Mat& signal_mat, const Mat& mask, enum border_id border_type){
     Mat result = Mat(signal_mat.size(), signal_mat.type());
 
+    // Row-processing: the uni-dimensional mask is applied to each row separately
     Mat result_row;
     for (int i = 0; i < result.rows; i++) {
         // Row i is replaced with its convolution
         convolution1D(this->image.row(i), mask, border_type).copyTo(result.row(i));
     }
 
+    // Column-processing: the same uni-dimensional mask is applied to each column
+    // separately
     Mat transposed_col;
     for (int j = 0; j < result.cols; j++) {
         // Column i is replaced with its convolution ---needs transposing, as convolution1D
@@ -107,6 +127,29 @@ Mat Image::convolution2D(const Mat& signal_mat, const Mat& mask, enum border_id 
     return result;
 }
 
+/**
+ * Wrapper of cv::copyTo() that can convert one-channel images into three-channels
+ * images.
+ */
+void Image::copyTo(Mat dst){
+    if (this->numChannels() < dst.channels()) {
+        Mat aux_3C;
+        cvtColor(this->image,aux_3C,CV_GRAY2RGB);
+        aux_3C.copyTo(dst);
+    }
+    else{
+        this->image.copyTo(dst);
+    }
+}
+
+void Image::imageInit(string filename, string name, bool flag_color){
+    this->image = flag_color ? imread(filename) : imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+    this->name = name;
+
+    num_images++;
+    this->ID = num_images;
+}
+
 /**************************** PUBLIC METHODS ****************************/
 
 /*_---------------* Destructor *_---------------*/
@@ -116,24 +159,42 @@ Image::~Image(){
 
 /*---------------* Constructors *---------------*/
 
-Image::Image(string filename, bool flag_color){
-    if(!flag_color)
-        this->image = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
-    else
-        this->image = imread(filename);
-
-    this->name = "Image " + to_string(num_images);
-    num_images++;
+Image::Image(string filename){
+    imageInit(filename, "Image", true);
 }
 
-Image::Image(Mat img){
+Image::Image(string filename, string name){
+    imageInit(filename, name, true);
+}
+
+Image::Image(string filename, bool flag_color){
+    imageInit(filename, "Image", flag_color);
+}
+
+Image::Image(string filename, string name, bool flag_color){
+    imageInit(filename, name, flag_color);
+}
+
+Image::Image(Mat img, string name){
     this->image = img.clone();
-    this->name = "Image " + to_string(num_images);
+    this->name = name;
     num_images++;
+    this->ID = num_images;
+}
+
+Image::Image(const Image& clone){
+    clone.image.copyTo(this->image);
+    this->name = clone.name;
+    num_images++;
+    this->ID = num_images;
+
 }
 
 /*---------------* Operators *---------------*/
 
+/**
+ * Wrapper of cv::Mat::operator-()
+ */
 const Image Image::operator-(const Image rhs) const{
     assert(this->image.size() == rhs.image.size());
 
@@ -142,6 +203,9 @@ const Image Image::operator-(const Image rhs) const{
     return Image(result);
 }
 
+/**
+ * Wrapper of cv::Mat::operator+()
+ */
 const Image Image::operator+(const Image rhs) const{
     assert(this->image.size() == rhs.image.size());
 
@@ -159,21 +223,23 @@ int Image::numChannels(){
 int Image::rows(){
     return this->image.rows;
 }
+
 int Image::cols(){
     return this->image.cols;
 }
 
-void Image::copyTo(Mat dst){
-    if (this->numChannels() < dst.channels()) {
-        Mat aux_3C;
-        cvtColor(this->image,aux_3C,CV_GRAY2RGB);
-        aux_3C.copyTo(dst);
-    }
-    else{
-        this->image.copyTo(dst);
-    }
+string Image::getName(){
+    return this->name;
 }
 
+void Image::setName(string name){
+    this->name = name;
+}
+
+/*
+ * Returns the result of applying a 2D convolution with a gaussian mask that is
+ * built with the parameter sigma.
+ */
 Image Image::lowPassFilter(double sigma){
     Mat gaussMask = getGaussMask(sigma);
 
@@ -182,27 +248,42 @@ Image Image::lowPassFilter(double sigma){
     return Image(result);
 }
 
+/*
+ * Returns the result of subtracting the low-pass-filtered source to the source
+ * itself, remaining the high frequencies.
+ */
 Image Image::highPassFilter(double sigma){
     return *this - this->lowPassFilter(sigma);
 }
 
+/*
+ * Mixes a low-pass-filtered version of the source with a high-pass-filtered
+ * version of high_freq image, returning an hybrid image whose appeareance
+ * changes dependening on the distance at which the image is seen.
+ */
 Image Image::hybrid(Image high_freq, double sigma_low, double sigma_high){
     assert(this->image.size() == high_freq.image.size());
 
     Mat result;
 
+    // Applies low-pass filter to the source and high-pass filter to high_freq.
     Image low_passed = this->lowPassFilter(sigma_low);
     Image high_passed = high_freq.highPassFilter(sigma_high);
 
+    // If the number of channels of both images is different, the image with the
+    // minimum number of cannels (1) is expanded to an image with the maximum
+    // number of channels (3) copying the first channel.
     if(low_passed.numChannels() != high_passed.numChannels()){
         int max_channels = max(low_passed.numChannels(), high_passed.numChannels());
 
+        //Both images are splitted in a vector with size = maximum number of channels
         vector<Mat> low_channels(max_channels);
         vector<Mat> high_channels(max_channels);
 
         split(low_passed.image, low_channels);
         split(high_passed.image, high_channels);
 
+        // The image with less channels is expanded
         if (low_passed.numChannels() < max_channels){
             int diff = max_channels - low_passed.numChannels();
 
@@ -220,6 +301,7 @@ Image Image::hybrid(Image high_freq, double sigma_low, double sigma_high){
 
         vector<Mat> result_channels(max_channels);
 
+        // Actual processing
         for (int i = 0; i < max_channels; i++) {
             result_channels[i] = low_channels[i] + high_channels[i];
         }
@@ -227,12 +309,17 @@ Image Image::hybrid(Image high_freq, double sigma_low, double sigma_high){
         merge(result_channels, result);
     }
     else{
+        // Actual processing if the number of channels is the same.
         result = low_passed.image + high_passed.image;
     }
 
     return Image(result);
 }
 
+/**
+ * Downsamples an image reducing its size by half. The returned image is
+ * a copy of the source with odd rows and columns removed.
+ */
 Image Image::reduceHalf(){
     Mat dst_rows = Mat(this->rows()/2, this->cols(),this->image.type());
     Mat dst = Mat(this->rows()/2, this->cols()/2,this->image.type());
@@ -250,39 +337,53 @@ Image Image::reduceHalf(){
     return Image(dst);
 }
 
+/*
+ * Returns the next level in a Gaussian pyramid: it simply blurres the source
+ * and then downsamples it by half
+ */
 Image Image::pyramidDown(double sigma){
-    Image blurred = this->lowPassFilter(sigma);
-
-
-    return blurred.reduceHalf();
+    return this->lowPassFilter(sigma).reduceHalf();
 }
 
+/*
+ * Returns an image filled with a Gaussian pyramid. The number of levels of the
+ * pyramid is set by num_levels
+ */
 Image Image::makePyramidCanvas(int num_levels){
+    // The size of the canvas is:
+    //  width:  image.width + image.width/2
+    //  height: image.height
     Mat canvas = Mat::zeros(this->rows(),round(this->cols()*1.5),this->image.type());
 
+    // First pyramid level: the source.
     Image pyramid_level = *this;
 
+    // Places the source in the first half of the canvas
     Mat level_zero = canvas( Rect(0,0,this->cols(),this->rows()) );
-    this->copyTo(level_zero);
+    pyramid_level.copyTo(level_zero);
 
-    Mat level_i;
 
+    // The next levels of the pyramid are treated in the loop.
+    Mat level_i; //ROI where the pyramid level i will be placed
+
+    // ROI variables
     int left, top, width, height;
-    left = this->cols();
+    left = this->cols(); // All levels (>0) are placed in the second half of the canvas
     top = 0;
     height = 0;
 
     for (int i = 1; i < num_levels; i++) {
+        // Blurred and downsampled image
         pyramid_level = pyramid_level.pyramidDown();
 
-        top    += height;
+        top    += height; // The top of the ROI is placed just below the previous level
         width  = pyramid_level.cols();
         height = pyramid_level.rows();
 
-        cout << "LEFT: " << left << "  TOP: " << top << "  WIDTH: " << width << "  HEIGHT: " << height << endl;
-
+        // ROI
         level_i = canvas( Rect(left,top,width,height) );
 
+        // Actual placing
         pyramid_level.copyTo(level_i);
     }
 

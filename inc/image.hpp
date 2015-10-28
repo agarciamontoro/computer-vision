@@ -16,18 +16,26 @@ private:
 
     Mat image;
     string name;
+    int ID;
+
+    void imageInit(string filename, string name, bool flag_color);
 
     double gaussianFunction(double x, double sigma);
     Mat getGaussMask(double sigma);
     Mat convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id border_type);
     Mat convolution2D(const Mat& signal_mat, const Mat& mask, enum border_id border_type);
+    void copyTo(Mat dst);
 
 
 public:
     ~Image();
 
-    Image(string filename, bool flag_color = true);
-    Image(Mat img);
+    Image(string filename );
+    Image(string filename, string name );
+    Image(string filename, bool flag_color);
+    Image(string filename, string name, bool flag_color);
+    Image(Mat img, string name = "Image");
+    Image(const Image& clone);
 
     const Image operator-(const Image rhs) const;
     const Image operator+(const Image rhs) const;
@@ -35,8 +43,9 @@ public:
     int numChannels();
     int rows();
     int cols();
+    string getName();
+    void setName(string name);
 
-    void copyTo(Mat dst);
 
     Image lowPassFilter(double sigma);
     Image highPassFilter(double sigma);
