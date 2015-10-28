@@ -40,8 +40,9 @@ public:
 
     Image lowPassFilter(double sigma);
     Image highPassFilter(double sigma);
-
     Image hybrid(Image high_freq, double sigma_low, double sigma_high);
+
+    Image reduceHalf();
 
     void draw();
 

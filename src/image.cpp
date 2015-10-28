@@ -233,6 +233,23 @@ Image Image::hybrid(Image high_freq, double sigma_low, double sigma_high){
     return Image(result);
 }
 
+Image Image::reduceHalf(){
+    Mat dst_rows = Mat(this->rows()/2, this->cols(),this->image.type());
+    Mat dst = Mat(this->rows()/2, this->cols()/2,this->image.type());
+
+    // First remove the odd rows
+    for (int i = 0; i < dst_rows.rows; i++) {
+        this->image.row(2*i).copyTo(dst_rows.row(i));
+    }
+    
+    // Then, remove the odd columns from the previous output
+    for (int i = 0; i < dst.cols; i++) {
+        dst_rows.col(2*i).copyTo(dst.col(i));
+    }
+
+    return Image(dst);
+}
+
 void Image::draw(){
     namedWindow( this->name, WINDOW_AUTOSIZE );
     imshow( this->name, this->image );
