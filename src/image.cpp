@@ -253,6 +253,7 @@ Image Image::reduceHalf(){
 Image Image::pyramidDown(double sigma){
     Image blurred = this->lowPassFilter(sigma);
 
+
     return blurred.reduceHalf();
 }
 
