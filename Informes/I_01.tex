@@ -1,0 +1,207 @@
+\documentclass[a4paper, 11pt]{article}
+
+%Comandos para configurar el idioma
+\usepackage[spanish,activeacute]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc} %Necesario para el uso de las comillas latinas.
+
+%Importante que esta sea la última órden del preámbulo
+\usepackage{hyperref}
+\hypersetup{
+  pdftitle={Informe de prácticas - 1},
+  pdfauthor={Alejandro García Montoro},
+  unicode,
+  plainpages=false,
+  colorlinks,
+  citecolor=black,
+  filecolor=black,
+  linkcolor=black,
+  urlcolor=black,
+}
+\newcommand\fnurl[2]{%
+  \href{#2}{#1}\footnote{\url{#2}}%
+}
+
+%Paquetes matemáticos
+\usepackage{amsmath,amsfonts,amsthm}
+\usepackage{enumerate} %Personalización de enumeraciones
+\usepackage{tikz} %Dibujos
+
+%Tipografía escalable
+\usepackage{lmodern}
+%Legibilidad
+\usepackage{microtype}
+
+%Código
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=C++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{Cuestionario de teoría \\ 1}
+\author{Alejandro García Montoro\\
+    \href{mailto:agarciamontoro@correo.ugr.es}{agarciamontoro@correo.ugr.es}}
+\date{\today}
+
+\theoremstyle{definition}
+\newtheorem{ejercicio}{Ejercicio}
+\newtheorem*{solucion}{Solución}
+
+\theoremstyle{theorem}
+\newtheorem{cuestion}{Cuestión}
+\newtheorem{bonus}{Bonus}
+\newtheorem{teorema}{Teorema}
+
+\begin{document}
+
+  \maketitle
+
+  \section{Análisis de la implementación}
+
+  \subsection{Función de convolución}
+
+  La implementación de la función de convolución 2D se construye sobre funciones más simples; a saber:
+  \begin{itemize}
+      \item Cálculo de una máscara gaussiana 1D.
+      \item Convolución 1D con una máscara general.
+  \end{itemize}
+
+  Sobre la convolución 2D se construye, además, la función lowPassFilter(), que implementa un filtro Gaussiano.
+
+  \subsubsection{Cálculo de una máscara gaussiana 1D}
+  La máscara gaussiana se construye con la función getGaussMask(), cuyo código se puede ver más abajo. Esta función devuelve un objeto Mat que representa un vector uni-dimensional generado a partir de la discretización de la función gaussiana en el intervalo $[-3\sigma, 3\sigma]$.
+
+  El tamaño de la máscara tiene que ser un número natural impar. Así, primero se redondea el resultado de triplicar el $\sigma$, luego se duplica lo anterior y por último se le añade uno.
+
+  Además, las máscaras de convolución tienen una restricción: la suma de sus valores tiene que ser igual a uno. Por tanto, primero se genera la máscara discretizando la función sin atender a esta restricción y luego se \emph{normaliza}; esto es, se divide cada valor de la máscara por la suma de todos ellos.
+
+  \begin{lstlisting}
+      /**
+       * Builds a gaussian mask given the parameter sigma. The gaussian function is
+       * sampled in the interval [-3*sigma, 3*sigma].
+       */
+      Mat Image::getGaussMask(double sigma){
+          // Gaussian function needs to be sampled between -3*sigma and +3*sigma
+          // and the mask has to have an odd dimension.
+          int mask_size = 2*round(3*sigma) + 1;
+
+          Mat gauss_mask = Mat(1,mask_size,CV_32FC1);
+
+          // It is necessary to normalize the mask, so the sum of its elements
+          // needs to be saved.
+          float values_sum = 0;
+
+          // Fills the mask with a sampled gaussian function and saves the sum of all elements
+          for (int i = 0; i < mask_size; i++) {
+              gauss_mask.at<float>(0,i) = gaussianFunction(i-mask_size/2, sigma);
+              values_sum += gauss_mask.at<float>(0,i);
+          }
+
+          // Normalizes the gauss mask.
+          gauss_mask = gauss_mask / values_sum;
+
+          return gauss_mask;
+      }
+  \end{lstlisting}
+
+  Los valores de la función gaussiana se consiguen con la siguiente implementación, que da el valor de la función en un punto $x$ con parámetro $\sigma$.
+  \begin{lstlisting}
+      /**
+       * Samples the 1D gaussian function at point x with parameter sigma
+       */
+      double Image::gaussianFunction(double x, double sigma){
+          return exp(-0.5*(x*x)/(sigma*sigma));
+      }
+  \end{lstlisting}
+
+  \subsubsection{Convolución 1D con una máscara general}
+
+  El siguiente paso es la implementación de una convolución uni-dimensional con una máscara general. El código es como sigue:
+
+  \begin{lstlisting}
+      /**
+       * Returns the result of convolving the uni-dimensional signal_vec with the
+       * mask, applying one of two types of borders: REFLECT or ZEROS.
+       */
+      Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id border_type){
+          assert(signal_vec.rows == 1 && mask.rows == 1 && mask.cols < signal_vec.cols);
+
+          int num_channels = signal_vec.channels();
+
+          // Initialization of source vector with additional borders.
+          int border_size = mask.cols/2;  // Number of pixels added to each side
+          Mat bordered;
+          copyMakeBorder(signal_vec,bordered,0,0,border_size,border_size,border_type,0.0);
+
+          // Splitting of the bordered vector for making a per-channel processing
+          vector<Mat> bordered_channels(num_channels);
+          split(bordered, bordered_channels);
+
+          // Declaration of the result vector -with same size and type as the
+          // original signal vector- and its splitted channels.
+          Mat result = Mat(signal_vec.size(), signal_vec.type());
+          vector<Mat> result_channels(num_channels);
+          split(result, result_channels);
+
+          // The mask and the source/result channels need to have the same type.
+          // They are all converted to CV_32FC1 in order not to lose precision.
+          Mat converted_mask;
+          mask.convertTo(converted_mask,CV_32FC1);
+
+          // Per-channel processing: we need the source channels, the masked channels;
+          // i.e., the source channel focused in a ROI of the same size as the mask
+          // and the result channels.
+          Mat source_channel, masked_channel, result_channel;
+
+          for (int i = 0; i < num_channels; i++) {
+              // Channel type conversion
+              bordered_channels[i].convertTo(source_channel, CV_32FC1);
+              result_channels[i].convertTo(result_channel, CV_32FC1);
+
+              // Actual processing
+              for (int j = 0; j < result.cols; j++) {
+                  // We focus on the zone centered at j with mask width
+                  masked_channel = source_channel(Rect(j,0,mask.cols,1));
+
+                  // Scalar product between the ROI'd source and the mask
+                  result_channel.at<float>(0,j)  = masked_channel.dot(converted_mask);
+              }
+
+              // Backwards conversion: the result should have the same type as the input image
+              result_channel.convertTo(result_channels[i],result_channels[i].type());
+          }
+
+          // Merging again the processed channels
+          merge(result_channels, result);
+
+          return result;
+      }
+  \end{lstlisting}
+
+  El tener que tratar todos los canales de la imagen por separado y después hacer de nuevo la unión hace el código algo más difícil de leer, pero la idea es sencilla:
+  \begin{enumerate}
+      \item Se genera un vector señal con bordes (replicados o a ceros, según la decisión del usuario). El tamaño de estos bordes es igual a la mitad del tamaño de la máscara menos uno.
+      \item Para cada píxel del vector señal con bordes
+  \end{enumerate}
+
+  \section{Análisis de resultados}
+\end{document}
