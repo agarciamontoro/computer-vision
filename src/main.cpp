@@ -13,6 +13,7 @@ int main(){
      hybrid_canvas.draw();
 
      fish.reduceHalf().draw();
+     fish.pyramidDown().draw();
 
      waitKey(0);
      destroyAllWindows();

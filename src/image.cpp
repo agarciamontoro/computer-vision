@@ -241,13 +241,19 @@ Image Image::reduceHalf(){
     for (int i = 0; i < dst_rows.rows; i++) {
         this->image.row(2*i).copyTo(dst_rows.row(i));
     }
-    
+
     // Then, remove the odd columns from the previous output
     for (int i = 0; i < dst.cols; i++) {
         dst_rows.col(2*i).copyTo(dst.col(i));
     }
 
     return Image(dst);
+}
+
+Image Image::pyramidDown(double sigma){
+    Image blurred = this->lowPassFilter(sigma);
+
+    return blurred.reduceHalf();
 }
 
 void Image::draw(){

@@ -43,6 +43,7 @@ public:
     Image hybrid(Image high_freq, double sigma_low, double sigma_high);
 
     Image reduceHalf();
+    Image pyramidDown(double sigma = 1.0);
 
     void draw();
 
