@@ -81,7 +81,7 @@ Mat Image::convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id 
 
         // Actual processing
         for (int j = 0; j < result.cols; j++) {
-            // We focus on the zone centered at j with mask width
+            // We focus on the zone centered at j+mask.cols/2 with mask width
             masked_channel = source_channel(Rect(j,0,mask.cols,1));
 
             // Scalar product between the ROI'd source and the mask
@@ -271,8 +271,8 @@ Image Image::hybrid(Image high_freq, double sigma_low, double sigma_high){
     Image high_passed = high_freq.highPassFilter(sigma_high);
 
     // If the number of channels of both images is different, the image with the
-    // minimum number of cannels (1) is expanded to an image with the maximum
-    // number of channels (3) copying the first channel.
+    // minimum number of channels (tested with 1) is expanded to an image with the
+    // maximum number of channels (tested with 3) copying the first channel.
     if(low_passed.numChannels() != high_passed.numChannels()){
         int max_channels = max(low_passed.numChannels(), high_passed.numChannels());
 
@@ -430,21 +430,28 @@ void Image::draw(){
     imshow( this->name, this->image );
 }
 
+/**
+ * Returns an image object with the low frequencies image, the high frequencies image and the hybrid image
+ * all placed in the same canvas.
+ */
 Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_high){
     assert(low.image.size() == high.image.size());
 
+    // Generates the low frequencies, high frequencies and hybrid images.
     Image low_passed = low.lowPassFilter(sigma_low);
     Image high_passed = high.highPassFilter(sigma_high);
     Image hybrid = low.hybrid(high,sigma_low,sigma_high);
 
+    // Declare the final canvas
     Mat canvas = Mat(hybrid.rows(),3*hybrid.cols(),hybrid.image.type());
 
+    // Obtain the three ROIs needed to place the images in the canvas
     vector<Mat> slots(3);
-
     for (int i = 0; i < 3; i++) {
         slots[i] = canvas( Rect(i*hybrid.cols(),0,hybrid.cols(),hybrid.rows()) );
     }
 
+    // Places the images in the canvas ROIs
     low_passed.copyTo(slots[0]);
     high_passed.copyTo(slots[1]);
     hybrid.copyTo(slots[2]);

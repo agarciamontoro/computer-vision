@@ -57,7 +57,7 @@
   tabsize=3
 }
 
-\title{Cuestionario de teoría \\ 1}
+\title{Informe de prácticas \\ 1}
 \author{Alejandro García Montoro\\
     \href{mailto:agarciamontoro@correo.ugr.es}{agarciamontoro@correo.ugr.es}}
 \date{\today}
@@ -87,7 +87,7 @@
 
   Sobre la convolución 2D se construye, además, la función lowPassFilter(), que implementa un filtro Gaussiano.
 
-  \subsubsection{Cálculo de una máscara gaussiana 1D}
+  \subsubsection*{Cálculo de una máscara gaussiana 1D}
   La máscara gaussiana se construye con la función getGaussMask(), cuyo código se puede ver más abajo. Esta función devuelve un objeto Mat que representa un vector uni-dimensional generado a partir de la discretización de la función gaussiana en el intervalo $[-3\sigma, 3\sigma]$.
 
   El tamaño de la máscara tiene que ser un número natural impar. Así, primero se redondea el resultado de triplicar el $\sigma$, luego se duplica lo anterior y por último se le añade uno.
@@ -133,9 +133,9 @@
       }
   \end{lstlisting}
 
-  \subsubsection{Convolución 1D con una máscara general}
+  \subsubsection*{Convolución 1D con una máscara general}
 
-  El siguiente paso es la implementación de una convolución uni-dimensional con una máscara general. El código es como sigue:
+  El siguiente paso es la implementación de una convolución uni-dimensional con una máscara general. La función devuelve un objeto Mat, que representa el resultado de hacer la convolución del vector uni-dimensional signal\_vec con la máscara mask. El código es el siguiente:
 
   \begin{lstlisting}
       /**
@@ -179,7 +179,7 @@
 
               // Actual processing
               for (int j = 0; j < result.cols; j++) {
-                  // We focus on the zone centered at j with mask width
+                  // We focus on the zone centered at j+mask.cols/2 with mask width
                   masked_channel = source_channel(Rect(j,0,mask.cols,1));
 
                   // Scalar product between the ROI'd source and the mask
@@ -199,9 +199,214 @@
 
   El tener que tratar todos los canales de la imagen por separado y después hacer de nuevo la unión hace el código algo más difícil de leer, pero la idea es sencilla:
   \begin{enumerate}
-      \item Se genera un vector señal con bordes (replicados o a ceros, según la decisión del usuario). El tamaño de estos bordes es igual a la mitad del tamaño de la máscara menos uno.
-      \item Para cada píxel del vector señal con bordes
+      \item Se genera un vector señal con bordes ---replicados o a ceros, según la decisión del usuario---. El tamaño de estos bordes es igual a la mitad del tamaño de la máscara menos uno.
+      \item A cada píxel $j$ del vector resultado ---que tiene tamaño igual al vector señal--- se le asigna el resultado del producto escalar de la máscara con la zona apropiada del vector señal; es decir, con una zona del vector señal de tamaño igual a la máscara y centrada en el píxel $j+mask.cols/2$.
   \end{enumerate}
+
+  Este sencillo algoritmo hay que hacerlo para cada canal, con lo que antes del procesamiento hay que separar el vector señal y el vector resultado y después del procesamiento unir los canales del resultado. Todo este trabajo se hace con las funciones split() y merge() de OpenCV.
+
+  Para la generación del vector señal con bordes se ha usado la función copyMakeBorder(), que hace justo lo que se necesita: generar una matriz con los bordes especificados y del tipo que se deseen. Como su penúltimo argumento recibe una constante de OpenCV especificando qué tipo de borde se desea, en esta implementación que permite sólo dos tipos se ha decidido declarar el siguiente tipo de dato, que es el que recibe la función implementada:
+
+  \begin{lstlisting}
+      enum border_id{
+          REFLECT = cv::BORDER_REFLECT,
+          ZEROS = cv::BORDER_CONSTANT
+      };
+  \end{lstlisting}
+
+  \subsubsection*{Convolución 2D con una máscara general}
+
+  Esta función simplemente aplica, por filas y columnas, la convolución 1D con la máscara uni-dimensional especificada. Así, devuelve un objeto Mat que representa el resultado de hacer la convolución 2D con la máscara bi-dimensional resultado de hacer el producto matricial de la máscara uni-dimensional consigo misma. El código es el siguiente:
+
+  \begin{lstlisting}
+      /**
+       * Returns the result of convolving the two-dimensional signal_vec with a
+       * uni-dimensional mask, applied in both rows and columns with one of two types
+       * of borders: REFLECT or ZEROS.
+       */
+      Mat Image::convolution2D(const Mat& signal_mat, const Mat& mask, enum border_id border_type){
+          Mat result = Mat(signal_mat.size(), signal_mat.type());
+
+          // Row-processing: the uni-dimensional mask is applied to each row separately
+          Mat result_row;
+          for (int i = 0; i < result.rows; i++) {
+              // Row i is replaced with its convolution
+              convolution1D(this->image.row(i), mask, border_type).copyTo(result.row(i));
+          }
+
+          // Column-processing: the same uni-dimensional mask is applied to each column
+          // separately
+          Mat transposed_col;
+          for (int j = 0; j < result.cols; j++) {
+              // Column i is replaced with its convolution ---needs transposing, as convolution1D
+              // works with row vectors---.
+              transpose(result.col(j),transposed_col);
+              transpose(convolution1D(transposed_col, mask, border_type), result.col(j));
+          }
+
+          // Returns the convoluted image
+          return result;
+      }
+  \end{lstlisting}
+
+  El código es claro. Lo único que hay que destacar es que para hacer la convolución 1D por columnas lo que se hace es, para cada columna:
+  \begin{enumerate}
+      \item Trasponer la columna.
+      \item Aplicar la convolución 1D con la función anterior.
+      \item Trasponer el resultado e insertarlo en el objeto Mat que será devuelto.
+  \end{enumerate}
+
+  \subsubsection*{Filtro gaussiano}
+  Con las funciones anteriores es entonces directo implementar el filtro gaussiano. Basta calcular la máscara gaussiana dado un $\sigma$ y hacer la convolución 2D de la imagen original y la máscara. El código es el siguiente:
+
+  \begin{lstlisting}
+      /*
+       * Returns the result of applying a 2D convolution with a gaussian mask that is
+       * built with the parameter sigma.
+       */
+      Image Image::lowPassFilter(double sigma){
+          Mat gaussMask = getGaussMask(sigma);
+
+          Mat result  = convolution2D(this->image, gaussMask, REFLECT);
+
+          return Image(result);
+      }
+  \end{lstlisting}
+
+
+  \subsection{Imágenes híbridas}
+  Una imagen híbrida no es más que el resultado de sumar una imagen a la que se ha aplicado un filtro de paso bajo con otra a la que se le ha aplicado un filtro de paso alto.
+
+  La implementación del filtro de paso bajo es la anterior, así que sólo falta especificar la implementación del filtro de paso alto y de la generación de la imagen híbrida.
+
+  \subsubsection*{Filtro de paso alto}
+  El filtro alto implementado es sencillo: se hace la diferencia entre la imagen original y una versión de ella misma a la que se le ha aplicado el filtro de paso bajo. Así, quedan las altas frecuencias de la imagen, que es lo que necesitamos. El código es el siguiente:
+
+  \begin{lstlisting}
+      /*
+       * Returns the result of subtracting the low-pass-filtered source to the source
+       * itself, remaining the high frequencies.
+       */
+      Image Image::highPassFilter(double sigma){
+          return *this - this->lowPassFilter(sigma);
+      }
+  \end{lstlisting}
+
+  \subsubsection{Generación de la imagen híbrida}
+  La implementación escogida, siguiendo el paradigma de orientación a objetos que se seguirá durante todo el curso, permite llamar al método hybrid() sobre un objeto imagen pasándole como argumento otra imagen. El comportamiento de la función es entonces como sigue: el objeto sobre el que es llamado la función será el usado para generar las frecuencias bajas y, el pasado como argumento, el que se usará para las frecuencias altas.
+
+  La implementación no tiene más misterios, aunque de nuevo su código es menos legible debido a todo el trabajo que hay que hacer por separado con cada canal, además de la división y posterior unión de estos canales. El código es como sigue:
+  \begin{lstlisting}
+      /*
+       * Mixes a low-pass-filtered version of the source with a high-pass-filtered
+       * version of high_freq image, returning an hybrid image whose appeareance
+       * changes dependening on the distance at which the image is seen.
+       */
+      Image Image::hybrid(Image high_freq, double sigma_low, double sigma_high){
+          assert(this->image.size() == high_freq.image.size());
+
+          Mat result;
+
+          // Applies low-pass filter to the source and high-pass filter to high_freq.
+          Image low_passed = this->lowPassFilter(sigma_low);
+          Image high_passed = high_freq.highPassFilter(sigma_high);
+
+          // If the number of channels of both images is different, the image with the
+          // minimum number of channels (tested with 1) is expanded to an image with the
+          // maximum number of channels (tested with 3) copying the first channel.
+          if(low_passed.numChannels() != high_passed.numChannels()){
+              int max_channels = max(low_passed.numChannels(), high_passed.numChannels());
+
+              //Both images are splitted in a vector with size = maximum number of channels
+              vector<Mat> low_channels(max_channels);
+              vector<Mat> high_channels(max_channels);
+
+              split(low_passed.image, low_channels);
+              split(high_passed.image, high_channels);
+
+              // The image with less channels is expanded
+              if (low_passed.numChannels() < max_channels){
+                  int diff = max_channels - low_passed.numChannels();
+
+                  for (int i = diff-1; i < max_channels; i++) {
+                      low_channels[0].copyTo(low_channels[i]);
+                  }
+              }
+              else if (high_passed.numChannels() < max_channels ) {
+                  int diff = max_channels - high_passed.numChannels();
+
+                  for (int i = diff-1; i < max_channels; i++) {
+                      high_channels[0].copyTo(high_channels[i]);
+                  }
+              }
+
+              vector<Mat> result_channels(max_channels);
+
+              // Actual processing
+              for (int i = 0; i < max_channels; i++) {
+                  result_channels[i] = low_channels[i] + high_channels[i];
+              }
+
+              merge(result_channels, result);
+          }
+          else{
+              // Actual processing if the number of channels is the same.
+              result = low_passed.image + high_passed.image;
+          }
+
+          return Image(result);
+      }
+
+  \end{lstlisting}
+
+  Como se ve, el procesamiento real se reduce a una única línea:
+  \begin{lstlisting}
+      result = low_passed.image + high_passed.image;
+  \end{lstlisting}
+
+  La imagen híbrida devuelta es entonces la suma de una imagen con un filtro de paso bajo y otra con un filtro de paso alto.
+
+  \subsubsection*{Dibujo de las tres imágenes}
+  Se ha implementado, además, una función adicional que permite generar un \emph{lienzo} con las tres imágenes ---la de frecuencias bajas, la de frecuencias altas y la híbrida--- en una misma imagen.
+
+  Se ha declarado como una función \emph{friend} de la clase, pues no es un método propio del objeto Imagen pero necesita acceder a varios de sus atributos y métodos privados. El código es como sigue:
+
+  \begin{lstlisting}
+      /**
+       * Returns an image object with the low frequencies image, the high frequencies image and the hybrid image
+       * all placed in the same canvas.
+       */
+      Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_high){
+          assert(low.image.size() == high.image.size());
+
+          // Generates the low frequencies, high frequencies and hybrid images.
+          Image low_passed = low.lowPassFilter(sigma_low);
+          Image high_passed = high.highPassFilter(sigma_high);
+          Image hybrid = low.hybrid(high,sigma_low,sigma_high);
+
+          // Declare the final canvas
+          Mat canvas = Mat(hybrid.rows(),3*hybrid.cols(),hybrid.image.type());
+
+          // Obtain the three ROIs needed to place the images in the canvas
+          vector<Mat> slots(3);
+          for (int i = 0; i < 3; i++) {
+              slots[i] = canvas( Rect(i*hybrid.cols(),0,hybrid.cols(),hybrid.rows()) );
+          }
+
+          // Places the images in the canvas ROIs
+          low_passed.copyTo(slots[0]);
+          high_passed.copyTo(slots[1]);
+          hybrid.copyTo(slots[2]);
+
+          return Image(canvas);
+      }
+  \end{lstlisting}
+
+  La función recibe dos imágenes y los valores de la generación de la función híbrida. Lo único que hace entonces es calcular la imagen de bajas frecuencias, la de altas frecuencias y la híbrida.
+
+  Una vez se han calculado estas imágenes se genera otra cuyo alto es el de la imagen original y cuyo ancho es de tres veces el ancho original. Después de insertar en esta nueva imagen las tres imágenes generadas, se devuelve un objeto Image con este canvas.
+
+  \subsection{Pirámide gaussiana}
 
   \section{Análisis de resultados}
 \end{document}
