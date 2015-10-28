@@ -257,7 +257,7 @@ Image Image::pyramidDown(double sigma){
 }
 
 Image Image::makePyramidCanvas(int num_levels){
-    Mat canvas = Mat(this->rows(),round(this->cols()*1.5),this->image.type());
+    Mat canvas = Mat::zeros(this->rows(),round(this->cols()*1.5),this->image.type());
 
     Image pyramid_level = *this;
 
