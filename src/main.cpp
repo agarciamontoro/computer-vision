@@ -28,7 +28,7 @@ int main(){
     Image submarine("imagenes/submarine.bmp");
 
     Image hybrid = submarine.hybrid(fish,4.0,3.0);
-    Image pyramid_canvas = hybrid.makePyramidCanvas(5);
+    Image pyramid_canvas = hybrid.makePyramidCanvas(7);
 
     pyramid_canvas.setName("Gaussian pyramid.");
     pyramid_canvas.draw();

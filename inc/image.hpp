@@ -54,7 +54,7 @@ public:
     Image pyramidDown(double sigma = 1.0);
     Image makePyramidCanvas(int num_levels);
 
-    Image overlapContours(double low, double high);
+    Image overlapContours(double low, double high, Scalar color = Scalar(0,0,255));
 
     void draw();
 
