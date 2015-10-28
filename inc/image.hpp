@@ -46,7 +46,6 @@ public:
     string getName();
     void setName(string name);
 
-
     Image lowPassFilter(double sigma);
     Image highPassFilter(double sigma);
     Image hybrid(Image high_freq, double sigma_low, double sigma_high);
@@ -54,6 +53,8 @@ public:
     Image reduceHalf();
     Image pyramidDown(double sigma = 1.0);
     Image makePyramidCanvas(int num_levels);
+
+    Image overlapContours(double low, double high);
 
     void draw();
 

@@ -35,4 +35,14 @@ int main(){
 
     waitKey(0);
     destroyAllWindows();
+
+    Image plane("imagenes/plane.bmp");
+
+    Image contours_plane = plane.overlapContours(30,80);
+
+    contours_plane.setName("Detecting contours with Canny filter");
+    contours_plane.draw();
+
+    waitKey(0);
+    destroyAllWindows();
 }

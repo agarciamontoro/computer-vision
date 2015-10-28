@@ -391,6 +391,40 @@ Image Image::makePyramidCanvas(int num_levels){
 
 }
 
+Image Image::overlapContours(double low, double high){
+    Mat canny_output;
+    vector< vector<Point> > contours;
+    vector<Vec4i> hierarchy;
+
+    // Blurs the source to get more accurate contours
+    Image source = this->lowPassFilter(1.0);
+
+    // Converts source to gray scale
+    Mat gray_source;
+    if (this->numChannels() > 1) {
+        cvtColor(source.image, gray_source, CV_RGB2GRAY);
+    }
+    else{
+        gray_source = source.image;
+    }
+
+    // Detects edges using Canny Filter
+    Canny( gray_source, canny_output, low, high );
+
+    // Finds contours and store the result in contours and hierarchy variables.
+    findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE );
+
+    // Draws red contours
+    Image result(*this);
+    Scalar red = Scalar(0,0,255);
+
+    for( unsigned int i = 0; i< contours.size(); i++ ){
+        drawContours( result.image, contours, i, red, 2, 8, hierarchy, 0, Point() );
+    }
+
+    return result;
+}
+
 void Image::draw(){
     namedWindow( this->name, WINDOW_AUTOSIZE );
     imshow( this->name, this->image );
