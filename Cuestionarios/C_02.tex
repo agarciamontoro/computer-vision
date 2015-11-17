@@ -1,0 +1,497 @@
+\documentclass[a4paper, 11pt]{article}
+
+%Comandos para configurar el idioma
+\usepackage[spanish,activeacute]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc} %Necesario para el uso de las comillas latinas.
+
+%Importante que esta sea la última órden del preámbulo
+\usepackage{hyperref}
+\hypersetup{
+  pdftitle={Cuestionario de teoría - 2},
+  pdfauthor={Alejandro García Montoro},
+  unicode,
+  plainpages=false,  colorlinks,
+  citecolor=black,
+  filecolor=black,
+  linkcolor=black,
+  urlcolor=black,
+}
+\newcommand\fnurl[2]{%
+  \href{#2}{#1}\footnote{\url{#2}}%
+}
+
+%Paquetes matemáticos
+\usepackage{amsmath,amsfonts,amsthm}
+%\usepackage[all]{xy} %Para diagramas
+\usepackage{enumerate} %Personalización de enumeraciones
+\usepackage{tikz} %Dibujos
+
+%Tipografía escalable
+\usepackage{lmodern}
+%Legibilidad
+\usepackage{microtype}
+
+%Código
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{Cuestionario de teoría \\ 2}
+\author{Alejandro García Montoro\\
+    \href{mailto:agarciamontoro@correo.ugr.es}{agarciamontoro@correo.ugr.es}}
+\date{\today}
+
+\theoremstyle{definition}
+\newtheorem{ejercicio}{Ejercicio}
+\newtheorem*{solucion}{Solución}
+
+\theoremstyle{theorem}
+\newtheorem{cuestion}{Cuestión}
+\newtheorem{bonus}{Bonus}
+\newtheorem{teorema}{Teorema}
+
+\begin{document}
+
+  \maketitle
+
+  \section{Cuestiones}
+
+  \begin{ejercicio}
+      ¿Identificar la/s diferencia/s esencial/es entre el plano afín y el plano proyectivo? ¿Cuáles son sus consecuencias? Justificar la contestación.
+  \end{ejercicio}
+
+  \begin{solucion}
+      Podemos pensar el plano proyectivo como el conjunto de rectas en el espacio que pasan por el origen.
+
+      La diferencia más clara entre las geometrías afines y proyectivas es que el enunciado que dio Euclides para la geometría afín ---que no es más que una generalización moderna de la geometría euclidiana--- se traduce en uno más simple.
+
+      Así, lo que todos conocemos:
+      \begin{quote}
+          Dos rectas se cortan en un punto o son paralelas
+      \end{quote}
+      se convierte en algo más sencillo:
+      \begin{quotation}
+          Dos rectas se cortan siempre en un punto
+      \end{quotation}
+
+      Las consecuencias de esto son directas. Si consideramos la anterior descripción del plano proyectivo y situamos un observador en el origen, los elementos del plano ---que son todas las rectas que pasan por el observador--- pueden entenderse como rayos de luz que llegan hasta él, y que forman una proyección bidimensional de una escena tridimensional.
+  \end{solucion}
+
+  \begin{ejercicio}
+      Verificar que en coordenadas homogéneas el vector de la recta definida por dos puntos puede calcularse como el producto vectorial de los vectores de los puntos ($l = x \times x'$). De igual modo el punto intersección de dos rectas $l$ y $l'$ está dado por $x = l \times l'$.
+  \end{ejercicio}
+
+  \begin{solucion}
+      En coordenadas cartesianas, la ecuación genérica de una recta es:
+      \[
+      ax_1 + bx_2 + c = 0
+      \]
+      donde $(-b,a)\in\mathbb{R}^2$ es el vector director de dicha recta.
+
+      Por tanto, los puntos $[x_1,x_2,x_3]$ en coordenadas homogéneas que están en esa recta son los que cumplen la ecuación
+      \[
+      ax_1 + bx_2 + cx_3 = 0
+      \]
+
+      Nuestro problema es ahora, dados dos puntos, $x=[x_1,x_2,x_3]$ y $x'=[x_1',x_2',x_3']$, encontrar la recta que los une; es decir, encontrar los $a,b,c$ tales que se cumplen estas dos ecuaciones:
+      \[
+      \begin{cases}
+          ax_1 + bx_2 + cx_3 &= 0 \\
+          ax_1' + bx_2' + cx_3' &= 0
+      \end{cases}
+      \]
+
+      Pero resolver ese sistema se reduce a calcular el producto vectorial de los dos puntos:
+      \[
+      x \times x' =
+      \begin{vmatrix}
+          i & j & k \\
+          x_1 & x_2 & x_3 \\
+          x_1' & x_2' & x_3' \\
+      \end{vmatrix} =
+      [x_2x_3'-x_3x_2', x_3x_1'-x_1x_3', x_1x_2'-x_2x_1']
+      \]
+
+      Es inmediato comprobar que el vector $l = [x_2x_3'-x_3x_2', x_3x_1'-x_1x_3', x_1x_2'-x_2x_1']$ cumple las dos ecuaciones:
+      \[
+      \begin{cases}
+          (x_2x_3'-x_3x_2')x_1 + (x_3x_1'-x_1x_3')x_2 + (x_1x_2'-x_2x_1')x_3 &= 0 \\
+          (x_2x_3'-x_3x_2')x_1' + (x_3x_1'-x_1x_3')x_2' + (x_1x_2'-x_2x_1')x_3' &= 0
+      \end{cases}
+      \]
+      y es, por tanto, el vector de la recta que buscamos.
+
+      De forma simétrica, el punto interescción de las rectas $l=[l_1,l_2,l_3]$ y $l'=[l_1',l_2',l_3']$ es el punto $x=[x_1,x_2,x_3]$ que cumple a la vez las dos ecuaciones que determinan las rectas:
+      \[
+      \begin{cases}
+          l_1x_1 + l_2x_2 + l_3x_3 &= 0 \\
+          l_1'x_1 + l_2'x_2 + l_3'x_3 &= 0
+      \end{cases}
+      \]
+
+      Es clara la simetría entre este problema y el anterior ---situación que no es casual, ya que responde al principio de dualidad del plano proyectivo; es decir: el espacio dual del plano proyectivo es isomorfo al plano proyectivo---, así que es evidente que la solución a este sistema es el producto vectorial de las dos líneas:
+      \[
+      x = l \times l' =
+      \begin{vmatrix}
+          i & j & k \\
+          l_1 & l_2 & l_3 \\
+          l_1' & l_2' & l_3' \\
+      \end{vmatrix} =
+      [l_2l_3'-l_3l_2', l_3l_1'-l_1l_3', l_1l_2'-l_2l_1']
+      \]
+  \end{solucion}
+
+  \begin{ejercicio}
+      Sean $x$ y $l$ un punto y una recta respectivamente en un plano proyectivo $P_1$ y suponemos que la recta $l$ pasa por el punto $x$, es decir $l^Tx=0$. Sean $x'$ y $l'$ un punto y una recta del plano proyectivo $P'$ donde al igual que antes $l'^Tx'=0$. Supongamos que existe un homografía de puntos $H$ entre ambos planos proyectivos, es decir $x'=Hx$. Deducir de las ecuaciones anteriores la expresión para la homografía $G$ que relaciona los vectores de las rectas, es decir $G$ tal que $l'$=$Gl$. Justificar la respuesta.
+  \end{ejercicio}
+
+  \begin{solucion}
+      Por hipótesis, tenemos que
+      \begin{equation}
+          l'^Tx'=0 \label{rectaprima}
+      \end{equation}
+
+      Por la homografía $H$, podemos escribir \ref{rectaprima} como
+      \begin{equation}
+          l'^THx=0 \label{rectah}
+      \end{equation}
+
+      Pero por hipótesis sabemos que $l^Tx = 0$, luedo podemos igualar y obtenemos
+      \begin{equation}
+          l'^THx = l^Tx
+      \end{equation}
+      de donde deducimos directamente que
+      \begin{equation}
+          l'^TH = l^T \label{casi}
+      \end{equation}
+
+      Ahora podemos deshacernos de la $H$ multiplicando por su inversa a la derecha ---sabemos que existe porque las homografías son isomorfismos---, y llegamos a una expresión que se parece mucho a lo que queríamos:
+      \begin{equation}
+          l'^T = l^TH^{-1} \label{casicasi}
+      \end{equation}
+
+      Ahora sólo falta tomar transpuestas en \ref{casicasi}. Teniendo en cuenta que la transpuesta de un producto es el producto de las transpuestas con el orden invertido ---es decir, $(AB)^T = B^TA^T$---, llegamos a la expresión que buscábamos:
+      \begin{equation}
+          l' = (H^{-1})^Tl
+      \end{equation}
+
+      Concluimos que la homografía $G$ que relaciona los vectores de las rectas $l$ y $l'$ es
+      \[
+      G = (H^{-1})^T
+      \]
+  \end{solucion}
+
+  \begin{ejercicio}
+      Suponga la imagen de un plano en donde el vector $l=(l_1,l_2,l_3)$ representa la proyección de la recta del infinito del plano en la imagen. Sabemos que si conseguimos aplicar a nuestra imagen una homografía $G$ tal que si $l'= Gl$, siendo $l'^T =(0,0,1)$ entonces habremos rectificado nuestra imagen llevándola de nuevo al plano afín. Suponiendo que la recta definida por $l$ no pasa por el punto $(0,0)$ del plano imagen, encontrar la homografía $G$. Justificar la respuesta.
+  \end{ejercicio}
+
+  \begin{ejercicio}
+      Identificar los movimientos elementales (traslación, giro, escala, cizalla, proyectivo) representados por las homografías $H_1$, $H_2$, $H_3$ y $H_4$:
+      \begin{align*}
+          H_1 &= \left(
+          \begin{array}{ccc}
+              1 & 0 & 3 \\
+              0 & 1 & 5 \\
+              0 & 0 & 1
+          \end{array}
+          \right)
+          \left(
+          \begin{array}{ccc}
+              0.5 & 0 & 0 \\
+              0 & 0.3 & 0 \\
+              0 & 0 & 1
+          \end{array}
+          \right)
+          \left(
+          \begin{array}{ccc}
+              1 & 3 & 0 \\
+              0 & 1 & 0 \\
+              0 & 0 & 1
+          \end{array}
+          \right) \\
+          H_2 &= \left(
+          \begin{array}{ccc}
+              0 & 1 & -3 \\
+              -1 & 0 & 2 \\
+              0 & 0 & 1
+          \end{array}
+          \right)
+          \left(
+          \begin{array}{ccc}
+              2 & 0 & 0 \\
+              2 & 2 & 0 \\
+              0 & 0 & 1
+          \end{array}
+          \right) \\
+          H_3 &= \left(
+          \begin{array}{ccc}
+              1 & 0.5 & 0 \\
+              0.5 & 2 & 0 \\
+              0 & 0 & 1
+          \end{array}
+          \right)
+          \left(
+          \begin{array}{ccc}
+              1 & 0 & 0 \\
+              0 & 1 & 0 \\
+              -1 & 0 & 1
+          \end{array}
+          \right)\\
+          H_4 &= \left(
+          \begin{array}{ccc}
+              2 & 0 & 3 \\
+              0 & 2 & -1 \\
+              0 & 1 & 2
+          \end{array}
+          \right)
+      \end{align*}
+  \end{ejercicio}
+
+  \begin{solucion}
+      La matriz $H_1$ es una transformación afín ---la última fila es $0 0 1$---, formada por la composición de una cizalla, una escala y una traslación, aplicadas en ese orden.
+
+      La matriz $H_2$ es también una transformación afín, aunque ahora las matrices que la forman no son de los tipos que conocemos. Si las descomponemos, es más fácil ver qué movimientos elementales producen:
+      \begin{align*}
+          H_{2_1} &= \left(
+          \begin{array}{ccc}
+              0 & 1 & -3 \\
+              -1 & 0 & 2 \\
+              0 & 0 & 1
+          \end{array}
+          \right) =
+          \left(
+          \begin{array}{ccc}
+              0 & 1 & 0 \\
+              -1 & 0 & 0 \\
+              0 & 0 & 1
+          \end{array}
+          \right)
+          \left(
+          \begin{array}{ccc}
+              1 & 0 & -2 \\
+              0 & 1 & -3 \\
+              0 & 0 & 1
+          \end{array}
+          \right) \\
+          H_{2_2} &= \left(
+          \begin{array}{ccc}
+              2 & 0 & 0 \\
+              2 & 2 & 0 \\
+              0 & 0 & 1
+          \end{array}
+          \right) =
+          \left(
+          \begin{array}{ccc}
+              2 & 0 & 0 \\
+              0 & 2 & 0 \\
+              0 & 0 & 1
+          \end{array}
+          \right)
+          \left(
+          \begin{array}{ccc}
+              1 & 0 & 0 \\
+              1 & 1 & 0 \\
+              0 & 0 & 1
+          \end{array}
+          \right)
+      \end{align*}
+
+      Por tanto, podemos escribir $H_2$ como sigue:
+      \[
+      H_2 =
+      \left(\begin{array}{ccc}
+          0 & 1 & 0 \\
+          -1 & 0 & 0 \\
+          0 & 0 & 1
+      \end{array}
+      \right)
+      \left(
+      \begin{array}{ccc}
+          1 & 0 & -2 \\
+          0 & 1 & -3 \\
+          0 & 0 & 1
+      \end{array}
+      \right)
+      \left(
+      \begin{array}{ccc}
+          2 & 0 & 0 \\
+          0 & 2 & 0 \\
+          0 & 0 & 1
+      \end{array}
+      \right)
+      \left(
+      \begin{array}{ccc}
+          1 & 0 & 0 \\
+          1 & 1 & 0 \\
+          0 & 0 & 1
+      \end{array}
+      \right)
+      \]
+      que es la composición de una cizalla, una escala ---en particular, se duplican distancias en ambos ejes---, una traslación y una rotación de ángulo $3\frac{\pi}{2}$, aplicadas en ese orden.
+
+      La matriz $H_3$ ya no es una transformación afín, pues la última fila no es $0\;0\;1$. El primer factor sí que lo es, pero la segunda matriz es un movimiento proyectivo. Para identificar el primer factor, lo descomponemos como antes:
+      \[
+          H_{3_1} = \left(
+          \begin{array}{ccc}
+              1 & 0.5 & 0 \\
+              0.5 & 2 & 0 \\
+              0 & 0 & 1
+          \end{array}
+          \right) =
+          \left(
+          \begin{array}{ccc}
+              1 & 0 & 0 \\
+              0 & 2 & 0 \\
+              0 & 0 & 1
+          \end{array}
+          \right)
+          \left(
+          \begin{array}{ccc}
+              1 & 0.5 & 0 \\
+              0.25 & 1 & 0 \\
+              0 & 0 & 1
+          \end{array}
+          \right)
+      \]
+      que no es más que la composición de una cizalla y una escala. Podemos escribir entonces $H_3$ de forma más clara:
+      \[
+          H_3 =
+          \left(
+          \begin{array}{ccc}
+              1 & 0 & 0 \\
+              0 & 2 & 0 \\
+              0 & 0 & 1
+          \end{array}
+          \right)
+          \left(
+          \begin{array}{ccc}
+              1 & 0.5 & 0 \\
+              0.25 & 1 & 0 \\
+              0 & 0 & 1
+          \end{array}
+          \right)
+          \left(
+          \begin{array}{ccc}
+              1 & 0 & 0 \\
+              0 & 1 & 0 \\
+              -1 & 0 & 1
+          \end{array}
+          \right)
+      \]
+      y concluir que  $H_3$ es la composición de un movimiento proyectivo, una cizalla y una escala, aplicadas en ese orden.
+
+
+  \end{solucion}
+
+  \begin{ejercicio}
+      ¿Cuáles son las propiedades necesarias y suficientes para que una matriz defina una homografía entre planos? Justificar la respuesta.
+  \end{ejercicio}
+
+  \begin{solucion}
+      Por definición, una homografía entre dos planos proyectivos es un isomorfismo de dichos planos. Las matrices que definen aplicaciones entre planos proyectivos obedecen a las estructuras sobre las que residen los planos, que son espacios vectoriales.
+
+      Por tanto, una matriz definirá una homografía entre planos proyectivos cuando defina una isomorfía entre los espacios vectoriales subyacentes, y esto ocurre si y sólo si la matriz es invertible.
+  \end{solucion}
+
+  \begin{ejercicio}
+      ¿Qué propiedades de la geometría de un plano quedan invariantes si se aplica una homografía general sobre él? Justificar la respuesta.
+  \end{ejercicio}
+
+  \begin{solucion}
+      La única propiedad invariante por una homografía general es la naturaleza de los dos objetos matemáticos esenciales sobre los que actúa; es decir, los puntos se transforman en puntos y las rectas se transforman en rectas.
+
+      La distancia, los ángulos y el paralelismo, que son las propiedades geométricas esenciales restantes, son todas dependientes de la homografía particular, y no tienen por qué conservarse.
+
+      Por ejemplo, una homografía de \emph{escala} distorsiona distancias, una del tipo \emph{cizalla} distorsiona distancias y ángulos y una homorgafía del tipo \emph{proyectivo} distoriana distancias, ángulos y paralelismo ---podemos pensar en una fotografía de unas vías de tren; lo que hacemos es una homografía del plano donde yacen las vías al plano que recoge la cámara y, mientras en el suelo las vías son paralelas, en la fotografía intersecan en el horizonte---.
+  \end{solucion}
+
+  \begin{ejercicio}
+      ¿Cuál es la deformación geométrica más fuerte que se puede producir sobre la imagen de un plano por el punto de vista de la cámara? Justificar la respuesta.
+  \end{ejercicio}
+
+  \begin{solucion}
+      Lo que hacemos, geométricamente, al tomar una fotografía, es aplicar homografías entre planos del espacio y el plano de la cámara. Por tanto, la deformación geométrica más fuerte es la homografía que menos propiedades geométricas conserva.
+
+      Como acabamos de ver, las homografías proyectivas son las que menos propiedades conservan, pues sólo mantienen la naturaleza de puntos y rectas.
+  \end{solucion}
+
+  \begin{ejercicio}
+      ¿Qué información de la imagen usa el detector de Harris para seleccionar puntos? ¿El detector de Harris detecta patrones geométricos o fotométricos? Justificar la contestación.
+  \end{ejercicio}
+
+  \begin{solucion}
+      El detector de Harris se basa en una idea central: en una esquina, la intensidad lumínica cambia drásticamente en muchas direcciones. Por tanto, usa la información obtenida de las derivadas en ambos ejes de la imagen para detectar potenciales puntos clave.
+
+      Así, lo que detecta son patrones geométricos ---bordes, esquinas, cambios drásticos de forma--- basándose en la información fotométrica de la imagen en esos lugares.
+  \end{solucion}
+
+  \begin{ejercicio}
+      ¿Sería adecuado usar como descriptor de un punto Harris los valores de los píxeles de su región de soporte? En caso positivo identificar cuándo y justificar la respuesta.
+  \end{ejercicio}
+
+  \begin{ejercicio}
+      ¿Qué información de la imagen se codifica en el descriptor de SIFT? Justificar la contestación.
+  \end{ejercicio}
+
+  \begin{solucion}
+      El descriptor de SIFT de un punto de la imagen es, básicamente, un histograma de la dirección del gradiente ---discretizado en 8 direcciones--- que tienen los píxeles de una ventana de tamaño $16\times16$ alrededor del punto.
+
+      Por tanto, SIFT codifica en qué direcciones hay más cambios bruscos de luminosidad si nos movemos cerca del punto.
+  \end{solucion}
+
+  \begin{ejercicio}
+      Describa un par de criterios que sirvan para establecer correspondencias (matching) entre descriptores de regiones extraídos de dos imágenes. Justificar la idoneidad de los mismos.
+  \end{ejercicio}
+
+  \begin{ejercicio}
+      Cual es el objetivo principal en el uso de la técnica RANSAC. Justificar la respuesta.
+  \end{ejercicio}
+
+  \begin{solucion}
+      El objetivo principal es minimizar el impacto negativo que tienen unos pocos valores atípicos ---\emph{outliers}, en inglés--- en la obtención de la función que mejor aproxima un conjunto de valores dado.
+
+      Este algoritmo surge del problema que presenta la técnica de los mínimos cuadrados cuando existen valores atípicos muy discordantes con el resto de valores buenos, ya que esta técnica termina centrándose en ajustar la función para minimizar el error con los valores atípicos en vez de buscar una función concordante con la mayoría de valores buenos.
+
+      RANSAC, a su vez, elimina de una forma cercana a la óptima este problema basándose en la siguiente idea: para cada posible modelo que aproxime el conjunto de datos, el mejor será aquel que tenga menos valores atípicos; o, dicho de otro modo, aquel que tenga más valores concordantes con el modelo.
+  \end{solucion}
+
+  \begin{ejercicio}
+      ¿Si tengo 4 imágenes de una escena de manera que se solapan la 1-2, 2-3 y 3-4. ¿Cuál es el número mínimo de puntos en correspondencia necesarios para montar un mosaico? Justificar la respuesta.
+  \end{ejercicio}
+
+  \begin{solucion}
+      Para encontrar una homografía entre dos imágenes necesitamos al menos hacer corresponder 4 puntos de cada imagen. La justificación de esto es simple: las homografías tienen 8 grados de libertad, luego necesitamos al menos 8 puntos para determinar plenamente la matriz que la representa; es decir, necesitamos 4 pares de puntos ---cada uno de cada par en una imagen--- en correspondencia.
+
+      Si tenemos que determinar 3 homografías ---una para cada par de imágenes---, es necesario encontrar 12 pares de puntos en correspondencia.
+  \end{solucion}
+
+  \begin{ejercicio}
+      En la confección de un mosaico con proyección rectangular es esperable que aparezcan deformaciones de la realidad. ¿Cuáles y por qué? ¿Bajo qué condiciones esas deformaciones podrían desaparecer? Justificar la respuesta.
+  \end{ejercicio}
+
+  \begin{solucion}
+      Cualquier proyección de un objeto no rectangular en un rectángulo produce deformaciones del objeto
+  \end{solucion}
+
+\end{document}
