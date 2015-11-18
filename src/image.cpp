@@ -150,10 +150,9 @@ void Image::imageInit(string filename, string name, bool flag_color){
     this->ID = num_images;
 }
 
-void Image::findHomography(vector< pair<Point2f,Point2f> > matches){
+Mat Image::findHomography(vector< pair<Point2f,Point2f> > matches){
     // Build the equations system. See http://sl.ugr.es/homography_estimation
     Mat mat_system, sing_values, l_sing_vectors, r_sing_vectors;
-
 
     for (unsigned int i = 0; i < matches.size(); i++) {
         Point2f first = matches[i].first;
@@ -167,12 +166,12 @@ void Image::findHomography(vector< pair<Point2f,Point2f> > matches){
         mat_system.push_back( Mat(2, 9, CV_32FC1, coeffs) );
     }
 
-    cout << mat_system << endl;
-
     // Solve the equations system using SVD decomposition
     SVD::compute( mat_system, sing_values, l_sing_vectors, r_sing_vectors, 0 );
 
-    cout << r_sing_vectors << endl;
+    Mat last_row = r_sing_vectors.row(r_sing_vectors.rows-1);
+
+    return last_row.reshape(1,3);
 }
 
 /**************************** PUBLIC METHODS ****************************/
@@ -189,12 +188,16 @@ Image::Image(string filename){
 
     vector< pair<Point2f, Point2f> > keypoints;
 
-    keypoints.push_back(pair<Point2f, Point2f>(Point2f(25,300), Point2f(50,600)));
-    keypoints.push_back(pair<Point2f, Point2f>(Point2f(250,10), Point2f(500,20)));
-    keypoints.push_back(pair<Point2f, Point2f>(Point2f(20,500), Point2f(40,1000)));
+    keypoints.push_back(pair<Point2f, Point2f>(Point2f(5,300), Point2f(50,600)));
+    keypoints.push_back(pair<Point2f, Point2f>(Point2f(250,10), Point2f(50,20)));
+    keypoints.push_back(pair<Point2f, Point2f>(Point2f(20,500), Point2f(40,100)));
     keypoints.push_back(pair<Point2f, Point2f>(Point2f(12,1), Point2f(24,2)));
+    keypoints.push_back(pair<Point2f, Point2f>(Point2f(5,32), Point2f(50,600)));
+    keypoints.push_back(pair<Point2f, Point2f>(Point2f(27,11), Point2f(1,123)));
+    keypoints.push_back(pair<Point2f, Point2f>(Point2f(20,23), Point2f(40,234)));
+    keypoints.push_back(pair<Point2f, Point2f>(Point2f(12,1), Point2f(24,134)));
 
-    findHomography(keypoints);
+    cout << findHomography(keypoints) << endl;
 }
 
 Image::Image(string filename, string name){
