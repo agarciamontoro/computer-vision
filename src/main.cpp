@@ -1,8 +1,8 @@
 #include "image.hpp"
 
 int main(){
-    /*
     Image bird("imagenes/bird.bmp");
+    /*
     Image blurred_bird = bird.lowPassFilter(3.0);
 
     bird.setName("Bird image.");

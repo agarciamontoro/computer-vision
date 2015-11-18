@@ -26,7 +26,7 @@ private:
     Mat convolution2D(const Mat& signal_mat, const Mat& mask, enum border_id border_type);
     void copyTo(Mat dst);
 
-    Mat findHomography(vector< pair<Point2f,Point2f> > matches);
+    void findHomography(vector< pair<Point2f,Point2f> > matches);
 
 public:
     ~Image();
