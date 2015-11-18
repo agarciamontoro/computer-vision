@@ -1,6 +1,7 @@
 #include "image.hpp"
 
 int main(){
+    /*
     Image bird("imagenes/bird.bmp");
     Image blurred_bird = bird.lowPassFilter(3.0);
 
@@ -45,4 +46,5 @@ int main(){
 
     waitKey(0);
     destroyAllWindows();
+    */
 }

@@ -58,7 +58,7 @@
 }
 
 \title{Cuestionario de teoría \\ 2}
-\author{Alejandro García Montoro\footnote{En la confección de este cuestionario he recibido ayuda de Antonio Álvarez Caballero; concretamente en las preguntas 3, 6, 9 y 10.}\\
+\author{Alejandro García Montoro\\
     \href{mailto:agarciamontoro@correo.ugr.es}{agarciamontoro@correo.ugr.es}}
 \date{\today}
 
@@ -98,7 +98,6 @@
       \[
       ax_1 + bx_2 + c = 0
       \]
-      donde $(-b,a)\in\mathbb{R}^2$ es el vector director de dicha recta.
 
       Por tanto, los puntos $(x_1,x_2,x_3)$ en coordenadas homogéneas que están en esa recta son los que cumplen la ecuación
       \[
@@ -158,39 +157,39 @@
   \end{ejercicio}
 
   \begin{solucion}
-      Por hipótesis, tenemos que
-      \begin{equation}
-          l'^Tx'=0 \label{rectaprima}
-      \end{equation}
-
-      Por la homografía $H$, podemos escribir \ref{rectaprima} como
-      \begin{equation*}
-          l'^THx=0 \label{rectah}
-      \end{equation*}
-
-      Pero por hipótesis sabemos que $l^Tx = 0$, luego podemos igualar y obtener
-      \begin{equation*}
-          l'^THx = l^Tx
-      \end{equation*}
-      de donde deducimos directamente que
-      \begin{equation*}
-          l'^TH = l^T \label{casi}
-      \end{equation*}
-
-      Ahora podemos deshacernos de la $H$ multiplicando por su inversa a la derecha ---sabemos que existe porque las homografías, por definición, tienen inversa---, y llegamos a una expresión que se parece mucho a lo que queríamos:
-      \begin{equation}
-          l'^T = l^TH^{-1} \label{casicasi}
-      \end{equation}
-
-      Ahora sólo falta tomar transpuestas en \ref{casicasi}. Teniendo en cuenta que la transpuesta de un producto es el producto de las transpuestas con el orden invertido ---es decir, $(AB)^T = B^TA^T$---, llegamos a la expresión que buscábamos:
-      \begin{equation*}
-          l' = (H^{-1})^Tl
-      \end{equation*}
-
-      Concluimos que la homografía $G$ que relaciona los vectores de las rectas $l$ y $l'$ es
-      \[
-      G = (H^{-1})^T
-      \]
+    %   Por hipótesis, tenemos que
+    %   \begin{equation}
+    %       l'^Tx'=0 \label{rectaprima}
+    %   \end{equation}
+      %
+    %   Por la homografía $H$, podemos escribir \ref{rectaprima} como
+    %   \begin{equation*}
+    %       l'^THx=0 \label{rectah}
+    %   \end{equation*}
+      %
+    %   Pero por hipótesis sabemos que $l^Tx = 0$, luego podemos igualar y obtener
+    %   \begin{equation*}
+    %       l'^THx = l^Tx
+    %   \end{equation*}
+    %   de donde deducimos directamente que
+    %   \begin{equation*}
+    %       l'^TH = l^T \label{casi}
+    %   \end{equation*}
+      %
+    %   Ahora podemos deshacernos de la $H$ multiplicando por su inversa a la derecha ---sabemos que existe porque las homografías, por definición, tienen inversa---, y llegamos a una expresión que se parece mucho a lo que queríamos:
+    %   \begin{equation}
+    %       l'^T = l^TH^{-1} \label{casicasi}
+    %   \end{equation}
+      %
+    %   Ahora sólo falta tomar transpuestas en \ref{casicasi}. Teniendo en cuenta que la transpuesta de un producto es el producto de las transpuestas con el orden invertido ---es decir, $(AB)^T = B^TA^T$---, llegamos a la expresión que buscábamos:
+    %   \begin{equation*}
+    %       l' = (H^{-1})^Tl
+    %   \end{equation*}
+      %
+    %   Concluimos que la homografía $G$ que relaciona los vectores de las rectas $l$ y $l'$ es
+    %   \[
+    %   G = (H^{-1})^T
+    %   \]
   \end{solucion}
 
   \begin{ejercicio}
@@ -198,42 +197,41 @@
   \end{ejercicio}
 
   \begin{solucion}
-      Podemos tantear una solución. Como queremos llevar un vector con tres coordenadas a otro mediante una matriz, vamos a tener que resolver tres ecuaciones. De todas las matrices posibles, podemos tomar la identidad con la última fila arbitraria e imponer la relación que queremos que satisfaga.
-
-      Así, sea $G$ la matriz
-      \[
-      \begin{pmatrix}
-          1 & 0 & a \\
-          0 & 1 & b \\
-          0 & 0 & c
-      \end{pmatrix}
-      \]
-
-      Entonces, imponiendo $l'=Gl$, tenemos las siguientes ecuaciones:
-      \[
-      \begin{cases}
-          0 &= l_1 + cl_3 \\
-          0 &= l_2 + bl_3 \\
-          1 &= cl_3
-      \end{cases}
-      \]
-
-      De aquí deducimos que
-      \[
-      c = \frac{1}{l_3} \;\;\; b = \frac{-l_2}{l_3} \;\;\; a = \frac{-l_1}{l_3}
-      \]
-      que están bien definidos porque, al no intersecar la línea $l$ con el origen del plano, es claro que $l_3 \neq 0$.
-
-      Por tanto, la homografía $G$ que buscamos es:
-      \[
-      G =
-      \begin{pmatrix}
-          1 & 0 & -l_1/l_3 \\
-          0 & 1 & -l_2/l_3 \\
-          0 & 0 & 1/l_3
-      \end{pmatrix}
-      \]
-
+    %   Podemos tantear una solución. Como queremos llevar un vector con tres coordenadas a otro mediante una matriz, vamos a tener que resolver tres ecuaciones. De todas las matrices posibles, podemos tomar la identidad con la última fila arbitraria e imponer la relación que queremos que satisfaga.
+      %
+    %   Así, sea $G$ la matriz
+    %   \[
+    %   \begin{pmatrix}
+    %       1 & 0 & a \\
+    %       0 & 1 & b \\
+    %       0 & 0 & c
+    %   \end{pmatrix}
+    %   \]
+      %
+    %   Entonces, imponiendo $l'=Gl$, tenemos las siguientes ecuaciones:
+    %   \[
+    %   \begin{cases}
+    %       0 &= l_1 + cl_3 \\
+    %       0 &= l_2 + bl_3 \\
+    %       1 &= cl_3
+    %   \end{cases}
+    %   \]
+      %
+    %   De aquí deducimos que
+    %   \[
+    %   c = \frac{1}{l_3} \;\;\; b = \frac{-l_2}{l_3} \;\;\; a = \frac{-l_1}{l_3}
+    %   \]
+    %   que están bien definidos porque, al no intersecar la línea $l$ con el origen del plano, es claro que $l_3 \neq 0$.
+      %
+    %   Por tanto, la homografía $G$ que buscamos es:
+    %   \[
+    %   G =
+    %   \begin{pmatrix}
+    %       1 & 0 & -l_1/l_3 \\
+    %       0 & 1 & -l_2/l_3 \\
+    %       0 & 0 & 1/l_3
+    %   \end{pmatrix}
+    %   \]
   \end{solucion}
 
   \begin{ejercicio}
