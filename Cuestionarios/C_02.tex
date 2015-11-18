@@ -82,20 +82,11 @@
   \end{ejercicio}
 
   \begin{solucion}
-      Podemos pensar el plano proyectivo como el conjunto de rectas en el espacio que pasan por el origen.
+      La diferencia esencial desde un punto de vista axiomático entre la geometría afín y la proyectiva es que en la primera, dado un punto que no está en una recta, existe una única paralela a la recta que pasa por el punto, mientras que en la segunda, dadas dos rectas cualesquiera, éstas se cortan siempre en un punto.
 
-      La diferencia más clara entre las geometrías afines y proyectivas es que el enunciado que dio Euclides para la geometría afín ---que no es más que una generalización moderna de la geometría euclidiana--- se traduce en uno más simple.
+      Evidentemente, de la diferencia axiomática derivan todas las diferencias en las geometrías. Así, una de las más importantes y directamente relacionadas con el axioma citado es que las transformaciones entre planos afines conservan el paralelismo y las transformaciones entre planos proyectivos en general no lo hacen.
 
-      Así, lo que todos conocemos:
-      \begin{quote}
-          Dos rectas se cortan en un punto o son paralelas
-      \end{quote}
-      se convierte en algo más sencillo:
-      \begin{quotation}
-          Dos rectas se cortan siempre en un punto
-      \end{quotation}
-
-      Las consecuencias de esto son directas. Si consideramos la anterior descripción del plano proyectivo y situamos un observador en el origen, los elementos del plano ---que son todas las rectas que pasan por el observador--- pueden entenderse como rayos de luz que llegan hasta él, y que forman una proyección bidimensional de una escena tridimensional.
+      Esta \emph{libertad} permite dotar de una estructura matemática a unas transformaciones que no tendrían sin la geometría proyectiva un modelo en el que reflejarse y con el que poder trabajar.
   \end{solucion}
 
   \begin{ejercicio}
@@ -109,12 +100,12 @@
       \]
       donde $(-b,a)\in\mathbb{R}^2$ es el vector director de dicha recta.
 
-      Por tanto, los puntos $[x_1,x_2,x_3]$ en coordenadas homogéneas que están en esa recta son los que cumplen la ecuación
+      Por tanto, los puntos $(x_1,x_2,x_3)$ en coordenadas homogéneas que están en esa recta son los que cumplen la ecuación
       \[
       ax_1 + bx_2 + cx_3 = 0
       \]
 
-      Nuestro problema es ahora, dados dos puntos, $x=[x_1,x_2,x_3]$ y $x'=[x_1',x_2',x_3']$, encontrar la recta que los une; es decir, encontrar los $a,b,c$ tales que se cumplen estas dos ecuaciones:
+      Nuestro problema es ahora, dados dos puntos, $x=(x_1,x_2,x_3)$ y $x'=(x_1',x_2',x_3')$, encontrar la recta que los une; es decir, encontrar los $a,b,c$ tales que se cumplen estas dos ecuaciones:
       \[
       \begin{cases}
           ax_1 + bx_2 + cx_3 &= 0 \\
@@ -130,10 +121,10 @@
           x_1 & x_2 & x_3 \\
           x_1' & x_2' & x_3' \\
       \end{vmatrix} =
-      [x_2x_3'-x_3x_2', x_3x_1'-x_1x_3', x_1x_2'-x_2x_1']
+      (x_2x_3'-x_3x_2', x_3x_1'-x_1x_3', x_1x_2'-x_2x_1')
       \]
 
-      Es inmediato comprobar que el vector $l = [x_2x_3'-x_3x_2', x_3x_1'-x_1x_3', x_1x_2'-x_2x_1']$ cumple las dos ecuaciones:
+      Es inmediato comprobar que el vector $l = (x_2x_3'-x_3x_2', x_3x_1'-x_1x_3', x_1x_2'-x_2x_1')$ cumple las dos ecuaciones:
       \[
       \begin{cases}
           (x_2x_3'-x_3x_2')x_1 + (x_3x_1'-x_1x_3')x_2 + (x_1x_2'-x_2x_1')x_3 &= 0 \\
@@ -142,7 +133,7 @@
       \]
       y es, por tanto, el vector de la recta que buscamos.
 
-      De forma simétrica, el punto interescción de las rectas $l=[l_1,l_2,l_3]$ y $l'=[l_1',l_2',l_3']$ es el punto $x=[x_1,x_2,x_3]$ que cumple a la vez las dos ecuaciones que determinan las rectas:
+      De forma simétrica, el punto interescción de las rectas $l=(l_1,l_2,l_3)$ y $l'=(l_1',l_2',l_3')$ es el punto $x=(x_1,x_2,x_3)$ que cumple a la vez las dos ecuaciones que determinan las rectas:
       \[
       \begin{cases}
           l_1x_1 + l_2x_2 + l_3x_3 &= 0 \\
@@ -158,7 +149,7 @@
           l_1 & l_2 & l_3 \\
           l_1' & l_2' & l_3' \\
       \end{vmatrix} =
-      [l_2l_3'-l_3l_2', l_3l_1'-l_1l_3', l_1l_2'-l_2l_1']
+      (l_2l_3'-l_3l_2', l_3l_1'-l_1l_3', l_1l_2'-l_2l_1')
       \]
   \end{solucion}
 
@@ -173,28 +164,28 @@
       \end{equation}
 
       Por la homografía $H$, podemos escribir \ref{rectaprima} como
-      \begin{equation}
+      \begin{equation*}
           l'^THx=0 \label{rectah}
-      \end{equation}
+      \end{equation*}
 
-      Pero por hipótesis sabemos que $l^Tx = 0$, luedo podemos igualar y obtenemos
-      \begin{equation}
+      Pero por hipótesis sabemos que $l^Tx = 0$, luego podemos igualar y obtener
+      \begin{equation*}
           l'^THx = l^Tx
-      \end{equation}
+      \end{equation*}
       de donde deducimos directamente que
-      \begin{equation}
+      \begin{equation*}
           l'^TH = l^T \label{casi}
-      \end{equation}
+      \end{equation*}
 
-      Ahora podemos deshacernos de la $H$ multiplicando por su inversa a la derecha ---sabemos que existe porque las homografías son isomorfismos---, y llegamos a una expresión que se parece mucho a lo que queríamos:
+      Ahora podemos deshacernos de la $H$ multiplicando por su inversa a la derecha ---sabemos que existe porque las homografías, por definición, tienen inversa---, y llegamos a una expresión que se parece mucho a lo que queríamos:
       \begin{equation}
           l'^T = l^TH^{-1} \label{casicasi}
       \end{equation}
 
       Ahora sólo falta tomar transpuestas en \ref{casicasi}. Teniendo en cuenta que la transpuesta de un producto es el producto de las transpuestas con el orden invertido ---es decir, $(AB)^T = B^TA^T$---, llegamos a la expresión que buscábamos:
-      \begin{equation}
+      \begin{equation*}
           l' = (H^{-1})^Tl
-      \end{equation}
+      \end{equation*}
 
       Concluimos que la homografía $G$ que relaciona los vectores de las rectas $l$ y $l'$ es
       \[
@@ -203,8 +194,47 @@
   \end{solucion}
 
   \begin{ejercicio}
-      Suponga la imagen de un plano en donde el vector $l=(l_1,l_2,l_3)$ representa la proyección de la recta del infinito del plano en la imagen. Sabemos que si conseguimos aplicar a nuestra imagen una homografía $G$ tal que si $l'= Gl$, siendo $l'^T =(0,0,1)$ entonces habremos rectificado nuestra imagen llevándola de nuevo al plano afín. Suponiendo que la recta definida por $l$ no pasa por el punto $(0,0)$ del plano imagen, encontrar la homografía $G$. Justificar la respuesta.
+      Suponga la imagen de un plano en donde el vector $l=(l_1,l_2,l_3)$ representa la proyección de la recta del infinito del plano en la imagen. Sabemos que si conseguimos aplicar a nuestra imagen una homografía $G$ tal que $l'= Gl$, siendo $l' =(0,0,1)$, entonces habremos rectificado nuestra imagen llevándola de nuevo al plano afín. Suponiendo que la recta definida por $l$ no pasa por el punto $(0,0)$ del plano imagen, encontrar la homografía $G$. Justificar la respuesta.
   \end{ejercicio}
+
+  \begin{solucion}
+      Podemos tantear una solución. Como queremos llevar un vector con tres coordenadas a otro mediante una matriz, vamos a tener que resolver tres ecuaciones. De todas las matrices posibles, podemos tomar la identidad con la última fila arbitraria e imponer la relación que queremos que satisfaga.
+
+      Así, sea $G$ la matriz
+      \[
+      \begin{pmatrix}
+          1 & 0 & a \\
+          0 & 1 & b \\
+          0 & 0 & c
+      \end{pmatrix}
+      \]
+
+      Entonces, imponiendo $l'=Gl$, tenemos las siguientes ecuaciones:
+      \[
+      \begin{cases}
+          0 &= l_1 + cl_3 \\
+          0 &= l_2 + bl_3 \\
+          1 &= cl_3
+      \end{cases}
+      \]
+
+      De aquí deducimos que
+      \[
+      c = \frac{1}{l_3} \;\;\; b = \frac{-l_2}{l_3} \;\;\; a = \frac{-l_1}{l_3}
+      \]
+      que están bien definidos porque, al no intersecar la línea $l$ con el origen del plano, es claro que $l_3 \neq 0$.
+
+      Por tanto, la homografía $G$ que buscamos es:
+      \[
+      G =
+      \begin{pmatrix}
+          1 & 0 & -l_1/l_3 \\
+          0 & 1 & -l_2/l_3 \\
+          0 & 0 & 1/l_3
+      \end{pmatrix}
+      \]
+
+  \end{solucion}
 
   \begin{ejercicio}
       Identificar los movimientos elementales (traslación, giro, escala, cizalla, proyectivo) representados por las homografías $H_1$, $H_2$, $H_3$ y $H_4$:
@@ -269,9 +299,30 @@
   \end{ejercicio}
 
   \begin{solucion}
-      La matriz $H_1$ es una transformación afín ---la última fila es $0 0 1$---, formada por la composición de una cizalla, una escala y una traslación, aplicadas en ese orden.
+      La matriz $H_1$ es trivial: es una transformación afín ---la última fila es $0\;0\;1$--- formada por la composición de una cizalla, una escala y una traslación, aplicadas en ese orden.
 
-      La matriz $H_2$ es también una transformación afín, aunque ahora las matrices que la forman no son de los tipos que conocemos. Si las descomponemos, es más fácil ver qué movimientos elementales producen:
+      La matriz $H_2$ es también una transformación afín, aunque ahora las matrices que la forman no son de los tipos que conocemos y tenemos que aplicar una descomposición sencilla.
+
+      Para el primer factor del producto, vemos que parece que hay una rotación de ángulo $3\frac{\pi}{2}$ y una traslación. Llamando $A$ a la parte de la rotación:
+      \[
+      A = \left(
+      \begin{array}{ccc}
+          0 & 1 & 0 \\
+          -1 & 0 & 0 \\
+          0 & 0 & 1
+      \end{array}
+      \right)
+      \]
+      podemos comprobar que lo que queda es efectivamente una traslación. Para eso, resolvemos la ecuación matricial
+      \[
+      H_{2_1} = A\cdot X
+      \]
+      que tiene solución por ser A una homografía ---en particular tiene inversa---:
+      \[
+      X = A^{-1} \cdot H_{2_1}
+      \]
+
+      Usamos la misma técnica para el segundo factor, donde observamos que hay una escala y una cizalla. Así, podemos escribir ambos factores como sigue:
       \begin{align*}
           H_{2_1} &= \left(
           \begin{array}{ccc}
@@ -280,13 +331,6 @@
               0 & 0 & 1
           \end{array}
           \right) =
-          \left(
-          \begin{array}{ccc}
-              0 & 1 & 0 \\
-              -1 & 0 & 0 \\
-              0 & 0 & 1
-          \end{array}
-          \right)
           \left(
           \begin{array}{ccc}
               1 & 0 & -2 \\
@@ -317,7 +361,7 @@
           \right)
       \end{align*}
 
-      Por tanto, podemos escribir $H_2$ como sigue:
+      Y, por tanto, podemos escribir $H_2$ en función de movimientos que conocemos:
       \[
       H_2 =
       \left(\begin{array}{ccc}
@@ -348,9 +392,9 @@
       \end{array}
       \right)
       \]
-      que es la composición de una cizalla, una escala ---en particular, se duplican distancias en ambos ejes---, una traslación y una rotación de ángulo $3\frac{\pi}{2}$, aplicadas en ese orden.
+      es decir, $H_2$ es la composición de una cizalla, una escala , una traslación y una rotación de ángulo $3\frac{\pi}{2}$, aplicadas en ese orden.
 
-      La matriz $H_3$ ya no es una transformación afín, pues la última fila no es $0\;0\;1$. El primer factor sí que lo es, pero la segunda matriz es un movimiento proyectivo. Para identificar el primer factor, lo descomponemos como antes:
+      La matriz $H_3$ ya no es una transformación afín, pues la última fila no es $0\;0\;1$. El primer factor sí que lo es, pero la segunda matriz es un movimiento proyectivo. Para identificar el primer factor, lo descomponemos con la misma técnica que hemos usado antes:
       \[
           H_{3_1} = \left(
           \begin{array}{ccc}
@@ -374,7 +418,7 @@
           \end{array}
           \right)
       \]
-      que no es más que la composición de una cizalla y una escala. Podemos escribir entonces $H_3$ de forma más clara:
+      y vemos que no es más que la composición de una cizalla y una escala. Podemos escribir entonces $H_3$ de forma más clara:
       \[
           H_3 =
           \left(
@@ -401,7 +445,61 @@
       \]
       y concluir que  $H_3$ es la composición de un movimiento proyectivo, una cizalla y una escala, aplicadas en ese orden.
 
+      Identificar qué movimiento representa la matriz $H_4$ requiere un poco más de trabajo, pero no es difícil tampoco. En primer lugar, como sabemos que dos homografías que sólo difieren en una factor no nulo representan el mismo movimiento, podemos trabajar con $H_4' = \frac{1}{2}H_4$, que representa el mismo movimiento y nos permite trabajar más cómodos con la última fila para la descomposición que queremos hacer ---pues queremos tener una última fila de $0\;0\;1$ en todos los movimientos afines y queremos que el proyectivo sea la identidad con la última fila arbitraria---.
 
+      Por tanto, podemos escribir $H_4'$ como sigue:
+      \[
+      H_4 \cong H_4' =
+      \left(
+      \begin{array}{ccc}
+          1 & 0 & \frac{3}{2} \\
+          0 & 1 & \frac{-1}{2} \\
+          0 & \frac{1}{2} & 1
+      \end{array}\right) = A\cdot P
+      \]
+      donde $P$ es la parte de $H_4$ correspondiente al movimiento proyectivo
+      \[P =\begin{pmatrix}
+          1 & 0 & 0 \\
+          0 & 1 & 0 \\
+          0 & \frac{1}{2} & 1
+      \end{pmatrix}
+      \]
+      y $A$ la parte correspondiente a la transformación afín.
+
+      Podemos entonces multiplicar por la inversa de $P$ a la izquierda y obtener la expresión de la parte afín: $H_4' \cdot P^{-1} = A$, que se escribe como sigue:
+      \[
+      A = \begin{pmatrix}
+        1 & \frac{-3}{4} & \frac{3}{2} \\
+        0 & \frac{5}{4} & \frac{-1}{2} \\
+        0 & 0 & 1
+      \end{pmatrix}
+      \]
+      Esta expresión nos permite hacer una descomposición como antes de una manera mucho más sencilla ---vemos que hay una cizalla, una escala y una traslación---.
+      
+      Por tanto, escribimos $H_4'$ como el siguiente producto de matrices:
+      \[
+          H_4' = \begin{pmatrix}
+              1 & 0 & \frac{3}{2} \\
+              0 & 1 & -\frac{1}{2} \\
+              0 & 0 & 1
+          \end{pmatrix}
+          \begin{pmatrix}
+              1 & 0 & 0 \\
+              0 & \frac{5}{4} & 0 \\
+              0 & 0 & 1
+          \end{pmatrix}
+          \begin{pmatrix}
+              1 & -\frac{3}{4} & 0 \\
+              0 & 1 & 0 \\
+              0 & 0 & 1
+          \end{pmatrix}
+          \begin{pmatrix}
+              1 & 0 & 0 \\
+              0 & 1 & 0 \\
+              0 & \frac{1}{2} & 1
+          \end{pmatrix}
+      \]
+      y concluimos que $H_4$ es la composición de un movimiento proyectivo, una cizalla, una escala y una traslación, aplicadas en ese orden.
   \end{solucion}
 
   \begin{ejercicio}
@@ -450,6 +548,14 @@
       ¿Sería adecuado usar como descriptor de un punto Harris los valores de los píxeles de su región de soporte? En caso positivo identificar cuándo y justificar la respuesta.
   \end{ejercicio}
 
+  \begin{solucion}
+      Para que un descriptor de un punto clave sea bueno, tiene que ser invariante ante el mayor conjunto de transformaciones posible.
+
+      Pero los valores de los píxeles cercanos a un punto clave se ven afectados por cualquier tipo de transformación que no sea una traslación: las escalas pueden expandir un píxel a varios o condensar varios en uno solo, las cizallas pueden hacer lo anterior y cambiar los ángulos con otros píxeles vecinos, una simple rotación los modifica de posición completamente, y un movimiento proyectivo no deja invariante ninguna propiedad de un píxel concreto.
+
+      Por tanto, esta elección es muy pobre en un caso general. Si las transformaciones que se esperan son única y exclusivamente traslaciones, esta elección podría ser buena por su sencillez: si el punto clave lo trasladamos con una distancia concreta en una dirección dada, todos sus píxeles se trasladan con la misma distancia y en la misma dirección, así que su valor queda invariante ante la transformación.
+  \end{solucion}
+
   \begin{ejercicio}
       ¿Qué información de la imagen se codifica en el descriptor de SIFT? Justificar la contestación.
   \end{ejercicio}
@@ -463,6 +569,16 @@
   \begin{ejercicio}
       Describa un par de criterios que sirvan para establecer correspondencias (matching) entre descriptores de regiones extraídos de dos imágenes. Justificar la idoneidad de los mismos.
   \end{ejercicio}
+
+  \begin{solucion}
+      El primer criterio que se nos ocurre es el más sencillo: para cada descriptor de la primera imagen, calcular las distancias ---como la norma de la resta--- entre él y cada uno de los descriptores de la segunda imagen y tomar el que más \emph{cerca} se encuentre.
+
+      Esta primera aproximación es muy pobre, ya que es muy probable que dos o más descriptores de la primera imagen tomen un mismo descriptor de la segunda como su mejor \emph{match}.
+
+      Otra aproximación podría ser la siguiente: si $m = mín(n_1,n_2)$ con $n_i$ el número de descriptores de la imagen $i$, podemos considerar todos los conjuntos ordenados de $m$ descriptores en cada imagen y, para cada par de ellos, calcular la distancia entre cada par de descriptores en la misma \emph{posición}. Entonces, tomar el par de conjuntos que minimice la suma de distancias y hacer corresponder los elementos en la misma posición.
+
+      Este criterio puede ser extremadamente lento si hay muchos descriptores, pero asegura que, en promedio, la distancia entre descriptores en correspondencia es mínima. Sin embargo, no asegura que cada par de descriptores en correspondencia tenga distancia mínima.
+  \end{solucion}
 
   \begin{ejercicio}
       Cual es el objetivo principal en el uso de la técnica RANSAC. Justificar la respuesta.
@@ -491,7 +607,9 @@
   \end{ejercicio}
 
   \begin{solucion}
-      Cualquier proyección de un objeto no rectangular en un rectángulo produce deformaciones del objeto
+      No se puede realizar una proyección rectangular de varias imágenes que abarquen un campo de visión moderadamente grande sin estirar o apretar demasiado los píxeles de los bordes. Esto es una consecuencia directa de trabajar con planos proyectivos: al tener que conservar rectas las líneas rectas, en ocasiones las deformaciones necesarias son tan grandes que transforman la imagen más de lo deseado.
+
+      Estas deformaciones podrían desaparecer si las homografías que hay que aplicar para pasar del sistema de coordenadas de una imagen al sistema de coordenadas de otra nos permiten trabajar sin \emph{estirar} la imagen artificialmente; es decir, si las transformaciones necesarias para pasar de un sistema a otro son únicamente movimientos rígidos: composiciones de traslaciones y rotaciones.
   \end{solucion}
 
 \end{document}
