@@ -185,19 +185,6 @@ Image::~Image(){
 
 Image::Image(string filename){
     imageInit(filename, "Image", true);
-
-    vector< pair<Point2f, Point2f> > keypoints;
-
-    keypoints.push_back(pair<Point2f, Point2f>(Point2f(5,300), Point2f(50,600)));
-    keypoints.push_back(pair<Point2f, Point2f>(Point2f(250,10), Point2f(50,20)));
-    keypoints.push_back(pair<Point2f, Point2f>(Point2f(20,500), Point2f(40,100)));
-    keypoints.push_back(pair<Point2f, Point2f>(Point2f(12,1), Point2f(24,2)));
-    keypoints.push_back(pair<Point2f, Point2f>(Point2f(5,32), Point2f(50,600)));
-    keypoints.push_back(pair<Point2f, Point2f>(Point2f(27,11), Point2f(1,123)));
-    keypoints.push_back(pair<Point2f, Point2f>(Point2f(20,23), Point2f(40,234)));
-    keypoints.push_back(pair<Point2f, Point2f>(Point2f(12,1), Point2f(24,134)));
-
-    cout << findHomography(keypoints) << endl;
 }
 
 Image::Image(string filename, string name){
@@ -425,6 +412,16 @@ Image Image::makePyramidCanvas(int num_levels){
     }
 
     return Image(canvas);
+}
+
+Image Image::warpPerspective(vector< pair<Point2f,Point2f> > keypoints){
+    Mat homography = this->findHomography(keypoints);
+
+    Mat dst(this->image.size(), this->image.type());
+
+    cv::warpPerspective( this->image, dst, homography, this->image.size() );
+
+    return Image(dst);
 }
 
 Image Image::overlapContours(double low, double high, Scalar color){

@@ -25,7 +25,6 @@ private:
     Mat convolution1D(const Mat& signal_vec, const Mat& mask, enum border_id border_type);
     Mat convolution2D(const Mat& signal_mat, const Mat& mask, enum border_id border_type);
     void copyTo(Mat dst);
-
     Mat findHomography(vector< pair<Point2f,Point2f> > matches);
 
 public:
@@ -54,6 +53,8 @@ public:
     Image reduceHalf();
     Image pyramidDown(double sigma = 1.0);
     Image makePyramidCanvas(int num_levels);
+
+    Image warpPerspective(vector< pair<Point2f,Point2f> > keypoints);
 
     Image overlapContours(double low, double high, Scalar color = Scalar(0,0,255));
 
