@@ -26,6 +26,7 @@ private:
     Mat convolution2D(const Mat& signal_mat, const Mat& mask, enum border_id border_type);
     void copyTo(Mat dst);
 
+    Mat findHomography(vector< pair<Point2f,Point2f> > matches);
 
 public:
     ~Image();
@@ -59,4 +60,5 @@ public:
     void draw();
 
     friend Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_high);
+
 };

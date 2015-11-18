@@ -150,6 +150,27 @@ void Image::imageInit(string filename, string name, bool flag_color){
     this->ID = num_images;
 }
 
+Mat Image::findHomography(vector< pair<Point2f,Point2f> > matches){
+    // Build the equations system. See http://sl.ugr.es/homography_estimation
+    Mat mat_system, sing_values, l_sing_vectors, r_sing_vectors_t;
+    for (unsigned int i = 0; i < matches.size(); i++) {
+        Point2f first = matches[i].first;
+        Point2f second = matches[i].second;
+
+        double eq[2][9] = {
+            { -first.x, -first.y, -1., 0., 0., 0., second.x*first.x, second.x*first.y, second.x },
+            { 0., 0., 0., -first.x, -first.y, -1., second.y*first.x, second.y*first.y, second.y }
+        };
+
+        mat_system.push_back( Mat(2, 9, CV_32F, eq) );
+    }
+
+    // Solve the equations system using SVD decomposition
+    SVD::compute( mat_system, sing_values, l_sing_vectors, r_sing_vectors_t, 0 );
+
+    cout << r_sing_vectors_t;
+}
+
 /**************************** PUBLIC METHODS ****************************/
 
 /*_---------------* Destructor *_---------------*/
