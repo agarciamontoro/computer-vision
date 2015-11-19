@@ -1,7 +1,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/stitching/detail/matchers.hpp>
+//#include <opencv2/stitching/detail/matchers.hpp>
+#include <opencv2/features2d.hpp>
 
 #include <string>
 #include <math.h>

@@ -469,19 +469,37 @@ void Image::draw(){
 }
 
 void Image::drawDetectedFeatures(){
-    using namespace cv::detail;
-    // Declare ORB detector and features container
-    OrbFeaturesFinder orb;
-    ImageFeatures features;
+    // Declare BRISK and BRISK detectors and keypoints container
+    Ptr<cv::BRISK> brisk = BRISK::create(
+        55,   // thresh = 30
+		8,    // octaves = 3
+		1.5f  // patternScale = 1.0f
+    );
+    Ptr<cv::ORB> orb = ORB::create(
+        500,                //nfeatures = 500
+        1.2f,               //scaleFactor = 1.2f
+        4,                  //nlevels = 8
+        21,                 //edgeThreshold = 31
+        0,                  //firstLevel = 0
+        2,                  //WTA_K = 2
+        ORB::HARRIS_SCORE,  //scoreType = ORB::HARRIS_SCORE
+        21,                 //patchSize = 31
+        20                  //fastThreshold = 20
+    );
 
-    // Detect features
-    orb(this->image, features);
+    vector<KeyPoint> keypoints;
 
-    // Overlap keypoints
-    drawKeypoints(this->image, features.keypoints, this->image, Scalar(0,0,255));
+    // Detect BRISK features and overlap keypoints
+    brisk->detect(this->image, keypoints, Mat());
+    drawKeypoints(this->image, keypoints, this->image, Scalar(0,255,0));
+
+    // Detect ORB features and overlap keypoints
+    orb->detect(this->image, keypoints, Mat());
+    drawKeypoints(this->image, keypoints, this->image, Scalar(0,0,255));
 
     // Draw it!
     this->draw();
+
 }
 
 /**
