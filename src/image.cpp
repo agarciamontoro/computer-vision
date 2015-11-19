@@ -468,6 +468,26 @@ void Image::draw(){
     imshow( this->name, image_8U );
 }
 
+void Image::drawDetectedFeatures(){
+    using namespace cv::detail;
+    // Detect features
+    // Declare ORB detector and features container
+    OrbFeaturesFinder orb;
+    ImageFeatures features;
+
+    orb(this->image, features);
+
+    Point2f point;
+    Vec3b color(0,0,255);
+
+    for (size_t i = 0; i < features.keypoints.size(); i++) {
+        point = features.keypoints[i].pt;
+        this->image.at<Vec3b>(point) = color;
+    }
+
+    this->draw();
+}
+
 /**
  * Returns an image object with the low frequencies image, the high frequencies image and the hybrid image
  * all placed in the same canvas.

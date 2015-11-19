@@ -1,6 +1,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/stitching/detail/matchers.hpp>
 
 #include <string>
 #include <math.h>
@@ -59,6 +60,7 @@ public:
     Image overlapContours(double low, double high, Scalar color = Scalar(0,0,255));
 
     void draw();
+    void drawDetectedFeatures();
 
     friend Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_high);
 

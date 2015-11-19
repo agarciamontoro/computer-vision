@@ -45,6 +45,8 @@ int main(){
     good_tab2_1.draw();
     bad_tab2_1.draw();
 
+    tablero1.drawDetectedFeatures();
+
     waitKey(0);
     /*
     Image blurred_bird = bird.lowPassFilter(3.0);
