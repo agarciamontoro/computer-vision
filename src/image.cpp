@@ -470,31 +470,17 @@ void Image::draw(){
 
 void Image::drawDetectedFeatures(){
     using namespace cv::detail;
-    // Detect features
     // Declare ORB detector and features container
     OrbFeaturesFinder orb;
     ImageFeatures features;
 
+    // Detect features
     orb(this->image, features);
 
-    Point2f point;
-    KeyPoint kp;
-    Scalar color(0,0,255);
+    // Overlap keypoints
+    drawKeypoints(this->image, features.keypoints, this->image, Scalar(0,0,255));
 
-    // for (size_t i = 0; i < features.keypoints.size(); i++) {
-    //     kp = features.keypoints[i];
-    //
-    //     point = kp.pt;
-    //     RotatedRect rect(point, Size2f(kp.size,kp.size), kp.angle);
-    //
-    //     Point2f vertices[4];
-    //     rect.points(vertices);
-    //     for (int i = 0; i < 4; i++)
-    //         line(image, vertices[i], vertices[(i+1)%4], color);
-    //
-    // }
-    drawKeypoints(this->image, features.keypoints, this->image, color);
-
+    // Draw it!
     this->draw();
 }
 
