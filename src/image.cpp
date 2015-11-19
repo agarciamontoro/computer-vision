@@ -478,12 +478,22 @@ void Image::drawDetectedFeatures(){
     orb(this->image, features);
 
     Point2f point;
-    Vec3b color(0,0,255);
+    KeyPoint kp;
+    Scalar color(0,0,255);
 
-    for (size_t i = 0; i < features.keypoints.size(); i++) {
-        point = features.keypoints[i].pt;
-        this->image.at<Vec3b>(point) = color;
-    }
+    // for (size_t i = 0; i < features.keypoints.size(); i++) {
+    //     kp = features.keypoints[i];
+    //
+    //     point = kp.pt;
+    //     RotatedRect rect(point, Size2f(kp.size,kp.size), kp.angle);
+    //
+    //     Point2f vertices[4];
+    //     rect.points(vertices);
+    //     for (int i = 0; i < 4; i++)
+    //         line(image, vertices[i], vertices[(i+1)%4], color);
+    //
+    // }
+    drawKeypoints(this->image, features.keypoints, this->image, color);
 
     this->draw();
 }
