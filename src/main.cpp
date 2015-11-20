@@ -89,13 +89,13 @@ int main(){
 
     Image mosaico1("imagenes/yosemite1.jpg");
     Image mosaico2("imagenes/yosemite2.jpg");
-    //Image mosaico3("imagenes/yosemite3.jpg");
+    Image mosaico3("imagenes/yosemite3.jpg");
     //Image mosaico4("imagenes/yosemite4.jpg");
 
     vector<Image> images;
     images.push_back(mosaico1);
     images.push_back(mosaico2);
-    //images.push_back(mosaico3);
+    images.push_back(mosaico3);
     //images.push_back(mosaico4);
     // images.push_back(mosaico5);
     // images.push_back(mosaico6);

@@ -556,20 +556,16 @@ Image Image::createMosaic(Image matched){
 }
 
 Image createMosaic_N(vector<Image> &images){
-    // Number of images
+    // Number of images and middle image index
     int N = images.size();
+    int mid_idx = N/2; // Integer division, works both with odd and even numbers.
 
-    // Image type
+    // Image and homography types
     int img_type = images.front().image.type();
-    // Homorgaphy type
     int homo_type = CV_64F;
 
-    // Integer division, works both with odd and even numbers.
-    int mid_idx = N/2;
-
-    // Declare homorgaphies vectors
+    // Declare homographies vectors
     vector<Mat> left_homographies, right_homographies;
-
 
     // Homographies between images on the left side of the central one
     for (int i = 0; i < mid_idx; i++) {
@@ -593,33 +589,25 @@ Image createMosaic_N(vector<Image> &images){
     // Compute left homographies composition and store them in the same vector
     for (int i = 0; i < left_size; i++) {
         Mat homo_composition = Mat::eye(3,3,homo_type);
-        cout << "Multiplying ";
         for (int j = left_size-1; j >= i; j--) {
-            cout << "left_homographies[" << j<< "] * ";
             homo_composition = homo_composition * left_homographies[j];
         }
-        cout << endl << "Assigning to left_homographies[" << i <<"]" << endl;
         left_homographies[i] = homo_composition;
     }
-
-    cout << endl;
 
     int right_size = right_homographies.size();
     // Compute right homographies composition and store them in the same vector
     for (int i = 0; i < right_size; i++) {
         Mat homo_composition = Mat::eye(3,3,right_homographies[0].type());
-        cout << "Multiplying ";
         for (int j = right_size-1; j >= i; j--) {
-            cout << "right_homographies[" << j<< "] * ";
             homo_composition = homo_composition * right_homographies[j];
         }
-        cout << endl << "Assigning to right_homographies[" << i <<"]" << endl;
         right_homographies[i] = homo_composition;
     }
 
     cout << endl;
 
-    // Declare a vector with all the homorgaphies without translation
+    // Declare a vector with all the homographies without translation to the mosaic coordinates
     vector<Mat> homographies;
     reverse(right_homographies.begin(),right_homographies.end());
 
@@ -627,79 +615,79 @@ Image createMosaic_N(vector<Image> &images){
     homographies.push_back(Mat::eye(3,3,homo_type));
     homographies.insert(homographies.end(),right_homographies.begin(),right_homographies.end());
 
-    // Apply appropriate homorgaphies to first and last image to retrieve the corners coordinates
-    vector<Point2f> left_corners(4),   right_corners(4),
-                    left_corners_t(4), right_corners_t(4);
+    // Get homography image of the corner coordinates from all the images to obtain mosaic size
+    vector<Point2f> corners_all(4), corners_all_t(4);
+    int min_x, min_y, max_x, max_y;
+    min_x = min_y = INF;
+    max_x = max_y = -INF;
 
-    left_corners[0] = Point2f(0,0);
-    left_corners[1] = Point2f(0,images.front().rows());
+    for (int i = 0; i < N; i++) {
+        corners_all[0] = Point2f(0,0);
+        corners_all[1] = Point2f(0,images[i].cols());
+        corners_all[2] = Point2f(images[i].rows(),images[i].cols());
+        corners_all[3] = Point2f(images[i].rows(),0);
 
-    perspectiveTransform(left_corners, left_corners_t, homographies.front());
+        perspectiveTransform(corners_all, corners_all_t, homographies[i]);
 
-    right_corners[0] = Point2f(images.back().cols(),0);
-    right_corners[1] = Point2f(images.back().cols(),images.back().rows());
+        for (int j = 0; j < 4; j++) {
+            min_x = corners_all_t[j].x < min_x ? corners_all_t[j].x : min_x;
+            max_x = corners_all_t[j].x > max_x ? corners_all_t[j].x : max_x;
+            min_y = corners_all_t[j].y < min_y ? corners_all_t[j].y : min_y;
+            max_y = corners_all_t[j].y > max_y ? corners_all_t[j].y : max_y;
 
-    perspectiveTransform(right_corners, right_corners_t, homographies.back());
+            min_x = corners_all[j].x < min_x ? corners_all[j].x : min_x;
+            max_x = corners_all[j].x > max_x ? corners_all[j].x : max_x;
+            min_y = corners_all[j].y < min_y ? corners_all[j].y : min_y;
+            max_y = corners_all[j].y > max_y ? corners_all[j].y : max_y;
+        }
+    }
 
-    std::cout << left_corners_t[0] << "\t" << right_corners_t[0] << std::endl;
-    std::cout << left_corners_t[1] << "\t" << right_corners_t[1] << std::endl;
+    cout << "x \\in [" << min_x << "," << max_x << "]; " << " y \\in [" << min_y << "," << max_y << "]" << endl;
 
-    // Obtain coordinates of the corners of the mosaic boundary
-    int min_x = left_corners_t[0].x < left_corners_t[1].x ? left_corners_t[0].x : left_corners_t[1].x;
-    int min_y = left_corners_t[0].y < right_corners_t[0].y ? left_corners_t[0].y : right_corners_t[0].y;
+    int mosaic_cols = abs(max_x) + abs(min_x);
+    int mosaic_rows = abs(max_y) + abs(min_y);
 
-    int max_x = right_corners_t[0].x > right_corners_t[1].x ? right_corners_t[0].x : right_corners_t[1].x;
-    int max_y = left_corners_t[1].y > right_corners_t[1].y ? left_corners_t[1].y : right_corners_t[1].y;
+    cout << "Mosaic = " << mosaic_cols << " x " << mosaic_rows << endl;
 
-    cout << "x = [" << min_x << ", " << max_x << "], " << "y = [" << min_y << ", " << max_y << "]" << endl;
+    //int mosaic_center_x = mosaic_cols/2;
+    //int mosaic_center_y = mosaic_rows/2;
 
-    int mosaic_cols = max_x - min_x;
-    int mosaic_center_x = mosaic_cols/2;
+    //cout << "Mosaic center = " << mosaic_center_x << " x " << mosaic_center_y << endl;
 
-    int mosaic_rows = max_y - min_y;
-    int mosaic_center_y = mosaic_rows/2;
-
-    // Define homography to translate center image to the center of the mosaic.
-    vector<Point2f> actual_corners(4), trans_corners(4);
-
-    actual_corners[0] = Point2f(0,0);
-    actual_corners[1] = Point2f(images[mid_idx].cols(),0);
-    actual_corners[2] = Point2f(images[mid_idx].cols(), images[mid_idx].rows());
-    actual_corners[3] = Point2f(0, images[mid_idx].rows());
-
-    trans_corners[0] = Point2f(mosaic_center_x - images[mid_idx].cols()/2, mosaic_center_y - images[mid_idx].rows()/2);
-    trans_corners[1] = trans_corners[0] + actual_corners[1];
-    trans_corners[2] = trans_corners[0] + actual_corners[2];
-    trans_corners[3] = trans_corners[0] + actual_corners[3];
-
-    cout << actual_corners[0] << " ----> " << trans_corners[0] << endl;
-    cout << actual_corners[1] << " ----> " << trans_corners[1] << endl;
-    cout << actual_corners[2] << " ----> " << trans_corners[2] << endl;
-    cout << actual_corners[3] << " ----> " << trans_corners[3] << endl;
-
-    Mat trans_homography = cv::findHomography(actual_corners, trans_corners, cv::RANSAC, 1);
-
-    // // Obtain necessary horizontal and vertical translation for the central image
-    // int x_trans = ( mosaic_cols - images[mid_idx].cols() ) / 2;
-    // int y_trans = ( mosaic_rows - images[mid_idx].rows() ) / 2;
+    // // Define homography to translate center image to the center of the mosaic.
+    // vector<Point2f> actual_corners(4), trans_corners(4);
     //
-    // // Declare the translation homography
-    // // vector<int> trans_values = {
-    // //     {1, 0, x_trans},
-    // //     {0, 1, y_trans},
-    // //     {0, 0, 1}
-    // // };
-    // Mat trans_homography = Mat::eye(3,3,homo_type);//(trans_values,type);
-    // trans_homography.at<double>(0,2) = x_trans;
-    // trans_homography.at<double>(1,2) = y_trans;
-
-    // // Declare a vector with all the homorgaphies without translation
-    // vector<Mat> homographies;
-    // reverse(right_homographies.begin(),right_homographies.end());
+    // actual_corners[0] = Point2f(0,0);
+    // actual_corners[1] = Point2f(images[mid_idx].cols(),0);
+    // actual_corners[2] = Point2f(images[mid_idx].cols(), images[mid_idx].rows());
+    // actual_corners[3] = Point2f(0, images[mid_idx].rows());
     //
-    // homographies.insert(homographies.end(),left_homographies.begin(),left_homographies.end());
-    // homographies.push_back(Mat::eye(3,3,homo_type));
-    // homographies.insert(homographies.end(),right_homographies.begin(),right_homographies.end());
+    // trans_corners[0] = Point2f(mosaic_center_x - images[mid_idx].cols()/2, mosaic_center_y - images[mid_idx].rows()/2);
+    // trans_corners[1] = trans_corners[0] + actual_corners[1];
+    // trans_corners[2] = trans_corners[0] + actual_corners[2];
+    // trans_corners[3] = trans_corners[0] + actual_corners[3];
+    //
+    // cout << actual_corners[0] << "\t---->\t" << trans_corners[0] << endl;
+    // cout << actual_corners[1] << "\t---->\t" << trans_corners[1] << endl;
+    // cout << actual_corners[2] << "\t---->\t" << trans_corners[2] << endl;
+    // cout << actual_corners[3] << "\t---->\t" << trans_corners[3] << endl;
+    //
+    // Mat translation = Mat::eye(3,3,homo_type);
+    // for (int i = mid_idx; i >= 0; i--) {
+    //     translation = translation * homographies[i];
+    // }
+    //
+    // Mat aux = Mat::eye(3,3,homo_type);
+    // aux.at<double>(0,2) = -min_x/2;
+    // aux.at<double>(1,2) = -min_y/2;
+    //
+    // Mat trans_homography = aux * translation.inv();
+
+    //Mat trans_homography = cv::findHomography(actual_corners, trans_corners);
+
+    Mat trans_homography = Mat::eye(3,3,homo_type);
+    trans_homography.at<double>(0,2) = -min_x;
+    trans_homography.at<double>(1,2) = -min_y;
 
     // Create mosaic canvas
     Size mosaic_size(mosaic_cols, mosaic_rows);
@@ -708,7 +696,7 @@ Image createMosaic_N(vector<Image> &images){
     for (size_t i = 0; i < homographies.size(); i++) {
         Mat curr_homography = trans_homography * homographies[i];
         cout << curr_homography << endl << endl;
-        cv::warpPerspective( images[i].image, mosaic, curr_homography, mosaic.size(), INTER_LINEAR, BORDER_TRANSPARENT );
+        cv::warpPerspective( images[i].image, mosaic, curr_homography, mosaic_size, INTER_LINEAR, BORDER_TRANSPARENT );
     }
 
     return Image(mosaic);
