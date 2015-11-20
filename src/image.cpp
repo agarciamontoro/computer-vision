@@ -246,24 +246,24 @@ pair< vector<Point2f>, vector<Point2f> > Image::match(Image matched, enum detect
     vector<DMatch> matches;
     matcher->match( descriptors[0], descriptors[1], matches );
 
-    // double max_dist = 0; double min_dist = 100;
-    //
-    // //-- Quick calculation of max and min distances between keypoints
-    // for( int i = 0; i < descriptors[0].rows; i++ ){
-    //     double dist = matches[i].distance;
-    //     if( dist < min_dist ) min_dist = dist;
-    //     if( dist > max_dist ) max_dist = dist;
-    // }
-    //
-    // std::vector< DMatch > good_matches;
-    //
-    // for( int i = 0; i < descriptors[0].rows; i++ ){
-    //     if( matches[i].distance < 3*min_dist ){
-    //         good_matches.push_back( matches[i]);
-    //     }
-    // }
-    //
-    // cout << good_matches.size();
+    double max_dist = 0; double min_dist = 100;
+
+    //-- Quick calculation of max and min distances between keypoints
+    for( int i = 0; i < descriptors[0].rows; i++ ){
+        double dist = matches[i].distance;
+        if( dist < min_dist ) min_dist = dist;
+        if( dist > max_dist ) max_dist = dist;
+    }
+
+    std::vector< DMatch > good_matches;
+
+    for( int i = 0; i < descriptors[0].rows; i++ ){
+        if( matches[i].distance < 3*min_dist ){
+            good_matches.push_back( matches[i]);
+        }
+    }
+
+    cout << good_matches.size();
 
     // 3 - Create lists of ordered keypoints following obtained matches
     vector<Point2f> ordered_keypoints[2];
