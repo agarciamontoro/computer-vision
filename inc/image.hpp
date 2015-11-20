@@ -3,6 +3,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 //#include <opencv2/stitching/detail/matchers.hpp>
 #include <opencv2/features2d.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 
 #include <string>
 #include <math.h>
@@ -28,6 +29,8 @@ private:
     Mat convolution2D(const Mat& signal_mat, const Mat& mask, enum border_id border_type);
     void copyTo(Mat dst);
     Mat findHomography(vector< pair<Point2f,Point2f> > matches);
+    Mat detectFeatures(enum detector_id det_id, vector<KeyPoint> &keypoints);
+    pair< vector<Point2f>, vector<Point2f> > match(Image matched, enum detector_id detector);
 
 public:
     ~Image();
@@ -57,11 +60,11 @@ public:
     Image makePyramidCanvas(int num_levels);
 
     Image warpPerspective(vector< pair<Point2f,Point2f> > keypoints);
-
+    Image createMosaic(Image matched);
     Image overlapContours(double low, double high, Scalar color = Scalar(0,0,255));
 
     void draw();
-    void drawDetectedFeatures();
+    void drawDetectedFeatures(Scalar color = Scalar(0,0,255), enum detector_id detector = detector_id::ORB);
 
     friend Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_high);
 

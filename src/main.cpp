@@ -55,10 +55,19 @@ int main(){
     // destroyAllWindows();
 
     Image yosemite1("imagenes/yosemite1.jpg");
-    // Image yosemite2("imagenes/yosemite2.jpg");
-    yosemite1.drawDetectedFeatures();
-    // yosemite2.drawDetectedFeatures();
+    yosemite1.setName("Yosemite - 1");
 
+    Image yosemite2("imagenes/yosemite2.jpg");
+    yosemite2.setName("Yosemite - 2");
+
+    yosemite1.drawDetectedFeatures();
+    yosemite2.drawDetectedFeatures();
+
+    waitKey(0);
+
+    Image mosaic = yosemite1.createMosaic(yosemite2);
+    mosaic.setName("Yosemite - Mosaic");
+    mosaic.draw();
     waitKey(0);
 
     destroyAllWindows();

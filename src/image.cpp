@@ -174,6 +174,110 @@ Mat Image::findHomography(vector< pair<Point2f,Point2f> > matches){
     return last_row.reshape(1,3);
 }
 
+Mat Image::detectFeatures(enum detector_id det_id, vector<KeyPoint> &keypoints){
+    // Declare detector pointer
+    Ptr<Feature2D> detector;
+
+    if (det_id == detector_id::ORB) {
+        // Declare ORB detector
+        detector = ORB::create(
+            500,                //nfeatures = 500
+            1.2f,               //scaleFactor = 1.2f
+            4,                  //nlevels = 8
+            21,                 //edgeThreshold = 31
+            0,                  //firstLevel = 0
+            2,                  //WTA_K = 2
+            ORB::HARRIS_SCORE,  //scoreType = ORB::HARRIS_SCORE
+            21,                 //patchSize = 31
+            20                  //fastThreshold = 20
+        );
+    }
+    else{
+        // Declare BRISK and BRISK detectors
+        detector = BRISK::create(
+            55,   // thresh = 30
+    		8,    // octaves = 3
+    		1.5f  // patternScale = 1.0f
+        );
+    }
+
+    Mat descriptors;
+
+    detector->detect(this->image, keypoints);
+    detector->compute(this->image,keypoints,descriptors);
+
+    return descriptors;
+}
+
+pair< vector<Point2f>, vector<Point2f> > Image::match(Image matched, enum detector_id detector){
+    // Mat self_descriptors, matched_descriptors;
+    //
+    // vector<KeyPoint> self_keypoints = this->detectFeatures(detector, self_descriptors);
+    // vector<KeyPoint> matched_keypoints = matched.detectFeatures(detector, matched_descriptors);
+    //
+    // Ptr<cv::DescriptorMatcher> flann_matcher = DescriptorMatcher::create("FlannBased");
+    // BFMatcher brute_matcher(NORM_HAMMING, true);
+    //
+    // vector< DMatch > flann_matches, brute_matches;
+    // flann_matcher->match( self_descriptors, matched_descriptors, flann_matches );
+    // brute_matcher.match( self_descriptors, matched_descriptors, brute_matches );
+    //
+    // vector<Point2f> self_ordered, matched_ordered;
+    //
+    // for( unsigned int i = 0; i < flann_matches.size(); i++ )
+    // {
+    //   //-- Get the keypoints from the good matches
+    //   self_ordered.push_back( self_keypoints[flann_matches[i].queryIdx].pt );
+    //   matched_ordered.push_back( matched_keypoints[flann_matches[i].trainIdx].pt );
+    // }
+    //
+    // return pair< vector<Point2f>, vector<Point2f> >(self_ordered, matched_ordered);
+
+    // 1 - Get keypoints and its descriptors in both images
+    vector<KeyPoint> keypoints[2];
+    Mat descriptors[2];
+
+    descriptors[0] = this->detectFeatures(detector, keypoints[0]);
+    descriptors[1] = matched.detectFeatures(detector, keypoints[1]);
+
+    // 2 - Match both descriptors
+    Ptr<cv::DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
+
+    vector<DMatch> matches;
+    matcher->match( descriptors[0], descriptors[1], matches );
+
+    // double max_dist = 0; double min_dist = 100;
+    //
+    // //-- Quick calculation of max and min distances between keypoints
+    // for( int i = 0; i < descriptors[0].rows; i++ ){
+    //     double dist = matches[i].distance;
+    //     if( dist < min_dist ) min_dist = dist;
+    //     if( dist > max_dist ) max_dist = dist;
+    // }
+    //
+    // std::vector< DMatch > good_matches;
+    //
+    // for( int i = 0; i < descriptors[0].rows; i++ ){
+    //     if( matches[i].distance < 3*min_dist ){
+    //         good_matches.push_back( matches[i]);
+    //     }
+    // }
+    //
+    // cout << good_matches.size();
+
+    // 3 - Create lists of ordered keypoints following obtained matches
+    vector<Point2f> ordered_keypoints[2];
+
+    for( unsigned int i = 0; i < good_matches.size(); i++ )
+    {
+      // Get the keypoints from the matches
+      ordered_keypoints[0].push_back( keypoints[0][good_matches[i].queryIdx].pt );
+      ordered_keypoints[1].push_back( keypoints[1][good_matches[i].trainIdx].pt );
+    }
+
+    return pair< vector<Point2f>, vector<Point2f> >(ordered_keypoints[0], ordered_keypoints[1]);
+}
+
 /**************************** PUBLIC METHODS ****************************/
 
 /*_---------------* Destructor *_---------------*/
@@ -424,6 +528,22 @@ Image Image::warpPerspective(vector< pair<Point2f,Point2f> > keypoints){
     return Image(dst);
 }
 
+Image Image::createMosaic(Image matched){
+    assert(this->image.type() == matched.image.type());
+
+    pair< vector<Point2f>, vector<Point2f> > matched_points = this->match(matched, detector_id::ORB);
+    Mat homography = cv::findHomography(matched_points.first, matched_points.second, cv::RANSAC, 1);
+
+    Mat mosaic(this->rows(), this->cols() + matched.cols(), this->image.type());
+
+    cout << homography << endl;
+
+    //cv::warpPerspective( this->image, mosaic, Mat::eye(3,3,this->image.type()), mosaic.size() );
+    cv::warpPerspective( matched.image, mosaic, homography, matched.image.size() );
+
+    return Image(mosaic);
+}
+
 Image Image::overlapContours(double low, double high, Scalar color){
     Mat canny_output;
     vector< vector<Point> > contours;
@@ -468,34 +588,13 @@ void Image::draw(){
     imshow( this->name, image_8U );
 }
 
-void Image::drawDetectedFeatures(){
-    // Declare BRISK and BRISK detectors and keypoints container
-    Ptr<cv::BRISK> brisk = BRISK::create(
-        55,   // thresh = 30
-		8,    // octaves = 3
-		1.5f  // patternScale = 1.0f
-    );
-    Ptr<cv::ORB> orb = ORB::create(
-        500,                //nfeatures = 500
-        1.2f,               //scaleFactor = 1.2f
-        4,                  //nlevels = 8
-        21,                 //edgeThreshold = 31
-        0,                  //firstLevel = 0
-        2,                  //WTA_K = 2
-        ORB::HARRIS_SCORE,  //scoreType = ORB::HARRIS_SCORE
-        21,                 //patchSize = 31
-        20                  //fastThreshold = 20
-    );
-
+void Image::drawDetectedFeatures(Scalar color, enum detector_id detector){
+    // Retrieve features
     vector<KeyPoint> keypoints;
+    this->detectFeatures(detector,keypoints);
 
-    // Detect BRISK features and overlap keypoints
-    brisk->detect(this->image, keypoints, Mat());
-    drawKeypoints(this->image, keypoints, this->image, Scalar(0,255,0));
-
-    // Detect ORB features and overlap keypoints
-    orb->detect(this->image, keypoints, Mat());
-    drawKeypoints(this->image, keypoints, this->image, Scalar(0,0,255));
+    // Overlap features
+    drawKeypoints(this->image, keypoints, this->image, color);
 
     // Draw it!
     this->draw();
