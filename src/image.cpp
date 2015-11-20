@@ -539,9 +539,10 @@ Image Image::createMosaic(Image matched){
     cout << homography << endl;
 
     Mat I3 = Mat::eye(3,3,CV_32F);
+    // Mat right_slot = mosaic( Rect(this->cols(),0,matched.cols(),matched.rows()) );
 
     cv::warpPerspective( this->image, mosaic, I3 , mosaic.size() );
-    cv::warpPerspective( matched.image, mosaic, homography, mosaic.size() );
+    cv::warpPerspective( matched.image, mosaic, homography, mosaic.size(), INTER_LINEAR, BORDER_TRANSPARENT );
 
     return Image(mosaic);
 }
