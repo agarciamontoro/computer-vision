@@ -258,15 +258,22 @@ pair< vector<Point2f>, vector<Point2f> > Image::match(Image matched, enum detect
     std::vector< DMatch > good_matches;
 
     for( int i = 0; i < descriptors[0].rows; i++ ){
-        if( matches[i].distance < 3*min_dist ){
+        if( matches[i].distance < 4*min_dist ){
             good_matches.push_back( matches[i]);
         }
     }
 
-    cout << good_matches.size();
+    good_matches = matches;
+
+    Mat draw_matches;
+    drawMatches(this->image, keypoints[0], matched.image, keypoints[1], good_matches, draw_matches);
+    Image prueba(draw_matches);
+    prueba.draw();
+    waitKey(0);
 
     // 3 - Create lists of ordered keypoints following obtained matches
     vector<Point2f> ordered_keypoints[2];
+
 
     for( unsigned int i = 0; i < good_matches.size(); i++ )
     {
@@ -531,17 +538,18 @@ Image Image::warpPerspective(vector< pair<Point2f,Point2f> > keypoints){
 Image Image::createMosaic(Image matched){
     assert(this->image.type() == matched.image.type());
 
+    // Find homography transforming "matched" image plane into own plane:
     pair< vector<Point2f>, vector<Point2f> > matched_points = this->match(matched, detector_id::ORB);
-    Mat homography = cv::findHomography(matched_points.first, matched_points.second, cv::RANSAC, 1);
+    Mat homography = cv::findHomography(matched_points.second, matched_points.first, cv::RANSAC, 1);
 
-    Mat mosaic(this->rows(), this->cols() + matched.cols(), this->image.type());
+    // Build the mosaic canvas and declare a header for its left half
+    Mat mosaic(Size(this->cols() + matched.cols(), this->rows()), CV_8UC3, Scalar(0,0,0));
+    Mat left_slot  = mosaic( Rect(0,0,matched.cols(),matched.rows()) );
 
-    cout << homography << endl;
+    // Copy own image to the mosaic
+    this->image.copyTo( left_slot );
 
-    Mat I3 = Mat::eye(3,3,CV_32F);
-    // Mat right_slot = mosaic( Rect(this->cols(),0,matched.cols(),matched.rows()) );
-
-    cv::warpPerspective( this->image, mosaic, I3 , mosaic.size() );
+    // Copy "matched" image to the mosaic applying the homography
     cv::warpPerspective( matched.image, mosaic, homography, mosaic.size(), INTER_LINEAR, BORDER_TRANSPARENT );
 
     return Image(mosaic);
@@ -591,17 +599,17 @@ void Image::draw(){
     imshow( this->name, image_8U );
 }
 
-void Image::drawDetectedFeatures(Scalar color, enum detector_id detector){
+Image Image::drawDetectedFeatures(Scalar color, enum detector_id detector){
     // Retrieve features
     vector<KeyPoint> keypoints;
     this->detectFeatures(detector,keypoints);
 
+    Mat img_with_kp = this->image.clone();
+
     // Overlap features
-    drawKeypoints(this->image, keypoints, this->image, color);
+    drawKeypoints(this->image, keypoints, img_with_kp, color);
 
-    // Draw it!
-    this->draw();
-
+    return Image(img_with_kp);
 }
 
 /**
