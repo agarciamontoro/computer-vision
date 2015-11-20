@@ -54,69 +54,59 @@ int main(){
     //
     // destroyAllWindows();
 
-    Image yosemite1("imagenes/yosemite1.jpg");
-    Image yosemite2("imagenes/yosemite2.jpg");
+    // Image yosemite1("imagenes/yosemite1.jpg");
+    // Image yosemite2("imagenes/yosemite2.jpg");
+    //
+    // Image y1_kp = yosemite1.drawDetectedFeatures(Scalar(0,0,255));
+    // Image y2_kp = yosemite2.drawDetectedFeatures(Scalar(255,0,0));
+    //
+    // y1_kp.setName("Yosemite - 1");
+    // y2_kp.setName("Yosemite - 2");
+    //
+    // y1_kp.draw();
+    // y2_kp.draw();
+    //
+    // waitKey(0);
+    // //destroyAllWindows();
+    //
+    // Image mosaic = yosemite1.createMosaic(yosemite2);
+    // mosaic.setName("Yosemite - Mosaic");
+    // mosaic.draw();
+    // waitKey(0);
+    //
+    // destroyAllWindows();
 
-    Image y1_kp = yosemite1.drawDetectedFeatures(Scalar(0,0,255));
-    Image y2_kp = yosemite2.drawDetectedFeatures(Scalar(255,0,0));
+    // Image mosaico1("imagenes/mosaico002.jpg");
+    // Image mosaico2("imagenes/mosaico003.jpg");
+    // Image mosaico3("imagenes/mosaico004.jpg");
+    // Image mosaico4("imagenes/mosaico005.jpg");
+    // Image mosaico5("imagenes/mosaico006.jpg");
+    // Image mosaico6("imagenes/mosaico007.jpg");
+    // Image mosaico7("imagenes/mosaico008.jpg");
+    // Image mosaico8("imagenes/mosaico009.jpg");
+    // Image mosaico9("imagenes/mosaico010.jpg");
+    // Image mosaico10("imagenes/mosaico011.jpg");
 
-    y1_kp.setName("Yosemite - 1");
-    y2_kp.setName("Yosemite - 2");
+    Image mosaico1("imagenes/yosemite1.jpg");
+    Image mosaico2("imagenes/yosemite2.jpg");
+    //Image mosaico3("imagenes/yosemite3.jpg");
+    //Image mosaico4("imagenes/yosemite4.jpg");
 
-    y1_kp.draw();
-    y2_kp.draw();
+    vector<Image> images;
+    images.push_back(mosaico1);
+    images.push_back(mosaico2);
+    //images.push_back(mosaico3);
+    //images.push_back(mosaico4);
+    // images.push_back(mosaico5);
+    // images.push_back(mosaico6);
+    // images.push_back(mosaico7);
+    // images.push_back(mosaico8);
+    // images.push_back(mosaico9);
+    // images.push_back(mosaico10);
 
-    waitKey(0);
-    //destroyAllWindows();
-
-    Image mosaic = yosemite1.createMosaic(yosemite2);
-    mosaic.setName("Yosemite - Mosaic");
+    Image mosaic = createMosaic_N(images);
+    mosaic.setName("Yosemite mosaic");
     mosaic.draw();
     waitKey(0);
-
     destroyAllWindows();
-    /*
-    Image blurred_bird = bird.lowPassFilter(3.0);
-
-    bird.setName("Bird image.");
-    blurred_bird.setName("Low-pass filtered bird image.");
-
-    bird.draw();
-    blurred_bird.draw();
-
-    waitKey(0);
-    destroyAllWindows();
-
-    Image bike("imagenes/bicycle.bmp");
-    Image motorbike("imagenes/motorcycle.bmp",false);
-
-    Image hybrid_canvas = makeHybridCanvas(motorbike,bike,4.0,3.0);
-
-    hybrid_canvas.setName("Hybrid canvas.");
-    hybrid_canvas.draw();
-
-    waitKey(0);
-    destroyAllWindows();
-
-    Image fish("imagenes/fish.bmp");
-    Image submarine("imagenes/submarine.bmp");
-
-    Image hybrid = submarine.hybrid(fish,4.0,3.0);
-    Image pyramid_canvas = hybrid.makePyramidCanvas(7);
-
-    pyramid_canvas.setName("Gaussian pyramid.");
-    pyramid_canvas.draw();
-
-    waitKey(0);
-    destroyAllWindows();
-
-    Image plane("imagenes/plane.bmp");
-
-    Image contours_plane = plane.overlapContours(30,80);
-
-    contours_plane.setName("Detecting contours with Canny filter");
-    contours_plane.draw();
-
-    waitKey(0);
-    */
 }
