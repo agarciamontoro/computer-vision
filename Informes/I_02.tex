@@ -89,17 +89,17 @@
       y_1 &= \frac{H_{1,1}x_1 + H_{1,2}x_2 + H_{1,3}}{H_{3,1}x_1 + H_{3,2}x_2 + H_{3,3}} \label{eq1}\\
       y_2 &= \frac{H_{2,1}x_1 + H_{2,2}x_2 + H_{2,3}}{H_{3,1}x_1 + H_{3,2}x_2 + H_{3,3}} \label{eq2}
   \end{align}
-  donde $H_{i,j}$ son los coeficientes de la matriz $H$; es decir, nuestras incógnitas. Además, hemos supuesto normalizado el vector $x$; es decir, $x_3=1$ ---si no lo está, basta dividir entre $x_3$ todas las coordenadas---.
+  donde $H_{i,j}$ son los coeficientes de la matriz $H$; es decir, nuestras incógnitas. Además, hemos supuesto normalizado el vector $x$ ---si $x_3\neq1$, basta dividir entre $x_3$ todas las coordenadas---.
 
   De (\ref{eq1}) y (\ref{eq2}), reorganizando las igualdades llegamos a las siguientes ecuaciones lineales:
   \begin{align}
-      ph = 0 \label{lineal1}\\
-      qh = 0 \label{lineal2}
+      ah = 0 \label{lineal1}\\
+      \tilde{a}h = 0 \label{lineal2}
   \end{align}
   donde
   \begin{align*}
-      p &= (-x_1 \;\;\; -x_2 \;\;\; -1 \;\;\; 0 \;\;\; 0 \;\;\; 0 \;\;\; y_1x_1 \;\;\; y_1x_2 \;\;\; y_1) \\
-      q &= (0 \;\;\; 0 \;\;\; 0 \;\;\; -x_1 \;\;\; -x_2 \;\;\; -1 \;\;\; y_2x_1 \;\;\; y_2x_2 \;\;\; y_2) \\
+      a &= (-x_1 \;\;\; -x_2 \;\;\; -1 \;\;\; 0 \;\;\; 0 \;\;\; 0 \;\;\; y_1x_1 \;\;\; y_1x_2 \;\;\; y_1) \\
+      \tilde{a} &= (0 \;\;\; 0 \;\;\; 0 \;\;\; -x_1 \;\;\; -x_2 \;\;\; -1 \;\;\; y_2x_1 \;\;\; y_2x_2 \;\;\; y_2) \\
       h &= (H_{1,1} \;\;\; H_{1,2} \;\;\; H_{1,3} \;\;\; H_{2,1} \;\;\; H_{2,2} \;\;\; H_{2,3} \;\;\; H_{3,1} \;\;\; H_{3,2} \;\;\; H_{3,3})^T
   \end{align*}
 
@@ -110,21 +110,21 @@
   donde
   \[
   A = \begin{pmatrix}
-      p \\
-      q
+      a \\
+      \tilde{a}
   \end{pmatrix}
   \]
 
   Pero nuestro objetivo es resolver (\ref{finaleq}) con un número $N$ arbitrario de puntos ---al menos cuatro para determinar una solución---, de manera que la matriz $A$ se convertirá en
   \[
   A = \begin{pmatrix}
-      p_1 \\
-      q_1 \\
-      p_2 \\
-      q_2 \\
+      a_1 \\
+      \tilde{a}_1 \\
+      a_2 \\
+      \tilde{a}_2 \\
       \vdots  \\
-      p_N \\
-      q_N
+      a_N \\
+      \tilde{a}_N
   \end{pmatrix}
   \]
 
@@ -138,8 +138,8 @@
   Tenemos por tanto un algoritmo claro para implementar en la función que queremos diseñar:
   \begin{enumerate}
       \item Definir dos conjuntos de puntos en correspondencia.
-      \item Para cada par de puntos, definir los coeficientes de $p$ y $q$.
-      \item Construir la matriz $A$ con todos los $p$ y $q$ calculados anteriormente.
+      \item Para cada par de puntos, definir los coeficientes de $a$ y $\tilde{a}$.
+      \item Construir la matriz $A$ con todos los $a$ y $\tilde{a}$ calculados anteriormente.
       \item Hacer la descomposición en valores singulares de la matriz $A$.
       \item Reorganizar el último vector columna de $V$ en los coeficientes de la matriz $H$.
   \end{enumerate}
@@ -178,7 +178,7 @@
   \end{lstlisting}
 
   \subsection{Estimación de la homografía}
-  La función de estimación de la homorgafía toma un vector de pares de puntos e implementa el algoritmo visto en la introducción. Veamos el código:
+  La función de estimación de la homografía toma un vector de pares de puntos e implementa el algoritmo visto en la introducción. Veamos el código:
 
   \begin{lstlisting}
 Mat Image::findHomography(vector< pair<Point2f,Point2f> > matches){
@@ -208,25 +208,600 @@ Mat Image::findHomography(vector< pair<Point2f,Point2f> > matches){
 }
   \end{lstlisting}
 
-  El código es claro: en el bucle construimos la matriz $A$, calculando para cada par de puntos en correspondencia los coeficientes de las ecuaciones \ref{lineal1} y \ref{lineal2}.
+  El código es claro: en el bucle construimos la matriz $A$, calculando para cada par de puntos en correspondencia los coeficientes de las ecuaciones (\ref{lineal1}) y (\ref{lineal2}).
 
   Luego, usamos el módulo \emph{SVD} de OpenCV para obtener la descomposición en valores singulares de $A$.
 
-  Basta entonces tomar la última columna de $V$ ---OpenCV devuelve V en filas--- y darle la forma $3\times3$ que necesitamos.
+  Basta entonces tomar la última fila de $V$ ---OpenCV devuelve V en filas--- y darle la forma $3\times3$ que necesitamos.
 
-  \subsection{Aplicación de la homorgafía estimada}
-  Para aplicar la homografía estimada a la imagen basta usar la función warpPerspective de OpenCV. Por tanto, se ha definido una función \emph{wrapper} de nombre igual \emph{Image::warpPerspective}, cuyo código es el siguiente:
+  \subsection{Aplicación de la homografía estimada}
+  Para aplicar la homografía estimada a la imagen basta usar la función warpPerspective de OpenCV. Por tanto, se ha definido una función \emph{wrapper} de igual nombre: \emph{Image::warpPerspective}, cuyo código es el siguiente:
   \begin{lstlisting}
 Image Image::warpPerspective(vector< pair<Point2f,Point2f> > keypoints){
   Mat homography = this->findHomography(keypoints);
 
-  Mat dst(this->image.size(), this->image.type());
+  vector<Point2f> corners(4), corners_trans(4);
 
-  cv::warpPerspective( this->image, dst, homography, this->image.size() );
+  corners[0] = Point2f(0,0);
+  corners[1] = Point2f(this->cols(),0);
+  corners[2] = Point2f(this->cols(),this->rows());
+  corners[3] = Point2f(0,this->rows());
+
+  perspectiveTransform(corners, corners_trans, homography);
+
+  float min_x, min_y, max_x, max_y;
+  min_x = min_y = +INF;
+  max_x = max_y = -INF;
+  for (int j = 0; j < 4; j++) {
+      min_x = min(corners_trans[j].x, min_x);
+      max_x = max(corners_trans[j].x, max_x);
+
+      min_y = min(corners_trans[j].y, min_y);
+      max_y = max(corners_trans[j].y, max_y);
+  }
+
+  Mat dst(Size(max_x-min_x,max_y-min_y), this->image.type());
+
+  // Define translation homography
+  Mat trans_homography = Mat::eye(3,3,homography.type());
+  trans_homography.at<float>(0,2) = -min_x;
+  trans_homography.at<float>(1,2) = -min_y;
+
+  cv::warpPerspective( this->image, dst, trans_homography*homography, dst.size() );
 
   return Image(dst);
 }
   \end{lstlisting}
 
-  Entonces, sobre el objeto Image podemos llamar a \emph{Image::warpPerspective} con un vector de pares de puntos en correspondencia. Esta función llama al método visto anteriormente y aplica la función \emph{cv::warpPerspective} para conseguir el resultado esperado.
+  El usuario entonces podrá llamar a \emph{Image::warpPerspective} sobre un objeto imagen pasando como argumento un vector de pares de puntos en correspondencia; siendo el primer elemento del par un punto de la imagen y, el segundo, su imagen por la homografía que estimaremos.
+
+  Las líneas 2 y 31 son las esenciales de este código: primero estimamos la homografía a partir del vector provisto y, para aplicársela a la imagen, llamamos a la función \emph{cv::warpPerspective}.
+
+  Todo el código intermedio, en las líneas 4-29, sirve para determinar el tamaño que tendrá la imagen tras aplicarle la homografía.
+
+  Para determinar este tamaño, lo único que hacemos es aplicarle la homografía, con \emph{cv::perspectiveTransform}, a las cuatro esquinas de la imagen ---líneas 4-11---.
+
+  De las imágenes por la homografía de las esquinas determinamos los límites de las coordenadas $x$ e $y$, viendo cuáles son los mínimos y los máximos\footnote{La constante INF se define en el archivo \emph{consts.hpp} como el último número en el rango de los enteros.} ---líneas 13-22---.
+
+  En la línea 24 definimos entonces el tamaño de la imagen destino, con anchura igual a $x_{max} - x_{min}$ ---que no es más que la anchura de la imagen transformada--- y altura igual a $y_{max} - y_{min}$ ---la altura de la imagen transformada---.
+
+  Ahora bien, si aplicáramos tal cual la homografía estimada a la imagen y la pusiéramos en la imagen destino, se saldría de sus límites ---las coordenadas calculadas pueden ser negativas---. Por tanto, hace falta aplicar una traslación a la imagen transformada, que definimos en las líneas 27-29 como la matriz
+  \[
+  T = \begin{pmatrix}
+      1 & 0 & -x_{min} \\
+      0 & 1 & -y_{min} \\
+      0 & 0 & 1
+  \end{pmatrix}
+  \]
+
+  En la llamada a \emph{cv::warpPerspective}, por tanto, tenemos que aplicar la homografía y luego la traslación; es decir, tenemos que pasarle la matriz $T \cdot H$, como se ve en la línea 31.
+
+  \section{Detección de puntos clave}
+  Para la detección de puntos clave, se ha implementado la siguiente función:
+  \begin{lstlisting}
+Mat Image::detectFeatures(enum detector_id det_id, vector<KeyPoint> &keypoints){
+  // Declare detector
+  Ptr<Feature2D> detector;
+
+  // Define detector
+  if (det_id == detector_id::ORB) {
+      // Declare ORB detector
+      detector = ORB::create(
+          500,                //nfeatures = 500
+          1.2f,               //scaleFactor = 1.2f
+          4,                  //nlevels = 8
+          21,                 //edgeThreshold = 31
+          0,                  //firstLevel = 0
+          2,                  //WTA_K = 2
+          ORB::HARRIS_SCORE,  //scoreType = ORB::HARRIS_SCORE
+          21,                 //patchSize = 31
+          20                  //fastThreshold = 20
+      );
+  }
+  else{
+      // Declare BRISK and BRISK detectors
+      detector = BRISK::create(
+        55,   // thresh = 30
+        8,    // octaves = 3
+        1.5f  // patternScale = 1.0f
+      );
+  }
+
+  // Declare array for storing the descriptors
+  Mat descriptors;
+
+  // Detect and compute!
+  detector->detect(this->image, keypoints);
+  detector->compute(this->image,keypoints,descriptors);
+
+  return descriptors;
+}
+  \end{lstlisting}
+
+  El código es sencillo. Veamos las tres partes esenciales de las que consta.
+
+  \subsection{Declaración y definición del detector}
+  Para dar la posibilidad de usar tanto el detector ORB como el BRISK, la función \emph{Image::detectFeatures} acepta como primer argumento un enumerado del tipo \emph{descriptor\_id}, definido en el archivo \emph{consts.hpp} como sigue:
+  \begin{lstlisting}
+  enum detector_id{
+      ORB,
+      BRISK
+  };
+  \end{lstlisting}
+
+  Tras definir un puntero genérico del tipo abstracto \emph{Feature2D}, se le asigna un objeto del tipo especificado por el primer argumento, con parámetros elegidos de forma experimental ---en los comentarios de cada línea se indica de qué parámetro se trata y cuál es su valor por defecto---.
+
+  \subsection{Detección de los puntos clave}
+  La detección de los puntos clave es independiente del descriptor usado ---de ahí la ventaja de usar la clase abstracta---, y se realiza en la línea 33. Nótese que los puntos clave se guardan en el vector keypoints. Este se le pasa por referencia a la función, así que el usuario que llame a esta función tendrá en él la lista de los puntos clave cuando la función devuelva. Esto lo hacemos porque, además de los puntos clave, queremos devolver los descriptores, que pasamos a explicar.
+
+  \subsection{Descripción de los puntos clave}
+  Para obtener los descriptores de los puntos clave previamente calculados basta llamar a la función \emph{compute}. El conjunto de descriptores es el objeto Mat que devuelve la función.
+
+  \section{Establecimiento de los puntos clave en correspondencia}
+  Ya tenemos una función para calcular puntos clave y descriptores de una imagen, pero eso no nos sirve de mucho si no somos capaces de ponerlos en correspondencia con los descriptores obtenidos de otra imagen.
+
+  Se define entonces la función \emph{Image::match}, cuyo código es el siguiente:
+  \begin{lstlisting}
+pair< vector<Point2f>, vector<Point2f> > Image::match(Image matched, enum descriptor_id descriptor , enum detector_id detector){
+  // 1 - Get keypoints and its descriptors in both images
+  vector<KeyPoint> keypoints[2];
+  Mat descriptors[2];
+
+  descriptors[0] = this->detectFeatures(detector, keypoints[0]);
+  descriptors[1] = matched.detectFeatures(detector, keypoints[1]);
+
+  // 2 - Match both descriptors using required detector
+  // Declare the matcher
+  Ptr<DescriptorMatcher> matcher;
+
+  // Define the matcher
+  if (descriptor == descriptor_id::BRUTE_FORCE) {
+      // For ORB and BRISK descriptors, NORM_HAMMING should be used.
+      // See http://sl.ugr.es/norm_ORB_BRISK
+      matcher = new BFMatcher(NORM_HAMMING, true);
+  }
+  else{
+      matcher = new FlannBasedMatcher();
+      // FlannBased Matcher needs CV_32F descriptors
+      // See http://sl.ugr.es/FlannBase_32F
+      for (size_t i = 0; i < 2; i++) {
+          if (descriptors[i].type() != CV_32F) {
+              descriptors[i].convertTo(descriptors[i],CV_32F);
+          }
+      }
+  }
+
+  // Match!
+  vector<DMatch> matches;
+  matcher->match( descriptors[0], descriptors[1], matches );
+
+  // 3 - Create lists of ordered keypoints following obtained matches
+  vector<Point2f> ordered_keypoints[2];
+
+  for( unsigned int i = 0; i < matches.size(); i++ )
+  {
+    // Get the keypoints from the matches
+    ordered_keypoints[0].push_back( keypoints[0][matches[i].queryIdx].pt );
+    ordered_keypoints[1].push_back( keypoints[1][matches[i].trainIdx].pt );
+  }
+
+  return pair< vector<Point2f>, vector<Point2f> >(ordered_keypoints[0], ordered_keypoints[1]);
+}
+  \end{lstlisting}
+
+  Esta función se llama sobre un objeto Image, recibe otro objeto Image con el que se quiere calcular su relación y devuelve un vector de pares de puntos en correspondencia, siendo el primer elemento del par un punto de la imagen sobre la que se ha llamado la función y, el segundo, el punto de la otra imagen que le corresponde.
+
+  Además, recibe dos parámetros adicionales para indicar qué tipos de detector y de descriptor usar.
+
+  Veamos el código por partes.
+
+  \subsection{Obtención de los puntos clave}
+  Lo primero que se necesita calcular es el vector de puntos clave y, con él, el de descriptores, asociado a cada imagen. Esto se hace con la función explicada en la sección anterior, llamándola sobre las dos imágenes que tenemos ---líneas 3-7---. Nótese que tanto la variable \emph{keypoints} como \emph{descriptors} está declarada doble: en ambos, el elemento $i=0$ es el correspondiente a la imagen sobre la que se ha llamado la función y, el $i=1$, el correspondiente a la imagen pasada como argumento.
+
+  \subsection{Emparejamiento de puntos}
+  Podemos ya entonces declarar la variable \emph{matcher} que, como en el caso del detector de puntos clave, es un puntero de tipo abstracto, en este caso \emph{DescriptorMatcher}. Esto nos permite generalizar el código para cualquier tipo de emparejador particularizando únicamente la creación del mismo.
+
+  Esta creación se hace en las líneas 14-28, donde se le asigna un objeto a la variable \emph{matcher} dependiente del argumento \emph{detector\_id}. Nótese que ambos tienen una peculiaridad que hay que tratar:
+  \begin{itemize}
+      \item En el caso del \emph{BFMatcher}, tenemos que usar la distancia \emph{Hamming} si queremos trabajar sobre descriptores \emph{ORB} o \emph{BRISK}. \fnurl{Ver documentación de OpenCV}{http://sl.ugr.es/norm_ORB_BRISK}.
+      \item En el caso del \emph{FlannBasedMatcher}, los descriptores tienen que tener tipo \emph{CV\_32F}, así que se convierten si tienen tipo diferente. \fnurl{Ver pregunta en los foros de OpenCV}{http://sl.ugr.es/FlannBase_32F}.
+  \end{itemize}
+
+  Una vez definidos, no hay más que llamar a la función \emph{match} del objeto \emph{DescriptorMatcher} que tengamos definido y dejar que OpenCV trabaje. Obtenemos entonces un vector de variables \emph{DMatch}, que guardan los puntos emparejados y la distancia que hay entre sus descriptores.
+
+  Además, se ha implementado una función auxiliar para usar en los ejemplos cuyo código no hace más que tomar los puntos clave, calcular los descriptores, ejecutar el \emph{matcher} y llamar a la función \emph{cv::drawMatches} para dibujar los puntos en correspondencia.
+  \begin{lstlisting}
+void Image::drawMatches(Image other){
+  vector<KeyPoint> keypoints[2];
+  Mat descriptors[2];
+
+  descriptors[0] = this->detectFeatures(detector_id::ORB, keypoints[0]);
+  descriptors[1] = other.detectFeatures(detector_id::ORB, keypoints[1]);
+
+  Ptr<DescriptorMatcher> matcher = new BFMatcher(NORM_HAMMING, true);
+  vector<DMatch> matches;
+  matcher->match( descriptors[0], descriptors[1], matches );
+
+  Mat draw_matches;
+  cv::drawMatches(this->image, keypoints[0], other.image, keypoints[1], matches, draw_matches);
+  Image drawing(draw_matches);
+  drawing.setName("Ejemplo de drawMatches")
+  drawing.draw();
+}
+  \end{lstlisting}
+
+  \subsection{Creación de la lista de puntos emparejados}
+  La información del vector \emph{matches} hay que traducirla a un par de vectores ordenados, que es lo que devuelve nuestra función.
+
+  Por tanto, en las líneas 35-42 se definen y rellenan estos vectores, usando los índices que proporcionan las entradas del vector \emph{matches}.
+
+  \section{Creación de mosaicos}
+  La creación de un mosaico con dos imágenes se puede generalizar a la creación de un mosaico con $N$ imágenes.
+
+  En un principio se implementó la siguiente función para el apartado 4 de la práctica:
+  \begin{lstlisting}
+Image Image::createMosaic(Image matched){
+  assert(this->image.type() == matched.image.type());
+
+  // Find homography transforming "matched" image plane into own plane:
+  pair< vector<Point2f>, vector<Point2f> > matched_points = this->match(matched, descriptor_id::BRUTE_FORCE, detector_id::ORB);
+  Mat homography = cv::findHomography(matched_points.second, matched_points.first, cv::RANSAC, 1);
+
+  // Build the mosaic canvas and declare a header for its left half
+  Mat mosaic(Size(this->cols() + matched.cols(), this->rows()), CV_8UC3, Scalar(0,0,0));
+  Mat left_slot  = mosaic( Rect(0,0,matched.cols(),matched.rows()) );
+
+  // Copy own image to the mosaic
+  this->image.copyTo( left_slot );
+
+  // Copy "matched" image to the mosaic applying the homography
+  cv::warpPerspective( matched.image, mosaic, homography, mosaic.size(), INTER_LINEAR, BORDER_TRANSPARENT );
+
+  return Image(mosaic);
+}
+  \end{lstlisting}
+
+   Esta primera versión, sin embargo, se mejoró y generalizó después para poder hacer un mosaico con $N$ imágenes, en respuesta al apartado 5 de la práctica. Como esta función sirve para ambos apartados y es, de hecho, la que se usa con los datos de prueba tanto para el caso $N=2$ como para el caso $N>2$, es la que vamos a discutir en este informe. Su código completo es el que sigue:
+   \begin{lstlisting}
+Image createMosaic_N(vector<Image> &images){
+   // Number of images and middle image index
+   int N = images.size();
+   int mid_idx = N/2; // Integer division, works both with odd and even numbers.
+
+   // Image and homography types
+   int img_type = images.front().image.type();
+   int homo_type = CV_64F;
+
+   // Declare homographies vectors
+   vector<Mat> left_homographies, right_homographies;
+
+   // Homographies between images on the left side of the central one
+   for (int i = 0; i < mid_idx; i++) {
+       // Compute matched points between image i and i+1
+       pair< vector<Point2f>, vector<Point2f> > matched_points = images[i].match(images[i+1], descriptor_id::BRUTE_FORCE, detector_id::ORB);
+
+       // Find homography transforming image i plane into image i+1 plane
+       left_homographies.push_back(cv::findHomography(matched_points.first, matched_points.second, cv::RANSAC, 1));
+   }
+
+   // Homographies between images on the right side of the central one
+   for (int i = N-1; i > mid_idx; i--) {
+       // Compute matched points between image i and i-1
+       pair< vector<Point2f>, vector<Point2f> > matched_points = images[i].match(images[i-1], descriptor_id::BRUTE_FORCE, detector_id::ORB);
+
+       // Find homography transforming image i plane into image i-1 plane
+       right_homographies.push_back(cv::findHomography(matched_points.first, matched_points.second, cv::RANSAC, 1));
+   }
+
+   int left_size = left_homographies.size();
+   // Compute left homographies composition and store them in the same vector
+   for (int i = 0; i < left_size; i++) {
+       Mat homo_composition = Mat::eye(3,3,homo_type);
+       for (int j = left_size-1; j >= i; j--) {
+           homo_composition = homo_composition * left_homographies[j];
+       }
+       left_homographies[i] = homo_composition;
+   }
+
+   int right_size = right_homographies.size();
+   // Compute right homographies composition and store them in the same vector
+   for (int i = 0; i < right_size; i++) {
+       Mat homo_composition = Mat::eye(3,3,right_homographies[0].type());
+       for (int j = right_size-1; j >= i; j--) {
+           homo_composition = homo_composition * right_homographies[j];
+       }
+       right_homographies[i] = homo_composition;
+   }
+
+   // Declare a vector with all the homographies without translation to the mosaic coordinates
+   vector<Mat> homographies;
+   reverse(right_homographies.begin(),right_homographies.end());
+
+   homographies.insert(homographies.end(), left_homographies.begin(), left_homographies.end());
+   homographies.push_back(Mat::eye(3,3,homo_type));
+   homographies.insert(homographies.end(), right_homographies.begin(), right_homographies.end());
+
+   // Get homography image of the corner coordinates from all the images to obtain mosaic size
+   vector<Point2f> corners_all(4), corners_all_t(4);
+   float min_x, min_y, max_x, max_y;
+   min_x = min_y = +INF;
+   max_x = max_y = -INF;
+
+   for (int i = 0; i < N; i++) {
+       corners_all[0] = Point2f(0,0);
+       corners_all[1] = Point2f(images[i].cols(),0);
+       corners_all[2] = Point2f(images[i].cols(),images[i].rows());
+       corners_all[3] = Point2f(0,images[i].rows());
+
+       perspectiveTransform(corners_all, corners_all_t, homographies[i]);
+
+       for (int j = 0; j < 4; j++) {
+           min_x = min(min(corners_all[j].x,corners_all_t[j].x), min_x);
+           max_x = max(max(corners_all[j].x,corners_all_t[j].x), max_x);
+
+           min_y = min(min(corners_all[j].y,corners_all_t[j].y), min_y);
+           max_y = max(max(corners_all[j].y,corners_all_t[j].y), max_y);
+       }
+   }
+   int mosaic_cols = max_x - min_x;
+   int mosaic_rows = max_y - min_y;
+
+   // Create mosaic canvas
+   Size mosaic_size(mosaic_cols, mosaic_rows);
+   Mat mosaic(mosaic_size, img_type, Scalar(0,0,0));
+
+   // Define translation homography
+   Mat trans_homography = Mat::eye(3,3,homo_type);
+   trans_homography.at<double>(0,2) = -min_x;
+   trans_homography.at<double>(1,2) = -min_y;
+
+   for (size_t i = 0; i < homographies.size(); i++) {
+       Mat curr_homography = trans_homography * homographies[i];
+       cv::warpPerspective( images[i].image, mosaic, curr_homography, mosaic_size, INTER_LINEAR, BORDER_TRANSPARENT );
+   }
+
+   return Image(mosaic);
+}
+   \end{lstlisting}
+   El código es largo pero muy sencillo; vayamos por partes.
+
+   \subsection{Definiciones previas}
+   Atendamos ahora al siguiente trozo de código de la función anterior:
+   \begin{lstlisting}
+   // Number of images and middle image index
+   int N = images.size();
+   int mid_idx = N/2; // Integer division, works both with odd and even numbers.
+
+   // Image and homography types
+   int img_type = images.front().image.type();
+   int homo_type = CV_64F;
+   \end{lstlisting}
+
+   Aquí definimos como $N$ el número de imágenes y guardamos, en \emph{mid\_idx}, el índice de la imagen que tomaremos como referencia. Como vamos a realizar una proyección plana, para minimizar las deformaciones geométricas dejaremos fija la imagen central y calcularemos las homografías que lleven todas las demás a esta. Si la que dejáramos fija fuera la primera imagen, la última sufriría una deformación demasiado grande. Con el código actual, las deformaciones geométricas son las mínimas en proyección plana.
+
+   Nótese además que la definición de \emph{mid\_idx} la hacemos con una división de enteros: si $N$ es impar, el índice será la parte entera de $N/2$; esto es, el índice ---de 0 a $N-1$--- que tendrá nuestra imagen. Si $N$ es par, el índice será exactamente $N/2$; así, de las dos posibles imágenes centrales, elegimos la de la derecha. Esto es, si $N$ es par, la imagen \emph{central} dejará siempre a la izquierda una imagen más que a la derecha.
+
+   Después, declaramos variables que guardan los tipos de dato con los que estamos trabajando. La variable \emph{homo\_type} será muy importante a la hora de multiplicar homografías definidas a mano ---con objetos \emph{Mat} en los que tenemos que indicar el tipo---  con homografías devueltas por \emph{cv::findHomography}, que son del tipo \emph{homo\_type}.
+
+   \subsection{Definición de homografías}
+   Veamos ahora cómo definir todas las homografías que necesitamos.
+
+   Primero calculamos homografías entre imágenes adyacentes con el siguiente código:
+
+   \begin{lstlisting}
+// Homographies between images on the left side of the central one
+for (int i = 0; i < mid_idx; i++) {
+   // Compute matched points between image i and i+1
+   pair< vector<Point2f>, vector<Point2f> > matched_points = images[i].match(images[i+1], descriptor_id::BRUTE_FORCE, detector_id::ORB);
+
+   // Find homography transforming image i plane into image i+1 plane
+   left_homographies.push_back(cv::findHomography(matched_points.first, matched_points.second, cv::RANSAC, 1));
+}
+
+// Homographies between images on the right side of the central one
+for (int i = N-1; i > mid_idx; i--) {
+   // Compute matched points between image i and i-1
+   pair< vector<Point2f>, vector<Point2f> > matched_points = images[i].match(images[i-1], descriptor_id::BRUTE_FORCE, detector_id::ORB);
+
+   // Find homography transforming image i plane into image i-1 plane
+   right_homographies.push_back(cv::findHomography(matched_points.first, matched_points.second, cv::RANSAC, 1));
+}
+   \end{lstlisting}
+
+   Como vemos se calculan por separado las homografías entre imágenes a la izquierda de la imagen central y a la derecha de esta, ya que el sentido de la homografía es distinto. A la izquierda, calculamos la homografía que lleva la imagen $I_i$ a la imagen $I_{i+1}$. A la derecha, la que lleva la imagen $I_{j+1}$ a la imagen $I_j$.
+
+   Podríamos haberlas hecho todas a la vez y con el mismo sentido, tomando luego inversas para las de la derecha, pero esto facilita el cálculo de la homografía composición siguiente, que lleva cada imagen a la imagen central.
+
+   Para calcular esta composición, usamos el siguiente código:
+   \begin{lstlisting}
+int left_size = left_homographies.size();
+// Compute left homographies composition and store them in the same vector
+for (int i = 0; i < left_size; i++) {
+  Mat homo_composition = Mat::eye(3,3,homo_type);
+  for (int j = left_size-1; j >= i; j--) {
+      homo_composition = homo_composition * left_homographies[j];
+  }
+  left_homographies[i] = homo_composition;
+}
+
+int right_size = right_homographies.size();
+// Compute right homographies composition and store them in the same vector
+for (int i = 0; i < right_size; i++) {
+  Mat homo_composition = Mat::eye(3,3,right_homographies[0].type());
+  for (int j = right_size-1; j >= i; j--) {
+      homo_composition = homo_composition * right_homographies[j];
+  }
+  right_homographies[i] = homo_composition;
+}
+    \end{lstlisting}
+
+    Centrémonos en la primera parte, que calcula las homografías a la izquierda de la imagen central: tenemos un vector en el que la posición $i$ guarda la homografía $H_i$, que lleva la imagen $I_i$ en la $I_{i+1}$. Como queremos calcular la homografía que lleva la imagen $i$ en la central, necesitamos hacer el producto
+    \[
+    H_{mid\_idx-1} \cdot H_{mid\_idx-2} \cdots H_{i+1} \cdot H_i
+    \]
+    así que, para cada $i$, iteramos de forma inversa desde la última homografía, que es la $H_{mid\_idx-1}$ hasta la $i$, haciendo el producto en el orden adecuado.
+
+    La parte correspondiente a las imágenes de la derecha, gracias al bucle que hicimos anteriormente al revés, se hace exactamente igual, pues el índice $i$ contiene la homografía entre la imagen $N-i$ y la anterior ---pensar, por ejemplo, en $i=0$: la posición $0$ contiene la homografía de la última imagen a la penúltima---.
+
+    Siguiendo con el código vemos, que después, \emph{linealizamos} todas las homografías en un sólo vector, que en la posición $i$ contendrá la homografía que lleve la imagen $i$ a la imagen central. Esto se hace de una forma muy sencilla:
+    \begin{lstlisting}
+// Declare a vector with all the homographies without translation to the mosaic coordinates
+vector<Mat> homographies;
+reverse(right_homographies.begin(),right_homographies.end());
+
+homographies.insert(homographies.end(), left_homographies.begin(), left_homographies.end());
+homographies.push_back(Mat::eye(3,3,homo_type));
+homographies.insert(homographies.end(), right_homographies.begin(), right_homographies.end());
+    \end{lstlisting}
+
+    A continuación, hacemos una generalización del código que escribimos en la implementación de la función \emph{Image::warpPerspective}, calculando para cada imagen las coordenadas de las esquinas tras aplicarle la transformación sufrida por la homografía correspondiente. Iterando sobre todas esas esquinas calculamos las coordenadas mínimas y máximas en cada eje y así podemos definir el tamaño del mosaico y la homografía traslación que moverá la imagen central a su posición en el mosaico. El código es el siguiente:
+    \begin{lstlisting}
+// Get homography image of the corner coordinates from all the images to obtain mosaic size
+vector<Point2f> corners_all(4), corners_all_t(4);
+float min_x, min_y, max_x, max_y;
+min_x = min_y = +INF;
+max_x = max_y = -INF;
+
+for (int i = 0; i < N; i++) {
+    corners_all[0] = Point2f(0,0);
+    corners_all[1] = Point2f(images[i].cols(),0);
+    corners_all[2] = Point2f(images[i].cols(),images[i].rows());
+    corners_all[3] = Point2f(0,images[i].rows());
+
+    perspectiveTransform(corners_all, corners_all_t, homographies[i]);
+
+    for (int j = 0; j < 4; j++) {
+        min_x = min(min(corners_all[j].x,corners_all_t[j].x), min_x);
+        max_x = max(max(corners_all[j].x,corners_all_t[j].x), max_x);
+
+        min_y = min(min(corners_all[j].y,corners_all_t[j].y), min_y);
+        max_y = max(max(corners_all[j].y,corners_all_t[j].y), max_y);
+    }
+}
+int mosaic_cols = max_x - min_x;
+int mosaic_rows = max_y - min_y;
+
+// Create mosaic canvas
+Size mosaic_size(mosaic_cols, mosaic_rows);
+Mat mosaic(mosaic_size, img_type, Scalar(0,0,0));
+
+// Define translation homography
+Mat trans_homography = Mat::eye(3,3,homo_type);
+trans_homography.at<double>(0,2) = -min_x;
+trans_homography.at<double>(1,2) = -min_y;
+    \end{lstlisting}
+
+    Después de todos los cálculos y definiciones previas, podemos por fin crear el mosaico, iterando sobre todas las imágenes y aplicándole la composición de la homografía que la lleva a la central con la homografía traslación que lleva la central al mosaico. El código se reduce a llamar a \emph{cv::warpPerspective} sobre todas las imágenes con sus homografías correspondientes multplicadas por la de traslación:
+    \begin{lstlisting}
+for (size_t i = 0; i < homographies.size(); i++) {
+    Mat curr_homography = trans_homography * homographies[i];
+    cv::warpPerspective( images[i].image, mosaic, curr_homography, mosaic_size, INTER_LINEAR, BORDER_TRANSPARENT );
+}
+
+return Image(mosaic);
+    \end{lstlisting}
+
+    \newpage
+    \section{Análisis de resultados}
+    \subsection{Estimación de una homografía}
+    En la estimación de la homografía, no es tan importante cómo de bien se ajuste la homografía a los puntos sino cómo de bien se ajusten los puntos entre sí. Podemos ver esto con los dos conjuntos de puntos definidos sobre \emph{Tablero1.jpg} y \emph{Tablero2.jpg}.
+
+    Con el conjunto de puntos repartidos por toda la imagen, el resultado de la estimación de la homografía es el que vemos en la figura \ref{tablero1}.
+
+    \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=90mm]{../imagenes/capturas/I02-00_tableroBueno.png}
+        \caption{Primera transformación del tablero 2 en el 1. \label{tablero1}}
+    \end{figure}
+
+    Además, el valor de $\sigma_9$, que denota el grado de bondad de la solución ---mejor cuanto más cercano a cero sea---, es $\sigma_9 = 0.309116$.
+
+    Si aplicamos la misma función con el otro conjunto de puntos ---todos en las casillas adyacentes de la esquina superior izquierda---, tenemos el resultado que muestra la figura \ref{tablero2}.
+
+    \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=90mm]{../imagenes/capturas/I02-01_tableroMalo.png}
+        \caption{Segunda transformación del tablero 2 en el 1. \label{tablero2}}
+    \end{figure}
+
+    El grado de bondad de esta slución, por otro lado, es $\sigma_9 = 0.0219701$
+
+    Como vemos, aunque la homografía calculada para el segundo conjunto de datos es mucho mejor, el resultado es desastroso. Las tres esquinas de donde se tomaron los datos encajan perfectamente con la imagen \emph{Tablero1.jpg}, pero cuanto más nos acercamos a la esquina inferior derecha, peor es la transformación. Esto evidencia el comportamiento de nuestro algoritmo: es mucho mejor coger puntos dispersos y que la homografía encaje peor con ellos que coger puntos muy juntos para los que la homografía esté definida perfectamente.
+
+    Cualquier mínimo error en la selección de estos puntos implicará un error enorme en los puntos alejados. Sin embargo, si dispersamos los puntos, el error general de la transformación será mucho más estable ante los errores locales que cometamos en la selección de puntos.
+
+    \subsection{Detección de puntos clave}
+    Los resultados de la detección de puntos clave depende mucho de los parámatros con los que se inicialicen los detectores. La figura \ref{descriptores_default} muestra el resultado de los detectores \emph{ORB} y \emph{BRISK} sobre las dos primeras imágenes de Yosemite, usando los valores por defecto.
+
+    Como vemos, \emph{BRISK} encuentro muchos puntos clave y \emph{ORB} bastantes menos.
+
+    \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=90mm]{../imagenes/capturas/I02-03_det_desc_default.png}
+        \caption{Detección con BRISK y ORB con parámetros por defecto. \label{descriptores_default}}
+    \end{figure}
+
+    Si modificamos los parámetros de ambos inicializadores, basados en un proceso de experimentación en el que vemos qué parámetros mejoran qué puntos, podemos llegar a la versión que finalmente se usa en el código, y que es la que muestra la figura \ref{descriptores_tuned}. Como vemos, se reduce significativamente el número de puntos clave detectados por \emph{BRISK} para quedarnos con los más destacados y aumentamos un poco los que detecta \emph{ORB}. Los parámetros usados son los que vimos en la sección en el que se analiza este código.
+
+    \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=90mm]{../imagenes/capturas/I02-02_detector_descriptors.png}
+        \caption{Detección con BRISK y ORB con parámetros cambiados. \label{descriptores_tuned}}
+    \end{figure}
+
+    \subsection{Emparejamiento de puntos clave}
+
+    En esta sección probamos el algoritmo de emparejamiento con las técnicas \emph{BruteForce} y \emph{FlannBased}.
+
+    En las imágenes \ref{bruteForce1} y \ref{flannBased1} de Yosemite podemos ver ambos emparejadores actuando sobre unos mismos datos de entrada. Aunque la diferencia no es muy grande, parece que los falsos positivos son más numerosos con la técnica \emph{FlannBased}.
+
+    \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=120mm]{../imagenes/capturas/I02-04_BF.png}
+        \caption{BruteForce+crossCheck en una imagen de Yosemite. \label{bruteForce1}}
+    \end{figure}
+
+    \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=120mm]{../imagenes/capturas/I02-06_FB.png}
+        \caption{FlannBased en una imagen de Yosemite. \label{flannBased1}}
+    \end{figure}
+
+    En las imágenes \ref{bruteForce2} y \ref{flannBased2}, de la ETSIIT, podemos ver con más claridad cómo \emph{FlannBased} tiene muchos más falsos positivos que \emph{BruteForce} ---todas las líneas deberían ser prácticamente horizontales, pues el cambio de vista es en esa dirección, pero en la figura \ref{flannBased2} se ven muchas diagonales---.
+
+    \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=120mm]{../imagenes/capturas/I02-05_BF.png}
+        \caption{BruteForce+crossCheck en una imagen de la ETSIIT. \label{bruteForce2}}
+    \end{figure}
+
+    \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=120mm]{../imagenes/capturas/I02-07_FB.png}
+        \caption{FlannBased en una imagen de la ETSIIT. \label{flannBased2}}
+    \end{figure}
+
+    \subsection{Creación de un mosaico}
+    La creación del mosaico depende intensamente de todas y cada una de las discusiones anteriores, pero no introduce nuevos parámetros ni técnicas cuya discusión sea muy interesante.
+
+    Podemos sin embargo ver en acción el resultado de todos los pasos anteriores, observando además que el proceso de ajuste del tamaño del mosaico y de la traslación de las imágenes a él funciona correctamente.
+
+    En los siguientes ejemplos se ha usado el detector \emph{ORB} ---con los parámetros fijados experimentalmente que vimos antes--- en conjunción con la técnica \emph{BruteForce} para poner en correspondencia los puntos clave detectados. La decisión sobre la técnica de emparejamiento está clara en virtud de los ejemplos vistos anteriormente. La decisión sobre el detector tiene más que ver con eficiencia ---el detector \emph{BRISK} emplea más tiempo en hacer el mismo cálculo---, que con optimización del resultado.
+
+    La figura \ref{mosaicoY} muestra el resultado de hacer un mosaico con sólo 2 imágenes, \emph{yosemite1.jpg} y \emph{yosemite2.jpg}. Vemos que, aunque se nota la línea entre las dos imágenes ---la correcta fusión de colores se queda como trabajo pendiente---, la fusión geométrica es perfecta.
+
+    \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=140mm]{../imagenes/capturas/I02-08_mosaicYosemite.png}
+        \caption{Mosaico de Yosemite con dos imágenes. \label{mosaicoY}}
+    \end{figure}
+
+    La figura \ref{mosaicoE} muestra el resultado de hacer un mosaico con 10 imágenes de la ETSIIT. La geometría, de nuevo, encaja casi perfectamente ---vemos algún fallo en alguna unión, pero casi imperceptible---. Aquí, sin embargo, podemos ver otro de los problemas que dejamos como trabajo pendiente: si hay objetos en movimiento ---como el coche que está en la rotonda---, pueden aparecer artefactos extraños ---vemos que hay sólo medio coche, pues en la foto anterior aún no estaba en esa posición---. En este ejemplo se observa, además, que el algoritmo se comporta bien aunque los cambios de visión sean grandes, como en la foto de la esquina inferior derecha.
+
+    \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=140mm]{../imagenes/capturas/I02-09_mosaicETSIIT.png}
+        \caption{Mosaico de Yosemite con dos imágenes. \label{mosaicoE}}
+    \end{figure}
+
 \end{document}

@@ -1,6 +1,8 @@
 #include "image.hpp"
 
 int main(){
+    ///////////////////////////////////////// APARTADO 1 /////////////////////////////////////////
+
     Image tablero1("imagenes/Tablero1.jpg");
     Image tablero2("imagenes/Tablero2.jpg");
 
@@ -48,6 +50,8 @@ int main(){
 
     destroyAllWindows();
 
+    ///////////////////////////////////////// APARTADO 2 /////////////////////////////////////////
+
     Image yosemite1("imagenes/yosemite1.jpg");
     Image yosemite2("imagenes/yosemite2.jpg");
 
@@ -72,6 +76,14 @@ int main(){
     waitKey(0);
     destroyAllWindows();
 
+    ///////////////////////////////////////// APARTADO 3 /////////////////////////////////////////
+
+    yosemite1.drawMatches(yosemite2);
+    waitKey(0);
+    destroyAllWindows();
+
+    ///////////////////////////////////////// APARTADO 4 /////////////////////////////////////////
+
     vector<Image> yosemite_images;
     yosemite_images.push_back(yosemite1);
     yosemite_images.push_back(yosemite2);
@@ -81,6 +93,8 @@ int main(){
     yosemite_mosaic.draw();
     waitKey(0);
     destroyAllWindows();
+
+    ///////////////////////////////////////// APARTADO 5 /////////////////////////////////////////
 
     Image ETSIIT01("imagenes/mosaico002.jpg");
     Image ETSIIT02("imagenes/mosaico003.jpg");

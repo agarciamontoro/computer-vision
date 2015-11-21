@@ -171,7 +171,7 @@ Mat Image::findHomography(vector< pair<Point2f,Point2f> > matches){
 
     Mat last_row = r_sing_vectors.row(r_sing_vectors.rows-1);
 
-    cout << "sigma_9 for own findHomography: " << sing_values.at<float>(8,0) << endl;
+    cout << "\tImage::findHomography : sigma_9 = " << sing_values.at<float>(8,0) << endl;
 
     return last_row.reshape(1,3);
 }
@@ -228,12 +228,19 @@ pair< vector<Point2f>, vector<Point2f> > Image::match(Image matched, enum descri
 
     // Define the matcher
     if (descriptor == descriptor_id::BRUTE_FORCE) {
-        //For binary string based descriptors like ORB, BRIEF, BRISK etc, cv2.NORM_HAMMING
-        //http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_feature2d/py_matcher/py_matcher.html
+        // For ORB and BRISK descriptors, NORM_HAMMING should be used.
+        // See http://sl.ugr.es/norm_ORB_BRISK
         matcher = new BFMatcher(NORM_HAMMING, true);
     }
     else{
         matcher = new FlannBasedMatcher();
+        // FlannBased Matcher needs CV_32F descriptors
+        // See http://sl.ugr.es/FlannBase_32F
+        for (size_t i = 0; i < 2; i++) {
+            if (descriptors[i].type() != CV_32F) {
+                descriptors[i].convertTo(descriptors[i],CV_32F);
+            }
+        }
     }
 
     // Match!
@@ -517,14 +524,13 @@ Image Image::warpPerspective(vector< pair<Point2f,Point2f> > keypoints){
     }
 
     Mat dst(Size(max_x-min_x,max_y-min_y), this->image.type());
+
     // Define translation homography
     Mat trans_homography = Mat::eye(3,3,homography.type());
     trans_homography.at<float>(0,2) = -min_x;
     trans_homography.at<float>(1,2) = -min_y;
 
-    homography = trans_homography*homography;
-
-    cv::warpPerspective( this->image, dst, homography, dst.size() );
+    cv::warpPerspective( this->image, dst, trans_homography*homography, dst.size() );
 
     return Image(dst);
 }
@@ -564,7 +570,7 @@ Image createMosaic_N(vector<Image> &images){
     // Homographies between images on the left side of the central one
     for (int i = 0; i < mid_idx; i++) {
         // Compute matched points between image i and i+1
-        pair< vector<Point2f>, vector<Point2f> > matched_points = images[i].match(images[i+1], descriptor_id::BRUTE_FORCE, detector_id::BRISK);
+        pair< vector<Point2f>, vector<Point2f> > matched_points = images[i].match(images[i+1], descriptor_id::BRUTE_FORCE, detector_id::ORB);
 
         // Find homography transforming image i plane into image i+1 plane
         left_homographies.push_back(cv::findHomography(matched_points.first, matched_points.second, cv::RANSAC, 1));
@@ -573,7 +579,7 @@ Image createMosaic_N(vector<Image> &images){
     // Homographies between images on the right side of the central one
     for (int i = N-1; i > mid_idx; i--) {
         // Compute matched points between image i and i-1
-        pair< vector<Point2f>, vector<Point2f> > matched_points = images[i].match(images[i-1], descriptor_id::BRUTE_FORCE, detector_id::BRISK);
+        pair< vector<Point2f>, vector<Point2f> > matched_points = images[i].match(images[i-1], descriptor_id::BRUTE_FORCE, detector_id::ORB);
 
         // Find homography transforming image i plane into image i-1 plane
         right_homographies.push_back(cv::findHomography(matched_points.first, matched_points.second, cv::RANSAC, 1));
@@ -598,8 +604,6 @@ Image createMosaic_N(vector<Image> &images){
         }
         right_homographies[i] = homo_composition;
     }
-
-    cout << endl;
 
     // Declare a vector with all the homographies without translation to the mosaic coordinates
     vector<Mat> homographies;
@@ -643,11 +647,8 @@ Image createMosaic_N(vector<Image> &images){
     trans_homography.at<double>(0,2) = -min_x;
     trans_homography.at<double>(1,2) = -min_y;
 
-    cout << min_x << "  " << min_y << endl;
-
     for (size_t i = 0; i < homographies.size(); i++) {
         Mat curr_homography = trans_homography * homographies[i];
-        cout << curr_homography << endl << endl;
         cv::warpPerspective( images[i].image, mosaic, curr_homography, mosaic_size, INTER_LINEAR, BORDER_TRANSPARENT );
     }
 
@@ -738,4 +739,22 @@ Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_hig
     hybrid.copyTo(slots[2]);
 
     return Image(canvas);
+}
+
+void Image::drawMatches(Image other){
+    vector<KeyPoint> keypoints[2];
+    Mat descriptors[2];
+
+    descriptors[0] = this->detectFeatures(detector_id::ORB, keypoints[0]);
+    descriptors[1] = other.detectFeatures(detector_id::ORB, keypoints[1]);
+
+    Ptr<DescriptorMatcher> matcher = new BFMatcher(NORM_HAMMING, true);
+    vector<DMatch> matches;
+    matcher->match( descriptors[0], descriptors[1], matches );
+
+    Mat draw_matches;
+    cv::drawMatches(this->image, keypoints[0], other.image, keypoints[1], matches, draw_matches);
+    Image drawing(draw_matches);
+    drawing.setName("Ejemplo de drawMatches");
+    drawing.draw();
 }
