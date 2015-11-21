@@ -603,8 +603,8 @@ Image createMosaic_N(vector<Image> &images){
             max_y = max(max(corners_all[j].y,corners_all_t[j].y), max_y);
         }
     }
-    int mosaic_cols = ceil(abs(max_x) + abs(min_x));
-    int mosaic_rows = ceil(abs(max_y) + abs(min_y));
+    int mosaic_cols = ceil(abs(max_x) + abs(min_x)) + 750;
+    int mosaic_rows = ceil(abs(max_y) + abs(min_y)) + 750;
 
     // Create mosaic canvas
     Size mosaic_size(mosaic_cols, mosaic_rows);
@@ -612,8 +612,8 @@ Image createMosaic_N(vector<Image> &images){
 
     // Define translation homography
     Mat trans_homography = Mat::eye(3,3,homo_type);
-    trans_homography.at<double>(0,2) = -min_x;
-    trans_homography.at<double>(1,2) = -min_y;
+    trans_homography.at<double>(0,2) = -min_x + 150;
+    trans_homography.at<double>(1,2) = -min_y + 150;
 
     cout << min_x << "  " << min_y << endl;
 
@@ -623,7 +623,29 @@ Image createMosaic_N(vector<Image> &images){
         cv::warpPerspective( images[i].image, mosaic, curr_homography, mosaic_size, INTER_LINEAR, BORDER_TRANSPARENT );
     }
 
-    return Image(mosaic);
+    Mat threshold_output;
+    vector<vector<Point> > contours;
+    vector<Vec4i> hierarchy;
+
+    // vector with all non-black point positions
+    vector<Point> nonBlackList;
+    nonBlackList;
+
+    // add all non-black points to the vector
+    // TODO: there are more efficient ways to iterate through the image
+    for(int j=0; j<mosaic.rows; ++j){
+        for(int i=0; i<mosaic.cols; ++i){
+            // if not black: add to the list
+            if(mosaic.at<Vec3b>(j,i) != Vec3b(0,0,0)){
+                nonBlackList.push_back(Point(i,j));
+            }
+        }
+    }
+
+    // create bounding rect around those points
+    Rect bb = boundingRect(nonBlackList);
+
+    return Image(mosaic(bb));
 }
 
 Image Image::overlapContours(double low, double high, Scalar color){
