@@ -623,6 +623,7 @@ Image createMosaic_N(vector<Image> &images){
         cv::warpPerspective( images[i].image, mosaic, curr_homography, mosaic_size, INTER_LINEAR, BORDER_TRANSPARENT );
     }
 
+    // http://stackoverflow.com/questions/23344380/opencv-c-detect-and-crop-white-region-on-image
     Mat threshold_output;
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
