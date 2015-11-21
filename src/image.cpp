@@ -171,6 +171,8 @@ Mat Image::findHomography(vector< pair<Point2f,Point2f> > matches){
 
     Mat last_row = r_sing_vectors.row(r_sing_vectors.rows-1);
 
+    cout << "sigma_9 for own findHomography: " << sing_values.at<float>(8,0) << endl;
+
     return last_row.reshape(1,3);
 }
 
@@ -494,9 +496,35 @@ Image Image::makePyramidCanvas(int num_levels){
 Image Image::warpPerspective(vector< pair<Point2f,Point2f> > keypoints){
     Mat homography = this->findHomography(keypoints);
 
-    Mat dst(this->image.size(), this->image.type());
+    vector<Point2f> corners(4), corners_trans(4);
 
-    cv::warpPerspective( this->image, dst, homography, this->image.size() );
+    corners[0] = Point2f(0,0);
+    corners[1] = Point2f(this->cols(),0);
+    corners[2] = Point2f(this->cols(),this->rows());
+    corners[3] = Point2f(0,this->rows());
+
+    perspectiveTransform(corners, corners_trans, homography);
+
+    float min_x, min_y, max_x, max_y;
+    min_x = min_y = +INF;
+    max_x = max_y = -INF;
+    for (int j = 0; j < 4; j++) {
+        min_x = min(corners_trans[j].x, min_x);
+        max_x = max(corners_trans[j].x, max_x);
+
+        min_y = min(corners_trans[j].y, min_y);
+        max_y = max(corners_trans[j].y, max_y);
+    }
+
+    Mat dst(Size(max_x-min_x,max_y-min_y), this->image.type());
+    // Define translation homography
+    Mat trans_homography = Mat::eye(3,3,homography.type());
+    trans_homography.at<float>(0,2) = -min_x;
+    trans_homography.at<float>(1,2) = -min_y;
+
+    homography = trans_homography*homography;
+
+    cv::warpPerspective( this->image, dst, homography, dst.size() );
 
     return Image(dst);
 }
@@ -589,9 +617,9 @@ Image createMosaic_N(vector<Image> &images){
 
     for (int i = 0; i < N; i++) {
         corners_all[0] = Point2f(0,0);
-        corners_all[1] = Point2f(0,images[i].cols());
-        corners_all[2] = Point2f(images[i].rows(),images[i].cols());
-        corners_all[3] = Point2f(images[i].rows(),0);
+        corners_all[1] = Point2f(images[i].cols(),0);
+        corners_all[2] = Point2f(images[i].cols(),images[i].rows());
+        corners_all[3] = Point2f(0,images[i].rows());
 
         perspectiveTransform(corners_all, corners_all_t, homographies[i]);
 
@@ -603,8 +631,8 @@ Image createMosaic_N(vector<Image> &images){
             max_y = max(max(corners_all[j].y,corners_all_t[j].y), max_y);
         }
     }
-    int mosaic_cols = ceil(abs(max_x) + abs(min_x)) + 750;
-    int mosaic_rows = ceil(abs(max_y) + abs(min_y)) + 750;
+    int mosaic_cols = max_x - min_x;
+    int mosaic_rows = max_y - min_y;
 
     // Create mosaic canvas
     Size mosaic_size(mosaic_cols, mosaic_rows);
@@ -612,8 +640,8 @@ Image createMosaic_N(vector<Image> &images){
 
     // Define translation homography
     Mat trans_homography = Mat::eye(3,3,homo_type);
-    trans_homography.at<double>(0,2) = -min_x + 150;
-    trans_homography.at<double>(1,2) = -min_y + 150;
+    trans_homography.at<double>(0,2) = -min_x;
+    trans_homography.at<double>(1,2) = -min_y;
 
     cout << min_x << "  " << min_y << endl;
 
@@ -623,30 +651,7 @@ Image createMosaic_N(vector<Image> &images){
         cv::warpPerspective( images[i].image, mosaic, curr_homography, mosaic_size, INTER_LINEAR, BORDER_TRANSPARENT );
     }
 
-    // http://stackoverflow.com/questions/23344380/opencv-c-detect-and-crop-white-region-on-image
-    Mat threshold_output;
-    vector<vector<Point> > contours;
-    vector<Vec4i> hierarchy;
-
-    // vector with all non-black point positions
-    vector<Point> nonBlackList;
-    nonBlackList;
-
-    // add all non-black points to the vector
-    // TODO: there are more efficient ways to iterate through the image
-    for(int j=0; j<mosaic.rows; ++j){
-        for(int i=0; i<mosaic.cols; ++i){
-            // if not black: add to the list
-            if(mosaic.at<Vec3b>(j,i) != Vec3b(0,0,0)){
-                nonBlackList.push_back(Point(i,j));
-            }
-        }
-    }
-
-    // create bounding rect around those points
-    Rect bb = boundingRect(nonBlackList);
-
-    return Image(mosaic(bb));
+    return Image(mosaic);
 }
 
 Image Image::overlapContours(double low, double high, Scalar color){

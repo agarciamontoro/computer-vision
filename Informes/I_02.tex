@@ -1,0 +1,232 @@
+\documentclass[a4paper, 11pt]{article}
+
+%Comandos para configurar el idioma
+\usepackage[spanish,activeacute]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc} %Necesario para el uso de las comillas latinas.
+
+%Importante que esta sea la última órden del preámbulo
+\usepackage{hyperref}
+\hypersetup{
+  pdftitle={Informe de prácticas - 2},
+  pdfauthor={Alejandro García Montoro},
+  unicode,
+  plainpages=false,
+  colorlinks,
+  citecolor=black,
+  filecolor=black,
+  linkcolor=black,
+  urlcolor=black,
+}
+
+\newcommand\fnurl[2]{%
+  \href{#2}{#1}\footnote{\url{#2}}%
+}
+
+%Paquetes matemáticos
+\usepackage{amsmath,amsfonts,amsthm}
+\usepackage{enumerate} %Personalización de enumeraciones
+\usepackage{tikz} %Dibujos
+
+%Tipografía escalable
+\usepackage{lmodern}
+%Legibilidad
+\usepackage{microtype}
+
+%Código
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=C++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{Informe de prácticas \\ 2}
+\author{Alejandro García Montoro\\
+    \href{mailto:agarciamontoro@correo.ugr.es}{agarciamontoro@correo.ugr.es}}
+\date{\today}
+
+\theoremstyle{definition}
+\newtheorem{ejercicio}{Ejercicio}
+\newtheorem*{solucion}{Solución}
+
+\theoremstyle{theorem}
+\newtheorem{cuestion}{Cuestión}
+\newtheorem{bonus}{Bonus}
+\newtheorem{teorema}{Teorema}
+
+\begin{document}
+
+  \maketitle
+
+  \section{Estimación de una homografía}
+  El objetivo de este ejercicio es estimar la homografía que mejor aproxima dos conjuntos de puntos en correspondencia tomados de sendos planos proyectivos. La idea, entonces, es rectificar uno de ellos para llevarlo al plano del otro. Antes de ver todo el código, veamos matemáticamente qué tenemos que hacer.
+
+  Sean $x$ e $y$ dos puntos en coordenadas homogéneas que queremos poner en correspondencia a través de una homografía $H$. Se tiene que cumplir por tanto la ecuación
+  \begin{equation}
+      y = Hx \label{eqmat}
+  \end{equation}
+
+  Como vemos en [Szelinski, p.37, eq 2.21] o en \fnurl{\emph{Homography estimation}}{http://cseweb.ucsd.edu/classes/wi07/cse252a/homography_estimation/homography_estimation.pdf}, al ser $H$ una homografía, y normalizando el punto $y$, de (\ref{eqmat}) obtenemos las dos siguientes ecuaciones:
+  \begin{align}
+      y_1 &= \frac{H_{1,1}x_1 + H_{1,2}x_2 + H_{1,3}}{H_{3,1}x_1 + H_{3,2}x_2 + H_{3,3}} \label{eq1}\\
+      y_2 &= \frac{H_{2,1}x_1 + H_{2,2}x_2 + H_{2,3}}{H_{3,1}x_1 + H_{3,2}x_2 + H_{3,3}} \label{eq2}
+  \end{align}
+  donde $H_{i,j}$ son los coeficientes de la matriz $H$; es decir, nuestras incógnitas. Además, hemos supuesto normalizado el vector $x$; es decir, $x_3=1$ ---si no lo está, basta dividir entre $x_3$ todas las coordenadas---.
+
+  De (\ref{eq1}) y (\ref{eq2}), reorganizando las igualdades llegamos a las siguientes ecuaciones lineales:
+  \begin{align}
+      ph = 0 \label{lineal1}\\
+      qh = 0 \label{lineal2}
+  \end{align}
+  donde
+  \begin{align*}
+      p &= (-x_1 \;\;\; -x_2 \;\;\; -1 \;\;\; 0 \;\;\; 0 \;\;\; 0 \;\;\; y_1x_1 \;\;\; y_1x_2 \;\;\; y_1) \\
+      q &= (0 \;\;\; 0 \;\;\; 0 \;\;\; -x_1 \;\;\; -x_2 \;\;\; -1 \;\;\; y_2x_1 \;\;\; y_2x_2 \;\;\; y_2) \\
+      h &= (H_{1,1} \;\;\; H_{1,2} \;\;\; H_{1,3} \;\;\; H_{2,1} \;\;\; H_{2,2} \;\;\; H_{2,3} \;\;\; H_{3,1} \;\;\; H_{3,2} \;\;\; H_{3,3})^T
+  \end{align*}
+
+  Las ecuaciones (\ref{lineal1}) y (\ref{lineal2}) las podemos escribir de forma matricial como
+  \begin{equation}
+      Ah = 0 \label{finaleq}
+  \end{equation}
+  donde
+  \[
+  A = \begin{pmatrix}
+      p \\
+      q
+  \end{pmatrix}
+  \]
+
+  Pero nuestro objetivo es resolver (\ref{finaleq}) con un número $N$ arbitrario de puntos ---al menos cuatro para determinar una solución---, de manera que la matriz $A$ se convertirá en
+  \[
+  A = \begin{pmatrix}
+      p_1 \\
+      q_1 \\
+      p_2 \\
+      q_2 \\
+      \vdots  \\
+      p_N \\
+      q_N
+  \end{pmatrix}
+  \]
+
+  El problema de resolver sistemas de ecuaciones del tipo (\ref{finaleq}) está muy estudiado, y puede ser abordado a partir de la descomposición en valores singulares ---SVD por sus siglas en inglés--- de la matriz $A$:
+  \[
+  A = USV^T = \sum_{i=0}^9 \sigma_i u_i v_i^T
+  \]
+
+  La mejor solución encontrada para $h$ ---exacta si $\sigma_9=0$ y aproximada si $\sigma_9 > 0$--- es el último vector columna de la matriz $V$.
+
+  Tenemos por tanto un algoritmo claro para implementar en la función que queremos diseñar:
+  \begin{enumerate}
+      \item Definir dos conjuntos de puntos en correspondencia.
+      \item Para cada par de puntos, definir los coeficientes de $p$ y $q$.
+      \item Construir la matriz $A$ con todos los $p$ y $q$ calculados anteriormente.
+      \item Hacer la descomposición en valores singulares de la matriz $A$.
+      \item Reorganizar el último vector columna de $V$ en los coeficientes de la matriz $H$.
+  \end{enumerate}
+
+  Aclarado el algoritmo que vamos a seguir, veamos el código que lo implementa.
+
+  \subsection{Selección de puntos}
+  Se han seleccionado dos tipos de conjuntos de puntos en correspondencia entre las imágenes \emph{Tablero1.jpg} y \emph{Tablero2.jpg}.
+
+  Primero, se han determinado diez puntos de cada imagen de manera que estuvieran suficientemente repartidos por todo el tablero. La columna izquierda de la siguiente lista muestra los puntos de la imagen \emph{Tablero2.jpg}; a la derecha, sus correspondencias en la imagen \emph{Tablero1.jpg}:
+  \begin{lstlisting}
+      Point2f(147, 13)  --> Point2f(156, 47)
+      Point2f(504, 95)  --> Point2f(532, 11)
+      Point2f(432, 444) --> Point2f(527, 466)
+      Point2f(75 , 388) --> Point2f(137, 422)
+      Point2f(227, 133) --> Point2f(238, 139)
+      Point2f(396, 169) --> Point2f(363, 133)
+      Point2f(362, 338) --> Point2f(413, 337)
+      Point2f(192, 308) --> Point2f(229, 327)
+      Point2f(286, 224) --> Point2f(308, 219)
+      Point2f(304, 251) --> Point2f(331, 245)
+  \end{lstlisting}
+
+  Además, se ha determinado otro conjunto de diez puntos en correspondencia, esta vez todos en las tres casillas de la esquina superior izquierda:
+  \begin{lstlisting}
+      Point2f(148,14)   --> Point2f(156,47)
+      Point2f(174,19)   --> Point2f(177,45)
+      Point2f(198,24)   --> Point2f(198,43)
+      Point2f(223,30)   --> Point2f(221,40)
+      Point2f(141,40)   --> Point2f(155,72)
+      Point2f(168,46)   --> Point2f(176,70)
+      Point2f(191,50)   --> Point2f(197,68)
+      Point2f(217,56)   --> Point2f(219,66)
+      Point2f(136,63)   --> Point2f(153,95)
+      Point2f(162,69)   --> Point2f(174,93)
+  \end{lstlisting}
+
+  \subsection{Estimación de la homografía}
+  La función de estimación de la homorgafía toma un vector de pares de puntos e implementa el algoritmo visto en la introducción. Veamos el código:
+
+  \begin{lstlisting}
+Mat Image::findHomography(vector< pair<Point2f,Point2f> > matches){
+  // Build the equations system. See http://sl.ugr.es/homography_estimation
+  Mat mat_system, sing_values, l_sing_vectors, r_sing_vectors;
+
+  for (unsigned int i = 0; i < matches.size(); i++) {
+      Point2f first = matches[i].first;
+      Point2f second = matches[i].second;
+
+      float coeffs[2][9] = {
+          { -first.x, -first.y, -1., 0., 0., 0., second.x*first.x, second.x*first.y, second.x },
+          { 0., 0., 0., -first.x, -first.y, -1., second.y*first.x, second.y*first.y, second.y }
+      };
+
+      mat_system.push_back( Mat(2, 9, CV_32FC1, coeffs) );
+  }
+
+  // Solve the equations system using SVD decomposition
+  SVD::compute( mat_system, sing_values, l_sing_vectors, r_sing_vectors, 0 );
+
+  Mat last_row = r_sing_vectors.row(r_sing_vectors.rows-1);
+
+  cout << "sigma_9 for own findHomography: " << sing_values.at<float>(8,0) << endl;
+
+  return last_row.reshape(1,3);
+}
+  \end{lstlisting}
+
+  El código es claro: en el bucle construimos la matriz $A$, calculando para cada par de puntos en correspondencia los coeficientes de las ecuaciones \ref{lineal1} y \ref{lineal2}.
+
+  Luego, usamos el módulo \emph{SVD} de OpenCV para obtener la descomposición en valores singulares de $A$.
+
+  Basta entonces tomar la última columna de $V$ ---OpenCV devuelve V en filas--- y darle la forma $3\times3$ que necesitamos.
+
+  \subsection{Aplicación de la homorgafía estimada}
+  Para aplicar la homografía estimada a la imagen basta usar la función warpPerspective de OpenCV. Por tanto, se ha definido una función \emph{wrapper} de nombre igual \emph{Image::warpPerspective}, cuyo código es el siguiente:
+  \begin{lstlisting}
+Image Image::warpPerspective(vector< pair<Point2f,Point2f> > keypoints){
+  Mat homography = this->findHomography(keypoints);
+
+  Mat dst(this->image.size(), this->image.type());
+
+  cv::warpPerspective( this->image, dst, homography, this->image.size() );
+
+  return Image(dst);
+}
+  \end{lstlisting}
+
+  Entonces, sobre el objeto Image podemos llamar a \emph{Image::warpPerspective} con un vector de pares de puntos en correspondencia. Esta función llama al método visto anteriormente y aplica la función \emph{cv::warpPerspective} para conseguir el resultado esperado.
+\end{document}
