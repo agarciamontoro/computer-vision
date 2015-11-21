@@ -30,7 +30,7 @@ private:
     void copyTo(Mat dst);
     Mat findHomography(vector< pair<Point2f,Point2f> > matches);
     Mat detectFeatures(enum detector_id det_id, vector<KeyPoint> &keypoints);
-    pair< vector<Point2f>, vector<Point2f> > match(Image matched, enum detector_id detector);
+    pair< vector<Point2f>, vector<Point2f> > match(Image matched, enum descriptor_id descriptor, enum detector_id detector);
 
 public:
     ~Image();
@@ -64,7 +64,7 @@ public:
     Image overlapContours(double low, double high, Scalar color = Scalar(0,0,255));
 
     void draw();
-    Image drawDetectedFeatures(Scalar color = Scalar(0,0,255), enum detector_id detector = detector_id::ORB);
+    Image drawDetectedFeatures(Scalar color = Scalar(0,0,255), enum descriptor_id descriptor = descriptor_id::BRUTE_FORCE, enum detector_id detector = detector_id::ORB);
 
     friend Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_high);
     friend Image createMosaic_N(vector<Image> &images);

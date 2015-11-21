@@ -175,9 +175,10 @@ Mat Image::findHomography(vector< pair<Point2f,Point2f> > matches){
 }
 
 Mat Image::detectFeatures(enum detector_id det_id, vector<KeyPoint> &keypoints){
-    // Declare detector pointer
+    // Declare detector
     Ptr<Feature2D> detector;
 
+    // Define detector
     if (det_id == detector_id::ORB) {
         // Declare ORB detector
         detector = ORB::create(
@@ -201,38 +202,17 @@ Mat Image::detectFeatures(enum detector_id det_id, vector<KeyPoint> &keypoints){
         );
     }
 
+    // Declare array for storing the descriptors
     Mat descriptors;
 
+    // Detect and compute!
     detector->detect(this->image, keypoints);
     detector->compute(this->image,keypoints,descriptors);
 
     return descriptors;
 }
 
-pair< vector<Point2f>, vector<Point2f> > Image::match(Image matched, enum detector_id detector){
-    // Mat self_descriptors, matched_descriptors;
-    //
-    // vector<KeyPoint> self_keypoints = this->detectFeatures(detector, self_descriptors);
-    // vector<KeyPoint> matched_keypoints = matched.detectFeatures(detector, matched_descriptors);
-    //
-    // Ptr<cv::DescriptorMatcher> flann_matcher = DescriptorMatcher::create("FlannBased");
-    // BFMatcher brute_matcher(NORM_HAMMING, true);
-    //
-    // vector< DMatch > flann_matches, brute_matches;
-    // flann_matcher->match( self_descriptors, matched_descriptors, flann_matches );
-    // brute_matcher.match( self_descriptors, matched_descriptors, brute_matches );
-    //
-    // vector<Point2f> self_ordered, matched_ordered;
-    //
-    // for( unsigned int i = 0; i < flann_matches.size(); i++ )
-    // {
-    //   //-- Get the keypoints from the good matches
-    //   self_ordered.push_back( self_keypoints[flann_matches[i].queryIdx].pt );
-    //   matched_ordered.push_back( matched_keypoints[flann_matches[i].trainIdx].pt );
-    // }
-    //
-    // return pair< vector<Point2f>, vector<Point2f> >(self_ordered, matched_ordered);
-
+pair< vector<Point2f>, vector<Point2f> > Image::match(Image matched, enum descriptor_id descriptor , enum detector_id detector){
     // 1 - Get keypoints and its descriptors in both images
     vector<KeyPoint> keypoints[2];
     Mat descriptors[2];
@@ -240,40 +220,26 @@ pair< vector<Point2f>, vector<Point2f> > Image::match(Image matched, enum detect
     descriptors[0] = this->detectFeatures(detector, keypoints[0]);
     descriptors[1] = matched.detectFeatures(detector, keypoints[1]);
 
-    // 2 - Match both descriptors
-    Ptr<cv::DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
+    // 2 - Match both descriptors using required detector
+    // Declare the matcher
+    Ptr<DescriptorMatcher> matcher;
 
+    // Define the matcher
+    if (descriptor == descriptor_id::BRUTE_FORCE) {
+        //For binary string based descriptors like ORB, BRIEF, BRISK etc, cv2.NORM_HAMMING
+        //http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_feature2d/py_matcher/py_matcher.html
+        matcher = new BFMatcher(NORM_HAMMING, true);
+    }
+    else{
+        matcher = new FlannBasedMatcher();
+    }
+
+    // Match!
     vector<DMatch> matches;
     matcher->match( descriptors[0], descriptors[1], matches );
 
-    // double max_dist = 0; double min_dist = 100;
-    //
-    // //-- Quick calculation of max and min distances between keypoints
-    // for( int i = 0; i < descriptors[0].rows; i++ ){
-    //     double dist = matches[i].distance;
-    //     if( dist < min_dist ) min_dist = dist;
-    //     if( dist > max_dist ) max_dist = dist;
-    // }
-    //
-    // std::vector< DMatch > good_matches;
-    //
-    // for( int i = 0; i < descriptors[0].rows; i++ ){
-    //     if( matches[i].distance < 4*min_dist ){
-    //         good_matches.push_back( matches[i]);
-    //     }
-    // }
-    //
-    // good_matches = matches;
-
-    Mat draw_matches;
-    drawMatches(this->image, keypoints[0], matched.image, keypoints[1], matches, draw_matches);
-    Image prueba(draw_matches);
-    prueba.draw();
-    waitKey(0);
-
     // 3 - Create lists of ordered keypoints following obtained matches
     vector<Point2f> ordered_keypoints[2];
-
 
     for( unsigned int i = 0; i < matches.size(); i++ )
     {
@@ -539,7 +505,7 @@ Image Image::createMosaic(Image matched){
     assert(this->image.type() == matched.image.type());
 
     // Find homography transforming "matched" image plane into own plane:
-    pair< vector<Point2f>, vector<Point2f> > matched_points = this->match(matched, detector_id::ORB);
+    pair< vector<Point2f>, vector<Point2f> > matched_points = this->match(matched, descriptor_id::BRUTE_FORCE, detector_id::ORB);
     Mat homography = cv::findHomography(matched_points.second, matched_points.first, cv::RANSAC, 1);
 
     // Build the mosaic canvas and declare a header for its left half
@@ -570,7 +536,7 @@ Image createMosaic_N(vector<Image> &images){
     // Homographies between images on the left side of the central one
     for (int i = 0; i < mid_idx; i++) {
         // Compute matched points between image i and i+1
-        pair< vector<Point2f>, vector<Point2f> > matched_points = images[i].match(images[i+1], detector_id::ORB);
+        pair< vector<Point2f>, vector<Point2f> > matched_points = images[i].match(images[i+1], descriptor_id::BRUTE_FORCE, detector_id::BRISK);
 
         // Find homography transforming image i plane into image i+1 plane
         left_homographies.push_back(cv::findHomography(matched_points.first, matched_points.second, cv::RANSAC, 1));
@@ -579,7 +545,7 @@ Image createMosaic_N(vector<Image> &images){
     // Homographies between images on the right side of the central one
     for (int i = N-1; i > mid_idx; i--) {
         // Compute matched points between image i and i-1
-        pair< vector<Point2f>, vector<Point2f> > matched_points = images[i].match(images[i-1], detector_id::ORB);
+        pair< vector<Point2f>, vector<Point2f> > matched_points = images[i].match(images[i-1], descriptor_id::BRUTE_FORCE, detector_id::BRISK);
 
         // Find homography transforming image i plane into image i-1 plane
         right_homographies.push_back(cv::findHomography(matched_points.first, matched_points.second, cv::RANSAC, 1));
@@ -617,8 +583,8 @@ Image createMosaic_N(vector<Image> &images){
 
     // Get homography image of the corner coordinates from all the images to obtain mosaic size
     vector<Point2f> corners_all(4), corners_all_t(4);
-    int min_x, min_y, max_x, max_y;
-    min_x = min_y = INF;
+    float min_x, min_y, max_x, max_y;
+    min_x = min_y = +INF;
     max_x = max_y = -INF;
 
     for (int i = 0; i < N; i++) {
@@ -630,68 +596,26 @@ Image createMosaic_N(vector<Image> &images){
         perspectiveTransform(corners_all, corners_all_t, homographies[i]);
 
         for (int j = 0; j < 4; j++) {
-            min_x = corners_all_t[j].x < min_x ? corners_all_t[j].x : min_x;
-            max_x = corners_all_t[j].x > max_x ? corners_all_t[j].x : max_x;
-            min_y = corners_all_t[j].y < min_y ? corners_all_t[j].y : min_y;
-            max_y = corners_all_t[j].y > max_y ? corners_all_t[j].y : max_y;
+            min_x = min(min(corners_all[j].x,corners_all_t[j].x), min_x);
+            max_x = max(max(corners_all[j].x,corners_all_t[j].x), max_x);
 
-            min_x = corners_all[j].x < min_x ? corners_all[j].x : min_x;
-            max_x = corners_all[j].x > max_x ? corners_all[j].x : max_x;
-            min_y = corners_all[j].y < min_y ? corners_all[j].y : min_y;
-            max_y = corners_all[j].y > max_y ? corners_all[j].y : max_y;
+            min_y = min(min(corners_all[j].y,corners_all_t[j].y), min_y);
+            max_y = max(max(corners_all[j].y,corners_all_t[j].y), max_y);
         }
     }
-
-    cout << "x \\in [" << min_x << "," << max_x << "]; " << " y \\in [" << min_y << "," << max_y << "]" << endl;
-
-    int mosaic_cols = abs(max_x) + abs(min_x);
-    int mosaic_rows = abs(max_y) + abs(min_y);
-
-    cout << "Mosaic = " << mosaic_cols << " x " << mosaic_rows << endl;
-
-    //int mosaic_center_x = mosaic_cols/2;
-    //int mosaic_center_y = mosaic_rows/2;
-
-    //cout << "Mosaic center = " << mosaic_center_x << " x " << mosaic_center_y << endl;
-
-    // // Define homography to translate center image to the center of the mosaic.
-    // vector<Point2f> actual_corners(4), trans_corners(4);
-    //
-    // actual_corners[0] = Point2f(0,0);
-    // actual_corners[1] = Point2f(images[mid_idx].cols(),0);
-    // actual_corners[2] = Point2f(images[mid_idx].cols(), images[mid_idx].rows());
-    // actual_corners[3] = Point2f(0, images[mid_idx].rows());
-    //
-    // trans_corners[0] = Point2f(mosaic_center_x - images[mid_idx].cols()/2, mosaic_center_y - images[mid_idx].rows()/2);
-    // trans_corners[1] = trans_corners[0] + actual_corners[1];
-    // trans_corners[2] = trans_corners[0] + actual_corners[2];
-    // trans_corners[3] = trans_corners[0] + actual_corners[3];
-    //
-    // cout << actual_corners[0] << "\t---->\t" << trans_corners[0] << endl;
-    // cout << actual_corners[1] << "\t---->\t" << trans_corners[1] << endl;
-    // cout << actual_corners[2] << "\t---->\t" << trans_corners[2] << endl;
-    // cout << actual_corners[3] << "\t---->\t" << trans_corners[3] << endl;
-    //
-    // Mat translation = Mat::eye(3,3,homo_type);
-    // for (int i = mid_idx; i >= 0; i--) {
-    //     translation = translation * homographies[i];
-    // }
-    //
-    // Mat aux = Mat::eye(3,3,homo_type);
-    // aux.at<double>(0,2) = -min_x/2;
-    // aux.at<double>(1,2) = -min_y/2;
-    //
-    // Mat trans_homography = aux * translation.inv();
-
-    //Mat trans_homography = cv::findHomography(actual_corners, trans_corners);
-
-    Mat trans_homography = Mat::eye(3,3,homo_type);
-    trans_homography.at<double>(0,2) = -min_x;
-    trans_homography.at<double>(1,2) = -min_y;
+    int mosaic_cols = ceil(abs(max_x) + abs(min_x));
+    int mosaic_rows = ceil(abs(max_y) + abs(min_y));
 
     // Create mosaic canvas
     Size mosaic_size(mosaic_cols, mosaic_rows);
     Mat mosaic(mosaic_size, img_type, Scalar(0,0,0));
+
+    // Define translation homography
+    Mat trans_homography = Mat::eye(3,3,homo_type);
+    trans_homography.at<double>(0,2) = -min_x;
+    trans_homography.at<double>(1,2) = -min_y;
+
+    cout << min_x << "  " << min_y << endl;
 
     for (size_t i = 0; i < homographies.size(); i++) {
         Mat curr_homography = trans_homography * homographies[i];
@@ -746,7 +670,7 @@ void Image::draw(){
     imshow( this->name, image_8U );
 }
 
-Image Image::drawDetectedFeatures(Scalar color, enum detector_id detector){
+Image Image::drawDetectedFeatures(Scalar color, enum descriptor_id descriptor, enum detector_id detector){
     // Retrieve features
     vector<KeyPoint> keypoints;
     this->detectFeatures(detector,keypoints);
