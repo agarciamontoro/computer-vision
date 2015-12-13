@@ -1,3 +1,6 @@
+#ifndef __IMAGE_HPP__
+#define __IMAGE_HPP__
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -71,3 +74,5 @@ public:
     friend Image createMosaic_N(vector<Image> &images);
 
 };
+
+#endif
