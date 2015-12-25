@@ -25,6 +25,31 @@ Camera::Camera(){
 }
 
 /**
+ * Constructs a camera that fits the 3D <-> 2D matches given
+ */
+Camera::Camera( vector< pair<Vec3f, Vec2f> > matches ){
+    Vec3f world_centroid(0.0, 0.0, 0.0);
+    Vec2f image_centroid(0.0, 0.0);
+
+    vector< pair<Vec3f, Vec2f> >::iterator it;
+    for (it = matches.begin(); it != matches.end(); ++it){
+        pair<Vec3f, Vec2f> match = *it;
+        Vec3f world_point = match.first;
+        Vec2f image_point = match.second;
+
+        world_centroid += world_point;
+        image_centroid += image_point;
+    }
+
+    for (size_t i = 0; i < 3; i++) {
+        world_centroid[i] /= matches.size();
+    }
+    for (size_t i = 0; i < 2; i++) {
+        image_centroid[i] /= matches.size();
+    }
+}
+
+/**
  * Generates a random finite (nonsingular) camera with matrix values in the
  * range [min, max]
  * @param min Lower limit of the values range. Defaults to 0.0
@@ -48,7 +73,7 @@ Vec2f Camera::projectPoint(Vec3f point){
     Mat hom_point = Mat(4, 1, CV_32F, hom_vector);
 
     Mat projection = this->camera * hom_point;
-    
+
     float p_x = projection.at<float>(0)/projection.at<float>(2);
     float p_y = projection.at<float>(1)/projection.at<float>(2);
 

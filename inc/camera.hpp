@@ -19,6 +19,7 @@ private:
 public:
 
     Camera();
+    Camera( vector< pair<Vec3f, Vec2f> > matches );
     // Camera(Mat camera);
     // Camera(const Camera& clone);
 

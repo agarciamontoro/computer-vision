@@ -8,7 +8,7 @@ using namespace std;
 int main(){
     Camera cam;
     cam.randomFinite(0.0, 1.0);
-    cam.printCamera();
+    // cam.printCamera();
 
     vector<Vec3f> points;
 
@@ -30,4 +30,6 @@ int main(){
 
         projected_points.push_back(match);
     }
+
+    Camera estimated(projected_points);
 }
