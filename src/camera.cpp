@@ -28,14 +28,18 @@ Camera::Camera(){
  * Constructs a camera that fits the 3D <-> 2D matches given
  */
 Camera::Camera( vector< pair<Vec3f, Vec2f> > matches ){
+    // Normalization: translates all the points so that the centroid of the
+    // set of all points is in the origin; then, scales all the points so that
+    // the average distance to the origin is sqrt(2).
+
+    // Obtains both centroids
     Vec3f world_centroid(0.0, 0.0, 0.0);
     Vec2f image_centroid(0.0, 0.0);
 
     vector< pair<Vec3f, Vec2f> >::iterator it;
     for (it = matches.begin(); it != matches.end(); ++it){
-        pair<Vec3f, Vec2f> match = *it;
-        Vec3f world_point = match.first;
-        Vec2f image_point = match.second;
+        Vec3f world_point = (*it).first;
+        Vec2f image_point = (*it).second;
 
         world_centroid += world_point;
         image_centroid += image_point;
@@ -46,6 +50,81 @@ Camera::Camera( vector< pair<Vec3f, Vec2f> > matches ){
     }
     for (size_t i = 0; i < 2; i++) {
         image_centroid[i] /= matches.size();
+    }
+
+    // Translates the centroid to the origin and
+    // obtains both average distances.
+    float world_distance = 0.0;
+    float image_distance = 0.0;
+
+    for (it = matches.begin(); it != matches.end(); ++it){
+        (*it).first -= world_centroid;
+        (*it).second -= image_centroid;
+
+        world_distance += norm((*it).first);
+        image_distance += norm((*it).second);
+    }
+
+    world_distance /= matches.size();
+    image_distance /= matches.size();
+
+    // // Check both centroids
+    // for (it = matches.begin(); it != matches.end(); ++it){
+    //     Vec3f world_point = (*it).first;
+    //     Vec2f image_point = (*it).second;
+    //
+    //     world_centroid += world_point;
+    //     image_centroid += image_point;
+    // }
+    //
+    // for (size_t i = 0; i < 3; i++) {
+    //     world_centroid[i] /= matches.size();
+    // }
+    // for (size_t i = 0; i < 2; i++) {
+    //     image_centroid[i] /= matches.size();
+    // }
+    //
+    // cout << world_centroid << "\t" << image_centroid << endl;
+
+    float world_scale = sqrt(2)/world_distance;
+    float image_scale = sqrt(2)/image_distance;
+
+    // Scales all the points so that the average distance is sqrt(2)
+    for (it = matches.begin(); it != matches.end(); ++it){
+        for (size_t i = 0; i < 2; i++) {
+            (*it).first[i] *= world_scale;
+            (*it).second[i] *= image_scale;
+        }
+        (*it).first[2] *= world_scale;
+    }
+
+    // // Check both distances
+    // world_distance = 0.0; image_distance = 0.0;
+    // for (it = matches.begin(); it != matches.end(); ++it){
+    //     Vec3f world_point = (*it).first;
+    //     Vec2f image_point = (*it).second;
+    //
+    //     world_distance += norm(world_point);
+    //     image_distance += norm(image_point);
+    // }
+    //
+    // world_distance /= matches.size();
+    // image_distance /= matches.size();
+    //
+    // cout << world_distance*world_distance << "\t" << image_distance*image_distance << endl;
+
+    // Generation of both matrices
+    Mat world_trans = Mat::eye(4, 4, CV_32F) * world_distance;
+    Mat image_trans = Mat::eye(3, 3, CV_32F) * image_distance;
+
+    world_trans.at<float>(3,3) = 1;
+    image_trans.at<float>(2,2) = 1;
+
+    for (size_t i = 0; i < 3; i++) {
+        world_trans.at<float>(i,3) = world_centroid[i];
+    }
+    for (size_t i = 0; i < 2; i++) {
+        image_trans.at<float>(i,2) = image_centroid[i];
     }
 }
 
