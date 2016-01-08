@@ -18,6 +18,8 @@ BIN					:= ./bin
 OBJ					:= ./obj
 SRC					:= ./src
 
+NUM					:= 1
+ZIP_DIR				:= ../GarciaMontoro_Alejandro-$(NUM)
 
 target_name         := $(BIN)/prac
 opt_dbg_flag        := -g
@@ -79,5 +81,19 @@ $(OBJ):
 clean:
 	rm -f $(OBJ)/*.o $(target_name)
 
-#tar:
-#	tar czvf archivos_prac_1.tgz *.c* *.h* *.ply makefile
+zip:
+	@echo `tput bold`---------------------------------------------------------------
+	@echo "Arranging the right files for you..."
+	@tput sgr0
+	@mkdir $(ZIP_DIR)
+	@cp -r $(INC) $(ZIP_DIR)
+	@cp -r $(SRC) $(ZIP_DIR)
+	@cp Informes/I_$(NUM).pdf $(ZIP_DIR)/Informe_$(NUM).pdf
+	@echo `tput bold`---------------------------------------------------------------
+	@echo "Zipping everything..."
+	@tput sgr0
+	@zip -r $(ZIP_DIR).zip $(ZIP_DIR)
+	@rm -r $(ZIP_DIR)
+	@echo `tput bold`---------------------------------------------------------------
+	@echo "Done! Do not forget to send the zip to the teacher :)"
+	@tput sgr0

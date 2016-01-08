@@ -27,6 +27,7 @@ public:
     Vec2f projectPoint(Vec3f point);
 
     void printCamera();
+    float error(const Camera& other);
 };
 
 #endif

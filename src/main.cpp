@@ -8,7 +8,7 @@ using namespace std;
 int main(){
     Camera cam;
     cam.randomFinite(0.0, 1.0);
-    // cam.printCamera();
+    cam.printCamera();
 
     vector<Vec3f> points;
 
@@ -32,4 +32,7 @@ int main(){
     }
 
     Camera estimated(projected_points);
+    estimated.printCamera();
+
+    cout << "Error:" << estimated.error(cam) << endl;
 }
