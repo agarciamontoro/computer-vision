@@ -8,7 +8,7 @@ using namespace std;
 int main(){
     Camera cam;
     cam.randomFinite(0.0, 1.0);
-    // cam.printCamera();
+    cam.printCamera();
 
     vector<Vec3f> points;
 
@@ -67,7 +67,7 @@ int main(){
     cout << min_x << ", " << max_x << endl;
     cout << min_y << ", " << max_y << endl;
 
-    // estimated.printCamera();
+    estimated.printCamera();
     cout << "Error:" << estimated.error(cam) << endl;
 
     Scalar red(0, 0, 255);
