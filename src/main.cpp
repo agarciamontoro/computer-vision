@@ -2,10 +2,12 @@
 #include "camera.hpp"
 #include <utility>
 #include <iostream>
+#include <ctime>
 
 using namespace std;
 
 int main(){
+    theRNG().state = clock();
     Camera cam;
     cam.randomFinite(0.0, 1.0);
     cam.printCamera();
@@ -73,15 +75,17 @@ int main(){
     Scalar red(0, 0, 255);
     Scalar green(0, 255, 0);
 
-    Mat canvas(800, 800, CV_8UC3);
+    int img_size = 400;
+
+    Mat canvas(img_size, img_size, CV_8UC3);
 
     for (it = points.begin(); it != points.end(); ++it){
         Vec3f point = *it;
         Vec2f projected_point = cam.projectPoint(point);
         Vec2f estimated_point = estimated.projectPoint(point);
 
-        Point draw_projected((projected_point[0]-min_x)*800/(max_x-min_x), (projected_point[1]-min_y)*800/(max_y-min_y));
-        Point draw_estimated((estimated_point[0]-min_x)*800/(max_x-min_x), (estimated_point[1]-min_y)*800/(max_y-min_y));
+        Point draw_projected((projected_point[0]-min_x)*img_size/(max_x-min_x), (projected_point[1]-min_y)*img_size/(max_y-min_y));
+        Point draw_estimated((estimated_point[0]-min_x)*img_size/(max_x-min_x), (estimated_point[1]-min_y)*img_size/(max_y-min_y));
 
         circle(canvas, draw_projected, 2, green);
         circle(canvas, draw_estimated, 1, red);
