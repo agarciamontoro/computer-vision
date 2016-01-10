@@ -67,8 +67,10 @@ public:
     Image overlapContours(double low, double high, Scalar color = Scalar(0,0,255));
 
     void draw();
-    void drawMatches(Image other);
+    Image drawMatches(Image other);
     Image drawDetectedFeatures(Scalar color = Scalar(0,0,255), enum descriptor_id descriptor = descriptor_id::BRUTE_FORCE, enum detector_id detector = detector_id::ORB);
+
+    void drawEpiLines(Image &other);
 
     friend Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_high);
     friend Image createMosaic_N(vector<Image> &images);

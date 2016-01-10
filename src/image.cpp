@@ -741,7 +741,7 @@ Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_hig
     return Image(canvas);
 }
 
-void Image::drawMatches(Image other){
+Image Image::drawMatches(Image other){
     vector<KeyPoint> keypoints[2];
     Mat descriptors[2];
 
@@ -754,9 +754,8 @@ void Image::drawMatches(Image other){
 
     Mat draw_matches;
     cv::drawMatches(this->image, keypoints[0], other.image, keypoints[1], matches, draw_matches);
-    Image drawing(draw_matches);
-    drawing.setName("Ejemplo de drawMatches");
-    drawing.draw();
+
+    return Image(draw_matches);
 }
 
 bool Image::findAndDrawChessBoardCorners(Size pattern_size, vector<Point2f> &corners){
@@ -773,4 +772,59 @@ bool Image::findAndDrawChessBoardCorners(Size pattern_size, vector<Point2f> &cor
     }
 
     return success;
+}
+
+void Image::drawEpiLines(Image &other){
+    RNG rng;
+    theRNG().state = clock();
+
+    pair<vector<Point2f>, vector<Point2f> > matches;
+    matches = this->match(other, descriptor_id::BRUTE_FORCE, detector_id::ORB);
+
+    Mat fund_mat;
+    vector<Vec3f> lines_1, lines_2;
+    vector<unsigned char> mask;
+    fund_mat = findFundamentalMat(matches.first, matches.second,
+                                  CV_FM_8POINT | CV_FM_RANSAC,
+                                  1.,0.99, mask );
+
+    vector<Point2f> good_matches_1;
+    vector<Point2f> good_matches_2;
+
+    for (size_t i = 0; i < mask.size(); i++) {
+        if(mask[i] == 1){
+            good_matches_1.push_back(matches.first[i]);
+            good_matches_2.push_back(matches.second[i]);
+        }
+    }
+
+    computeCorrespondEpilines(good_matches_1, 1, fund_mat, lines_1);
+    computeCorrespondEpilines(good_matches_2, 2, fund_mat, lines_2);
+
+    vector<cv::Vec3f>::const_iterator it;
+
+    for (size_t i = 0; i < lines_1.size(); i++) {
+        Vec3f line_1 = lines_1[i];
+        Vec3f line_2 = lines_2[i];
+
+        Scalar color(rng.uniform(0, 255),
+                     rng.uniform(0, 255),
+                     rng.uniform(0, 255));
+
+        line(this->image,
+             Point(0,
+                   -line_1[2]/line_1[1]),
+             Point(this->cols(),
+                   -(line_1[2] + line_1[0]*this->cols())/line_1[1]),
+             color
+             );
+
+        line(other.image,
+             Point(0,
+                   -line_2[2]/line_2[1]),
+             Point(other.cols(),
+                   -(line_2[2] + line_2[0]*other.cols())/line_2[1]),
+             color
+             );
+     }
 }

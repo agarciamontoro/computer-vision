@@ -134,4 +134,20 @@ int main(){
     //
     // cout << camera_matrix << endl;
     // cout << "Error: " << calibration_error << endl;
+
+    //############################################################# EJERCICIO 3
+
+    Image vmort_1("./imagenes/Vmort1.pgm");
+    Image vmort_2("./imagenes/Vmort1.pgm");
+
+    vmort_1.setName("Vmort1");
+    vmort_2.setName("Vmort2");
+
+    vmort_1.drawEpiLines(vmort_2);
+
+    vmort_1.draw();
+    vmort_2.draw();
+
+    waitKey(0);
+    destroyAllWindows();
 }
