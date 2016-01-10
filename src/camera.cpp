@@ -1,6 +1,6 @@
 #include "camera.hpp"
 #include <iostream>
-
+#include <ctime>
 
 
 /*-------------* Private functions *------------*/
@@ -50,8 +50,6 @@ Camera::Camera( vector< pair<Vec3f, Vec2f> > matches ){
     for (size_t i = 0; i < 2; i++) {
         image_centroid[i] /= matches.size();
     }
-
-    cout << world_centroid << "\t" << image_centroid << endl;
 
     // Translates the centroid to the origin and
     // obtains both average distances.
@@ -131,8 +129,6 @@ Camera::Camera( vector< pair<Vec3f, Vec2f> > matches ){
         image_trans.at<float>(i,2) = image_centroid[i];
     }
 
-    cout << world_trans << endl << image_trans << endl;
-
     // Build the equations system.
     Mat mat_system, sing_values, l_sing_vectors, r_sing_vectors;
 
@@ -157,7 +153,7 @@ Camera::Camera( vector< pair<Vec3f, Vec2f> > matches ){
 
     Mat last_row = r_sing_vectors.row(r_sing_vectors.rows-1);
 
-    cout << "DEBUG:\tCamera::Camera : sigma_12 = " << sing_values.at<float>(11,0) << endl;
+    //cout << "DEBUG:\tCamera::Camera : sigma_12 = " << sing_values.at<float>(11,0) << endl;
 
     Mat image_trans_inverted;
     invert(image_trans, image_trans_inverted);
@@ -174,6 +170,7 @@ Camera::Camera( vector< pair<Vec3f, Vec2f> > matches ){
  */
 void Camera::randomFinite(float min, float max){
     do{
+        theRNG().state = clock();
         randu(this->camera, Scalar::all(min), Scalar::all(max));
     }while( !this->isFinite() );
 }

@@ -73,6 +73,8 @@ public:
     friend Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_high);
     friend Image createMosaic_N(vector<Image> &images);
 
+    bool findAndDrawChessBoardCorners(Size pattern_size, vector<Point2f> &corners);
+
 };
 
 #endif
