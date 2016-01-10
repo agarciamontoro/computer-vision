@@ -774,7 +774,7 @@ bool Image::findAndDrawChessBoardCorners(Size pattern_size, vector<Point2f> &cor
     return success;
 }
 
-void Image::drawEpiLines(Image &other){
+float Image::computeAndDrawEpiLines(Image &other, int num_lines){
     RNG rng;
     theRNG().state = clock();
 
@@ -803,28 +803,50 @@ void Image::drawEpiLines(Image &other){
 
     vector<cv::Vec3f>::const_iterator it;
 
+    // Draws both sets of epipolar lines and computes the distances between
+    // the lines and their corresponding points.
+    float distance_1 = 0.0, distance_2 = 0.0;
     for (size_t i = 0; i < lines_1.size(); i++) {
+        Vec2f point_1 = good_matches_1[i];
+        Vec2f point_2 = good_matches_2[i];
+
         Vec3f line_1 = lines_1[i];
         Vec3f line_2 = lines_2[i];
 
-        Scalar color(rng.uniform(0, 255),
-                     rng.uniform(0, 255),
-                     rng.uniform(0, 255));
+        // Draws only num_lines lines
+        if(i % (lines_1.size()/num_lines) == 0 ){
+            Scalar color(rng.uniform(0, 255),
+                         rng.uniform(0, 255),
+                         rng.uniform(0, 255));
 
-        line(this->image,
-             Point(0,
-                   -line_1[2]/line_1[1]),
-             Point(this->cols(),
-                   -(line_1[2] + line_1[0]*this->cols())/line_1[1]),
-             color
-             );
+            line(this->image,
+                 Point(0,
+                       -line_1[2]/line_1[1]),
+                 Point(this->cols(),
+                       -(line_1[2] + line_1[0]*this->cols())/line_1[1]),
+                 color
+                 );
 
-        line(other.image,
-             Point(0,
-                   -line_2[2]/line_2[1]),
-             Point(other.cols(),
-                   -(line_2[2] + line_2[0]*other.cols())/line_2[1]),
-             color
-             );
+            line(other.image,
+                 Point(0,
+                       -line_2[2]/line_2[1]),
+                 Point(other.cols(),
+                       -(line_2[2] + line_2[0]*other.cols())/line_2[1]),
+                 color
+                 );
+        }
+
+        // Error computation with distance point-to-line
+        distance_1 += abs(line_1[0]*point_1[0] +
+                          line_1[1]*point_1[1] +
+                          line_1[2]) /
+                      sqrt(line_1[0]*line_1[0] + line_1[1]*line_1[1]);
+
+        distance_2 += abs(line_2[0]*point_2[0] +
+                          line_2[1]*point_2[1] +
+                          line_2[2]) /
+                      sqrt(line_2[0]*line_2[0] + line_2[1]*line_2[1]);
      }
+
+     return (distance_1+distance_2)/(2*lines_1.size());
 }

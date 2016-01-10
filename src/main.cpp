@@ -143,10 +143,12 @@ int main(){
     vmort_1.setName("Vmort1");
     vmort_2.setName("Vmort2");
 
-    vmort_1.drawEpiLines(vmort_2);
+    float epilines_error = vmort_1.computeAndDrawEpiLines(vmort_2);
 
     vmort_1.draw();
     vmort_2.draw();
+
+    cout << "Epilines error: " << epilines_error << endl;
 
     waitKey(0);
     destroyAllWindows();
