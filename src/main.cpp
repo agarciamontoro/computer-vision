@@ -17,6 +17,7 @@ void updateMinMax(float &min_x, float &max_x, float &min_y, float &max_y, Vec2f 
 }
 
 int main(){
+    //############################################################# EJERCICIO 1
     // // Simulated random camera
     // Camera simulated;
     // simulated.randomFinite(0.0, 1.0);
@@ -92,44 +93,45 @@ int main(){
     // waitKey(0);
     // destroyAllWindows();
 
-    vector<vector<Point3f> > patterns;
-    vector<Point3f> pattern;
-
-    vector<vector<Point2f> > boards;
-    vector<Point2f> corners;
-
-    for (size_t i = 0; i < 13; i++) {
-        for (size_t j = 0; j < 12; j++) {
-            pattern.push_back(Point3f(i,j,0));
-        }
-    }
-
-    string prefix = "./imagenes/Image";
-    string suffix = ".tif";
-    string filename;
-    for (size_t i = 1; i <= 25; i++) {
-        filename = prefix + to_string(i) + suffix;
-        Image img(filename, false);
-        img.setName(filename);
-
-        if(img.findAndDrawChessBoardCorners(Size(13,12), corners)){
-            boards.push_back(corners);
-            patterns.push_back(pattern);
-            img.draw();
-            waitKey(0);
-            destroyAllWindows();
-        }
-    }
-
-    Mat camera_matrix, dist_coeffs;
-    vector<Mat> rvecs, tvecs;
-
-    // El error baja de 127 a 103 cuando se pone el flag CALIB_RATIONAL_MODEL
-    double calibration_error = calibrateCamera(patterns, boards, Size(640,480),
-                                               camera_matrix, dist_coeffs,
-                                               rvecs, tvecs,
-                                               CV_CALIB_RATIONAL_MODEL);
-
-    cout << camera_matrix << endl;
-    cout << "Error: " << calibration_error << endl;
+    //############################################################# EJERCICIO 2
+    // vector<vector<Point3f> > patterns;
+    // vector<Point3f> pattern;
+    //
+    // vector<vector<Point2f> > boards;
+    // vector<Point2f> corners;
+    //
+    // for (size_t i = 0; i < 13; i++) {
+    //     for (size_t j = 0; j < 12; j++) {
+    //         pattern.push_back(Point3f(i,j,0));
+    //     }
+    // }
+    //
+    // string prefix = "./imagenes/Image";
+    // string suffix = ".tif";
+    // string filename;
+    // for (size_t i = 1; i <= 25; i++) {
+    //     filename = prefix + to_string(i) + suffix;
+    //     Image img(filename, false);
+    //     img.setName(filename);
+    //
+    //     if(img.findAndDrawChessBoardCorners(Size(13,12), corners)){
+    //         boards.push_back(corners);
+    //         patterns.push_back(pattern);
+    //         img.draw();
+    //         waitKey(0);
+    //         destroyAllWindows();
+    //     }
+    // }
+    //
+    // Mat camera_matrix, dist_coeffs;
+    // vector<Mat> rvecs, tvecs;
+    //
+    // // El error baja de 127 a 103 cuando se pone el flag CALIB_RATIONAL_MODEL
+    // double calibration_error = calibrateCamera(patterns, boards, Size(640,480),
+    //                                            camera_matrix, dist_coeffs,
+    //                                            rvecs, tvecs,
+    //                                            CV_CALIB_RATIONAL_MODEL);
+    //
+    // cout << camera_matrix << endl;
+    // cout << "Error: " << calibration_error << endl;
 }
