@@ -94,62 +94,73 @@ int main(){
     // destroyAllWindows();
 
     //############################################################# EJERCICIO 2
-    // vector<vector<Point3f> > patterns;
-    // vector<Point3f> pattern;
-    //
-    // vector<vector<Point2f> > boards;
-    // vector<Point2f> corners;
-    //
-    // for (size_t i = 0; i < 13; i++) {
-    //     for (size_t j = 0; j < 12; j++) {
-    //         pattern.push_back(Point3f(i,j,0));
-    //     }
-    // }
-    //
-    // string prefix = "./imagenes/Image";
-    // string suffix = ".tif";
-    // string filename;
-    // for (size_t i = 1; i <= 25; i++) {
-    //     filename = prefix + to_string(i) + suffix;
-    //     Image img(filename, false);
-    //     img.setName(filename);
-    //
-    //     if(img.findAndDrawChessBoardCorners(Size(13,12), corners)){
-    //         boards.push_back(corners);
-    //         patterns.push_back(pattern);
-    //         img.draw();
-    //         waitKey(0);
-    //         destroyAllWindows();
-    //     }
-    // }
-    //
-    // Mat camera_matrix, dist_coeffs;
-    // vector<Mat> rvecs, tvecs;
-    //
-    // // El error baja de 127 a 103 cuando se pone el flag CALIB_RATIONAL_MODEL
-    // double calibration_error = calibrateCamera(patterns, boards, Size(640,480),
-    //                                            camera_matrix, dist_coeffs,
-    //                                            rvecs, tvecs,
-    //                                            CV_CALIB_RATIONAL_MODEL);
-    //
-    // cout << camera_matrix << endl;
-    // cout << "Error: " << calibration_error << endl;
+
+    // Chessboard pattern and a vector to store it as many times as the number
+    // of successfully-detected chessboards, for the later calibration.
+    vector<vector<Point3f> > patterns;
+    vector<Point3f> pattern;
+    for (size_t i = 0; i < 12; i++) {
+        for (size_t j = 0; j < 13; j++) {
+            pattern.push_back(Point3f(i,j,0));
+        }
+    }
+
+    // Vector to store the corners in each iteration and a vector to keep all
+    // the iterations for the later calibration.
+    vector<vector<Point2f> > boards;
+    vector<Point2f> corners;
+
+    string prefix, suffix, filename;
+    prefix = "./imagenes/Image";
+    suffix = ".tif";
+
+    for (size_t i = 1; i <= 25; i++) {
+        //Open i-th image
+        filename = prefix + to_string(i) + suffix;
+        Image img(filename, false);
+
+        //If the corners are found, treat them, store the detected corners
+        // and repeat the pattern for the calibration.
+        if(img.findAndDrawChessBoardCorners(Size(13,12), corners)){
+            boards.push_back(corners);
+            patterns.push_back(pattern);
+
+            // Show the image
+            img.setName(filename);
+            img.draw();
+            waitKey(0);
+            destroyAllWindows();
+        }
+    }
+
+    Mat camera_matrix, dist_coeffs;
+    vector<Mat> rvecs, tvecs;
+
+    // Actual calibration of the camera.
+    // The CALIB_RATIONAL_MODEL flag lowers the error from 127 to 103 :(
+    double calibration_error = calibrateCamera(patterns, boards, Size(640,480),
+                                               camera_matrix, dist_coeffs,
+                                               rvecs, tvecs,
+                                               CV_CALIB_RATIONAL_MODEL);
+
+    cout << camera_matrix << endl;
+    cout << "Error: " << calibration_error << endl;
 
     //############################################################# EJERCICIO 3
 
-    Image vmort_1("./imagenes/Vmort1.pgm");
-    Image vmort_2("./imagenes/Vmort1.pgm");
-
-    vmort_1.setName("Vmort1");
-    vmort_2.setName("Vmort2");
-
-    float epilines_error = vmort_1.computeAndDrawEpiLines(vmort_2);
-
-    vmort_1.draw();
-    vmort_2.draw();
-
-    cout << "Epilines error: " << epilines_error << endl;
-
-    waitKey(0);
-    destroyAllWindows();
+    // Image vmort_1("./imagenes/Vmort1.pgm");
+    // Image vmort_2("./imagenes/Vmort1.pgm");
+    //
+    // vmort_1.setName("Vmort1");
+    // vmort_2.setName("Vmort2");
+    //
+    // float epilines_error = vmort_1.computeAndDrawEpiLines(vmort_2);
+    //
+    // vmort_1.draw();
+    // vmort_2.draw();
+    //
+    // cout << "Epilines error: " << epilines_error << endl;
+    //
+    // waitKey(0);
+    // destroyAllWindows();
 }
