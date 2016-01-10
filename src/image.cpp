@@ -765,8 +765,7 @@ bool Image::findAndDrawChessBoardCorners(Size pattern_size, vector<Point2f> &cor
 
     if(success){
         cornerSubPix(this->image, corners, Size(5, 5), Size(-1, -1),
-                    TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1)
-                    );
+        TermCriteria());
         drawChessboardCorners(this->image, pattern_size, Mat(corners), true);
     }
 
