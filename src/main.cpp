@@ -115,15 +115,21 @@ int main(){
         if(img.findAndDrawChessBoardCorners(Size(13,12), corners)){
             boards.push_back(corners);
             patterns.push_back(pattern);
-            //img.draw();
-            //waitKey(0);
-            //destroyAllWindows();
+            img.draw();
+            waitKey(0);
+            destroyAllWindows();
         }
     }
 
     Mat camera_matrix, dist_coeffs;
     vector<Mat> rvecs, tvecs;
-    double calibration_error = calibrateCamera(patterns, boards, Size(640,480), camera_matrix, dist_coeffs, rvecs, tvecs);
+
+    // El error baja de 127 a 103 cuando se pone el flag CALIB_RATIONAL_MODEL
+    double calibration_error = calibrateCamera(patterns, boards, Size(640,480),
+                                               camera_matrix, dist_coeffs,
+                                               rvecs, tvecs,
+                                               CV_CALIB_RATIONAL_MODEL);
+
     cout << camera_matrix << endl;
-    cout << "Error:" << calibration_error << endl;
+    cout << "Error: " << calibration_error << endl;
 }

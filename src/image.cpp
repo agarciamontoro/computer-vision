@@ -761,10 +761,12 @@ void Image::drawMatches(Image other){
 
 bool Image::findAndDrawChessBoardCorners(Size pattern_size, vector<Point2f> &corners){
     int flags = CV_CALIB_CB_ADAPTIVE_THRESH + CV_CALIB_CB_NORMALIZE_IMAGE + CALIB_CB_FAST_CHECK;
-    bool success = findChessboardCorners(this->image, pattern_size, corners, flags);
+    bool success = findChessboardCorners(this->image, pattern_size, corners/*, flags*/);
 
     if(success){
-        cornerSubPix(this->image, corners, Size(5, 5), Size(-1, -1), TermCriteria());
+        cornerSubPix(this->image, corners, Size(5, 5), Size(-1, -1),
+                    TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1)
+                    );
         drawChessboardCorners(this->image, pattern_size, Mat(corners), true);
     }
 
