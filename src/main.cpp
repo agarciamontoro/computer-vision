@@ -207,10 +207,15 @@ int main(){
     Image reconstruction_2("./imagenes/rdimage.004.ppm");
 
     Mat fund_01 = reconstruction_0.fundamentalMat(reconstruction_1);
-    Mat fund_02 = reconstruction_0.fundamentalMat(reconstruction_2);
-    Mat fund_12 = reconstruction_1.fundamentalMat(reconstruction_2);
+    // Mat fund_02 = reconstruction_0.fundamentalMat(reconstruction_2);
+    // Mat fund_12 = reconstruction_1.fundamentalMat(reconstruction_2);
 
     Mat essential_01 = cam_params.t() * fund_01 * cam_params;
-    Mat essential_02 = cam_params.t() * fund_02 * cam_params;
-    Mat essential_12 = cam_params.t() * fund_12 * cam_params;
+    // Mat essential_02 = cam_params.t() * fund_02 * cam_params;
+    // Mat essential_12 = cam_params.t() * fund_12 * cam_params;
+
+    float trace_val = trace(essential_01.t()*essential_01)[0];
+
+    float norm = sqrt(trace_val/2);
+    Mat EtE_01 = (essential_01.t()*essential_01) / norm;
 }
