@@ -28,138 +28,96 @@ Camera::Camera(){
  * Constructs a camera that fits the 3D <-> 2D matches given
  */
 Camera::Camera( vector< pair<Vec3f, Vec2f> > matches ){
-    // Normalization: translates all the points so that the centroid of the
-    // set of all points is in the origin; then, scales all the points so that
-    // the average distance to the origin is sqrt(2).
-
-    // Obtains both centroids
-    Vec3f world_centroid(0.0, 0.0, 0.0);
-    Vec2f image_centroid(0.0, 0.0);
-
-    for (unsigned int i = 0; i < matches.size(); i++) {
-        Vec3f world_point = matches[i].first;
-        Vec2f image_point = matches[i].second;
-
-        world_centroid += world_point;
-        image_centroid += image_point;
-    }
-
-    for (size_t i = 0; i < 3; i++) {
-        world_centroid[i] /= matches.size();
-    }
-    for (size_t i = 0; i < 2; i++) {
-        image_centroid[i] /= matches.size();
-    }
-
-    // Translates the centroid to the origin and
-    // obtains both average distances.
-    float world_distance = 0.0;
-    float image_distance = 0.0;
-
-    for (unsigned int i = 0; i < matches.size(); i++) {
-        matches[i].first -= world_centroid;
-        matches[i].second -= image_centroid;
-
-        world_distance += norm(matches[i].first);
-        image_distance += norm(matches[i].second);
-    }
-
-    world_distance /= matches.size();
-    image_distance /= matches.size();
-
-    // // Check both centroids
-    // Vec3f check_world_centroid(0.0, 0.0, 0.0);
-    // Vec2f check_image_centroid(0.0, 0.0);
+    // // Normalization: translates all the points so that the centroid of the
+    // // set of all points is in the origin; then, scales all the points so that
+    // // the average distance to the origin is sqrt(2).
+    //
+    // // Obtains both centroids
+    // Vec3f world_centroid(0.0, 0.0, 0.0);
+    // Vec2f image_centroid(0.0, 0.0);
+    //
     // for (unsigned int i = 0; i < matches.size(); i++) {
     //     Vec3f world_point = matches[i].first;
     //     Vec2f image_point = matches[i].second;
     //
-    //     check_world_centroid += world_point;
-    //     check_image_centroid += image_point;
+    //     world_centroid += world_point;
+    //     image_centroid += image_point;
     // }
     //
     // for (size_t i = 0; i < 3; i++) {
-    //     check_world_centroid[i] /= matches.size();
+    //     world_centroid[i] /= matches.size();
     // }
     // for (size_t i = 0; i < 2; i++) {
-    //     check_image_centroid[i] /= matches.size();
+    //     image_centroid[i] /= matches.size();
     // }
     //
-    // cout << "DEBUG:\tCentroides " << check_world_centroid << "\t" << check_image_centroid << endl;
-
-    float world_scale = sqrt(2)/world_distance;
-    float image_scale = sqrt(2)/image_distance;
-
-    // Scales all the points so that the average distance is sqrt(2)
-    for (unsigned int i = 0; i < matches.size(); i++) {
-        for (size_t j = 0; j < 2; j++) {
-            matches[i].first[j] *= world_scale;
-            matches[i].second[j] *= image_scale;
-        }
-        matches[i].first[2] *= world_scale;
-    }
-
-    // // Check both distances
-    // float check_world_distance = 0.0;
-    // float check_image_distance = 0.0;
+    // // Translates the centroid to the origin and
+    // // obtains both average distances.
+    // float world_distance = 0.0;
+    // float image_distance = 0.0;
+    //
     // for (unsigned int i = 0; i < matches.size(); i++) {
-    //     Vec3f world_point = matches[i].first;
-    //     Vec2f image_point = matches[i].second;
+    //     matches[i].first -= world_centroid;
+    //     matches[i].second -= image_centroid;
     //
-    //     check_world_distance += norm(world_point);
-    //     check_image_distance += norm(image_point);
+    //     world_distance += norm(matches[i].first);
+    //     image_distance += norm(matches[i].second);
     // }
     //
-    // check_world_distance /= matches.size();
-    // check_image_distance /= matches.size();
+    // world_distance /= matches.size();
+    // image_distance /= matches.size();
     //
-    // cout << "DEBUG:\tDistancias " << check_world_distance*check_world_distance << "\t" << check_image_distance*check_image_distance << endl;
-
-    // Generation of both matrices
-    Mat world_trans = Mat::eye(4, 4, CV_32F) * world_scale;
-    Mat image_trans = Mat::eye(3, 3, CV_32F) * image_scale;
-
-    world_trans.at<float>(3,3) = 1;
-    image_trans.at<float>(2,2) = 1;
-
-    for (size_t i = 0; i < 3; i++) {
-        world_trans.at<float>(i,3) = world_centroid[i];
-    }
-    for (size_t i = 0; i < 2; i++) {
-        image_trans.at<float>(i,2) = image_centroid[i];
-    }
-
-    // Build the equations system.
+    // float world_scale = sqrt(2)/world_distance;
+    // float image_scale = sqrt(2)/image_distance;
+    //
+    // // Scales all the points so that the average distance is sqrt(2)
+    // for (unsigned int i = 0; i < matches.size(); i++) {
+    //     for (size_t j = 0; j < 2; j++) {
+    //         matches[i].first[j] *= world_scale;
+    //         matches[i].second[j] *= image_scale;
+    //     }
+    //     matches[i].first[2] *= world_scale;
+    // }
+    //
+    // // Generation of both matrices
+    // Mat world_trans = Mat::eye(4, 4, CV_32F) * world_scale;
+    // Mat image_trans = Mat::eye(3, 3, CV_32F) * image_scale;
+    //
+    // world_trans.at<float>(3,3) = 1;
+    // image_trans.at<float>(2,2) = 1;
+    //
+    // for (size_t i = 0; i < 3; i++) {
+    //     world_trans.at<float>(i,3) = world_centroid[i];
+    // }
+    // for (size_t i = 0; i < 2; i++) {
+    //     image_trans.at<float>(i,2) = image_centroid[i];
+    // }
+    //
+    // // Build the equations system.
     Mat mat_system, sing_values, l_sing_vectors, r_sing_vectors;
 
     for (unsigned int i = 0; i < matches.size(); i++) {
-        Vec3f pt_3D = matches[i].first;
-        Vec2f pt_2D = matches[i].second;
-
-        // for (size_t j = 0; j < 3; j++) {
-        //     pt_3D[j] /= pt_3D[2];
-        // }
+        Point3f pt_3D = matches[i].first;
+        Point2f pt_2D = matches[i].second;
 
         float coeffs[2][12] = {
-            {0., 0., 0., 0., -pt_3D[0], -pt_3D[1], -pt_3D[2], 1., pt_2D[1]*pt_3D[0], pt_2D[1]*pt_3D[1], pt_2D[1]*pt_3D[2], pt_2D[1]},
-            {pt_3D[0], pt_3D[1], pt_3D[2], 1., 0., 0., 0., 0., -pt_2D[0]*pt_3D[0], -pt_2D[0]*pt_3D[1], -pt_2D[0]*pt_3D[2], -pt_2D[0]}
+            {0, 0, 0, 0, -pt_3D.x, -pt_3D.y, -pt_3D.z, 1, pt_2D.y*pt_3D.x, pt_2D.y*pt_3D.y, pt_2D.y*pt_3D.z, pt_2D.y},
+            {pt_3D.x, pt_3D.y, pt_3D.z, 1, 0, 0, 0, 0, -pt_2D.x*pt_3D.x, -pt_2D.x*pt_3D.y, -pt_2D.x*pt_3D.z, -pt_2D.x}
         };
 
-        mat_system.push_back( Mat(2, 12, CV_32FC1, coeffs) );
+        mat_system.push_back( Mat(2, 12, CV_32F, coeffs) );
     }
 
     // Solve the equations system using SVD decomposition
-    SVD::compute( mat_system, sing_values, l_sing_vectors, r_sing_vectors, 0 );
+    SVD::compute( mat_system, sing_values, l_sing_vectors, r_sing_vectors );
 
     Mat last_row = r_sing_vectors.row(r_sing_vectors.rows-1);
-
-    //cout << "DEBUG:\tCamera::Camera : sigma_12 = " << sing_values.at<float>(11,0) << endl;
-
-    Mat image_trans_inverted;
-    invert(image_trans, image_trans_inverted);
-
-    this->camera = image_trans_inverted * last_row.reshape(1,3) * world_trans;
-    // this->camera = last_row.reshape(1,3);
+    //
+    // Mat image_trans_inverted;
+    // invert(image_trans, image_trans_inverted);
+    //
+    // this->camera = image_trans_inverted * last_row.reshape(1,3) * world_trans;
+    this->camera = last_row.reshape(1,3);
 }
 
 /**
@@ -202,5 +160,25 @@ void Camera::printCamera(){
 }
 
 float Camera::error(const Camera& other){
-    return norm(this->camera, other.camera, NORM_L2SQR);
+    float norm_this = 0, norm_other = 0;
+    bool found = false;
+
+    for (size_t i = 0; i < 3 && !found; i++) {
+        float current_this = this->camera.at<float>(0,i);
+        float current_other = other.camera.at<float>(0,i);
+        if(current_this != 0 && current_other != 0){
+            norm_this = current_this;
+            norm_other = current_other;
+            found = true;
+        }
+    }
+
+    assert(norm_this != 0 && norm_other != 0);
+
+    Mat cam_1 = this->camera / norm_this;
+    Mat cam_2 = other.camera / norm_other;
+
+    cout << cam_1 << endl << cam_2 << endl;
+
+    return norm(cam_1, cam_2, NORM_L2SQR);
 }

@@ -1,0 +1,175 @@
+\documentclass[a4paper, 11pt]{article}
+
+%Comandos para configurar el idioma
+\usepackage[spanish,activeacute]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc} %Necesario para el uso de las comillas latinas.
+
+%Importante que esta sea la última órden del preámbulo
+\usepackage{hyperref}
+\hypersetup{
+  pdftitle={Cuestionario de teoría - 3},
+  pdfauthor={Alejandro García Montoro},
+  unicode,
+  plainpages=false,  colorlinks,
+  citecolor=black,
+  filecolor=black,
+  linkcolor=black,
+  urlcolor=black,
+}
+\newcommand\fnurl[2]{%
+  \href{#2}{#1}\footnote{\url{#2}}%
+}
+
+%Paquetes matemáticos
+\usepackage{amsmath,amsfonts,amsthm}
+%\usepackage[all]{xy} %Para diagramas
+\usepackage{enumerate} %Personalización de enumeraciones
+\usepackage{tikz} %Dibujos
+
+%Tipografía escalable
+\usepackage{lmodern}
+%Legibilidad
+\usepackage{microtype}
+
+%Código
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{Cuestionario de teoría \\ 3}
+\author{Alejandro García Montoro\\
+    \href{mailto:agarciamontoro@correo.ugr.es}{agarciamontoro@correo.ugr.es}}
+\date{\today}
+
+\theoremstyle{definition}
+\newtheorem{ejercicio}{Ejercicio}
+\newtheorem*{solucion}{Solución}
+
+\theoremstyle{theorem}
+\newtheorem{cuestion}{Cuestión}
+\newtheorem{bonus}{Bonus}
+\newtheorem{teorema}{Teorema}
+
+\begin{document}
+
+    \maketitle
+
+    \section{Cuestiones}
+
+    \begin{ejercicio}
+        En clase se ha mostrado una técnica para estimar el vector de traslación del movimiento de un par estéreo y sólo ha podido estimarse su dirección. Argumentar de forma lógica a favor o en contra del hecho de que dicha restricción sea debida a la técnica usada o sea un problema inherente a la reconstrucción.
+    \end{ejercicio}
+
+    \begin{solucion}
+
+    \end{solucion}
+
+    \begin{ejercicio}
+        Verificar matemáticamente que se deben de cumplir las ecuaciones $Fe = 0$, and $F T e' = 0$.
+    \end{ejercicio}
+
+    \begin{solucion}
+
+    \end{solucion}
+
+    \begin{ejercicio}
+        Verificar matemáticamente que cuando una cámara se desplaza las coordenadas retina de puntos correspondientes sobre la retina deben de verificar la ecuación $x'= x + \frac{Kt}{Z}$.
+    \end{ejercicio}
+
+    \begin{solucion}
+
+    \end{solucion}
+
+    \begin{ejercicio}
+        Dar una interpretación geométrica a las columnas y filas de la matriz $P$ de una cámara.
+    \end{ejercicio}
+
+    \begin{solucion}
+
+    \end{solucion}
+
+    \begin{ejercicio}
+        Suponga una matriz $A(3\times3)$ de números reales. Suponga $rango(A)=3$. ¿Cuál es la matriz esencial más cercana a $A$ en norma de Frobenius? Argumentar matemáticamente la derivación.
+    \end{ejercicio}
+
+    \begin{solucion}
+
+    \end{solucion}
+
+    \begin{ejercicio}
+        Discutir cuáles son las ventajas y desventajas de usar un algoritmo de reconstrucción euclídea que calcule la profundidad de varios puntos a la vez en lugar de uno a uno.
+    \end{ejercicio}
+
+    \begin{solucion}
+
+    \end{solucion}
+
+    \begin{ejercicio}
+        Deducir la expresión para la matriz esencial $E = [t]x R = R[RTt]x$. Justificar cada uno de los pasos.
+    \end{ejercicio}
+
+    \begin{solucion}
+
+    \end{solucion}
+
+    \begin{ejercicio}
+        Dada una pareja de cámaras cualesquiera, ¿existen puntos del espacio que no tengan un plano epipolar asociado? Justificar la respuesta.
+    \end{ejercicio}
+
+    \begin{solucion}
+
+    \end{solucion}
+
+    \begin{ejercicio}
+        Si nos dan las coordenadas de proyección de un punto escena en la cámara_1 y nos dicen cuál es el movimiento relativo de la cámara_2 respecto de la cámara_1, ¿es posible reconstruir la profundidad el punto si las cámaras están calibradas? Justificar la contestación
+    \end{ejercicio}
+
+    \begin{solucion}
+
+    \end{solucion}
+
+    \begin{ejercicio}
+        Suponga que obtiene una foto de una escena y la cámara gira para obtener otra foto. ¿Cuál es la ecuación que liga las coordenadas de las proyecciones en ambas imágenes, de un mismo punto escena, en términos de los parámetros de las cámaras? Justificar matemáticamente.
+    \end{ejercicio}
+
+    \begin{solucion}
+
+    \end{solucion}
+
+    \begin{ejercicio}
+        Suponga una cámara afín. Discutir cuáles son los efectos de la proyección ortogonal sobre los parámetros intrínsecos y extrínsecos de la cámara.
+    \end{ejercicio}
+
+    \begin{solucion}
+
+    \end{solucion}
+
+    \begin{ejercicio}
+        Dadas dos cámaras calibradas, $P=K[I|0]$ y $P'=K'[R|t]$, calcular la expresión de la matriz fundamental en términos de los parámetros intrínsecos y extrínsecos de las cámaras. Todos los pasos deben ser justificados.
+    \end{ejercicio}
+
+    \begin{solucion}
+
+    \end{solucion}
+\end{document}
