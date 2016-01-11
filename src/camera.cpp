@@ -97,12 +97,12 @@ Camera::Camera( vector< pair<Vec3f, Vec2f> > matches ){
     Mat mat_system, sing_values, l_sing_vectors, r_sing_vectors;
 
     for (unsigned int i = 0; i < matches.size(); i++) {
-        Point3f pt_3D = matches[i].first;
-        Point2f pt_2D = matches[i].second;
+        Vec3f pt_3D = matches[i].first;
+        Vec2f pt_2D = matches[i].second;
 
         float coeffs[2][12] = {
-            {0, 0, 0, 0, -pt_3D.x, -pt_3D.y, -pt_3D.z, 1, pt_2D.y*pt_3D.x, pt_2D.y*pt_3D.y, pt_2D.y*pt_3D.z, pt_2D.y},
-            {pt_3D.x, pt_3D.y, pt_3D.z, 1, 0, 0, 0, 0, -pt_2D.x*pt_3D.x, -pt_2D.x*pt_3D.y, -pt_2D.x*pt_3D.z, -pt_2D.x}
+            {pt_3D[0], pt_3D[1], pt_3D[2], 1, 0, 0, 0, 0, -pt_2D[0]*pt_3D[0], -pt_2D[0]*pt_3D[1], -pt_2D[0]*pt_3D[2], -pt_2D[0]},
+            {0, 0, 0, 0, -pt_3D[0], -pt_3D[1], -pt_3D[2], 1, pt_2D[1]*pt_3D[0], pt_2D[1]*pt_3D[1], pt_2D[1]*pt_3D[2], pt_2D[1]}
         };
 
         mat_system.push_back( Mat(2, 12, CV_32F, coeffs) );
@@ -177,8 +177,6 @@ float Camera::error(const Camera& other){
 
     Mat cam_1 = this->camera / norm_this;
     Mat cam_2 = other.camera / norm_other;
-
-    cout << cam_1 << endl << cam_2 << endl;
 
     return norm(cam_1, cam_2, NORM_L2SQR);
 }

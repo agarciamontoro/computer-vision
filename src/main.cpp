@@ -61,14 +61,15 @@ int main(){
         updateMinMax(min_x, max_x, min_y, max_y, projected_point);
     }
 
-    // Frobenius norm of the difference of both simulated and estimated cameras
+    // Frobenius norm of the difference of simulated and estimated cameras
     cout << "Error:" << estimated.error(simulated) << endl;
 
     simulated.printCamera();
     estimated.printCamera();
 
-    // Drawing of both set of points in a single image, transforming [min_x, max_x]
-    // and [min_y, max_y] intervals into the [0,img_size] interval.
+    // Drawing of both set of points in a single image, transforming
+    // [min_x, max_x]  and [min_y, max_y] intervals into the [0,img_size]
+    // interval.
     const int img_size = 400;
     const float scale_x = img_size/(max_x-min_x);
     const float scale_y = img_size/(max_y-min_y);
