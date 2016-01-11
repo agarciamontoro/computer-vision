@@ -850,3 +850,15 @@ float Image::computeAndDrawEpiLines(Image &other, int num_lines){
 
      return (distance_1+distance_2)/(2*lines_1.size());
 }
+
+Mat Image::fundamentalMat(Image &other){
+    pair<vector<Point2f>, vector<Point2f> > matches;
+    Mat fund_mat;
+
+    matches = this->match(other, descriptor_id::BRUTE_FORCE, detector_id::ORB);
+
+    fund_mat = findFundamentalMat(matches.first, matches.second,
+                                  CV_FM_8POINT | CV_FM_RANSAC,
+                                  1.,0.99 );
+    return fund_mat;
+}

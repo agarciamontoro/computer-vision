@@ -72,6 +72,8 @@ public:
 
     float computeAndDrawEpiLines(Image &other, int num_lines = 150);
 
+    Mat fundamentalMat(Image &other);
+
     friend Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_high);
     friend Image createMosaic_N(vector<Image> &images);
 
