@@ -20,4 +20,10 @@ enum descriptor_id{
     FLANN_BASE
 };
 
+enum check{
+    CHANGE_E = -1,
+    CHANGE_T = 0,
+    SUCCESS = 1
+};
+
 #endif

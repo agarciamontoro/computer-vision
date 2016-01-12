@@ -72,7 +72,10 @@ public:
 
     float computeAndDrawEpiLines(Image &other, int num_lines = 150);
 
-    Mat fundamentalMat(Image &other);
+    Mat fundamentalMat(Image &other,
+                       vector<Point2d> &good_matches_1,
+                       vector<Point2d> &good_matches_2);
+    bool reconstruction(Image &other, Mat K, Mat &R, Point3d &T);
 
     friend Image makeHybridCanvas(Image low, Image high, double sigma_low, double sigma_high);
     friend Image createMosaic_N(vector<Image> &images);

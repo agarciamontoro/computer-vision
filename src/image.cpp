@@ -775,43 +775,28 @@ bool Image::findAndDrawChessBoardCorners(Size pattern_size, vector<Point2f> &cor
 }
 
 float Image::computeAndDrawEpiLines(Image &other, int num_lines){
-    RNG rng;
-    theRNG().state = clock();
+    vector<Point2d> good_matches_1;
+    vector<Point2d> good_matches_2;
 
-    pair<vector<Point2f>, vector<Point2f> > matches;
-    matches = this->match(other, descriptor_id::BRUTE_FORCE, detector_id::ORB);
+    Mat fund_mat = this->fundamentalMat(other, good_matches_1, good_matches_2);
 
-    Mat fund_mat;
-    vector<Vec3f> lines_1, lines_2;
-    vector<unsigned char> mask;
-    fund_mat = findFundamentalMat(matches.first, matches.second,
-                                  CV_FM_8POINT | CV_FM_RANSAC,
-                                  1.,0.99, mask );
-
-    vector<Point2f> good_matches_1;
-    vector<Point2f> good_matches_2;
-
-    for (size_t i = 0; i < mask.size(); i++) {
-        if(mask[i] == 1){
-            good_matches_1.push_back(matches.first[i]);
-            good_matches_2.push_back(matches.second[i]);
-        }
-    }
+    vector<Vec3d> lines_1, lines_2;
 
     computeCorrespondEpilines(good_matches_1, 1, fund_mat, lines_1);
     computeCorrespondEpilines(good_matches_2, 2, fund_mat, lines_2);
 
-    vector<cv::Vec3f>::const_iterator it;
+    RNG rng;
+    theRNG().state = clock();
 
     // Draws both sets of epipolar lines and computes the distances between
     // the lines and their corresponding points.
     float distance_1 = 0.0, distance_2 = 0.0;
     for (size_t i = 0; i < lines_1.size(); i++) {
-        Vec2f point_1 = good_matches_1[i];
-        Vec2f point_2 = good_matches_2[i];
+        Vec2d point_1 = good_matches_1[i];
+        Vec2d point_2 = good_matches_2[i];
 
-        Vec3f line_1 = lines_1[i];
-        Vec3f line_2 = lines_2[i];
+        Vec3d line_1 = lines_1[i];
+        Vec3d line_2 = lines_2[i];
 
         // Draws only num_lines lines
         if(i % (lines_1.size()/num_lines) == 0 ){
@@ -851,14 +836,174 @@ float Image::computeAndDrawEpiLines(Image &other, int num_lines){
      return (distance_1+distance_2)/(2*lines_1.size());
 }
 
-Mat Image::fundamentalMat(Image &other){
+Mat Image::fundamentalMat(Image &other,
+                          vector<Point2d> &good_matches_1,
+                          vector<Point2d> &good_matches_2){
+
     pair<vector<Point2f>, vector<Point2f> > matches;
-    Mat fund_mat;
+    Mat F;
 
     matches = this->match(other, descriptor_id::BRUTE_FORCE, detector_id::ORB);
 
-    fund_mat = findFundamentalMat(matches.first, matches.second,
-                                  CV_FM_8POINT | CV_FM_RANSAC,
-                                  1.,0.99 );
-    return fund_mat;
+    vector<unsigned char> mask;
+    F = findFundamentalMat(matches.first, matches.second,
+                           CV_FM_8POINT | CV_FM_RANSAC,
+                           1., 0.99, mask );
+
+    for (size_t i = 0; i < mask.size(); i++) {
+        if(mask[i] == 1){
+            good_matches_1.push_back(matches.first[i]);
+            good_matches_2.push_back(matches.second[i]);
+        }
+    }
+
+    return F;
+}
+
+Point3d obtainT(Mat E){
+    // Squared essential matrix
+    Mat EtE = E.t() * E;
+
+    // Translation vector
+    double T_x = sqrt(1-EtE.at<double>(0,0));
+    double T_y = -EtE.at<double>(0,1) / T_x;
+    double T_z = -EtE.at<double>(0,2) / T_x;
+
+    return Point3d(T_x, T_y, T_z);
+}
+
+Mat obtainR(Mat E, Point3d T){
+    // Rotation matrix
+    Mat row_i, w_i;
+    vector<Mat> w;
+    Mat R;
+
+    for (size_t i = 0; i < 3; i++) {
+        row_i = E.row(i);
+        w_i = row_i.cross(Mat(T).t());
+        w.push_back(w_i);
+    }
+
+    int j,k;
+    for (size_t i = 0; i < 3; i++) {
+        j = (i+1)%3;
+        k = (j+1)%3;
+
+        R.push_back(w[i] + w[j].cross(w[k]));
+    }
+
+    return R;
+}
+
+enum check checkTandR(Point3d T, Mat R, double f,
+                      vector<Point2d> img_pts1,
+                      vector<Point2d> img_pts2){
+
+    vector<double> ptZ_i, ptZ_d;
+    Mat mat_Z_i, mat_Z_d, pt_3D_i;
+    double Z_i, Z_d, x_d;
+    Mat pt_i, pt_d;
+
+    for (size_t i = 0; i < img_pts1.size(); i++) {
+        pt_i = Mat(Vec3d(img_pts1[i].x,img_pts1[i].y,1.));
+        pt_d = Mat(Vec3d(img_pts2[i].x,img_pts2[i].y,1.));
+        x_d = pt_d.at<double>(0,0);
+
+        mat_Z_i = f * (f*R.row(0) - x_d*R.row(2)) * Mat(T)
+                  /
+                  ((f*R.row(0) - x_d*R.row(2)) * pt_i);
+        Z_i = mat_Z_i.at<double>(0,0);
+
+        pt_3D_i = Z_i * pt_i / f;
+
+        mat_Z_d = R.row(2) * (pt_3D_i - Mat(T));
+        Z_d = mat_Z_d.at<double>(0,0);
+
+        if(Z_i < 0 && Z_d < 0){
+            return check::CHANGE_T; // Go to step 3.
+        }
+        else if(Z_i*Z_d < 0){
+            return check::CHANGE_E; // Go to step 2.
+        }
+    }
+
+    return check::SUCCESS; // Finish
+}
+
+bool Image::reconstruction(Image &other, Mat K, Mat &R, Point3d &T){
+    // FUNDAMENTAL MATRIX
+    vector<Point2d> img_pts1;
+    vector<Point2d> img_pts2;
+
+    Mat F = this->fundamentalMat(other, img_pts1, img_pts2);
+
+    cout << "Fundamental: " << endl << F << endl << endl;
+
+    // ESSENTIAL MATRIX
+    Mat E = K.t() * F * K;
+
+    double trace_val = abs(trace(E.t() * E)[0]);
+    double norm = sqrt(trace_val/2);
+
+    E /= norm;
+
+    cout << "Esencial: " << endl << E << endl << endl;
+
+    // ALGORITHM
+    // 1.
+    T = obtainT(E);
+
+    // 2.
+    R = obtainR(E, T);
+
+    // 3., 4.
+    double f = K.at<double>(0,0);
+    enum check test = checkTandR(T, R, f, img_pts1, img_pts2);
+    bool success;
+
+    // E,-T => 3.
+    if(test == check::CHANGE_T){
+        T = -T;
+        test = checkTandR(T, R, f, img_pts1, img_pts2);
+        if(test == check::CHANGE_T){                         // Repeat -> ERROR
+            cout << "ERROR: Reconstruction has failed" << endl;
+            success = false;
+        }
+        else if(test == check::CHANGE_E){                    // -E,-T => 2.
+            E = -E;
+            R = obtainR(E, T);
+            test = checkTandR(T, R, f, img_pts1, img_pts2);
+            success = (test == check::SUCCESS);
+        }
+        else{
+            success = true;
+        }
+    }
+    // -E,T => 2.
+    else if(test == check::CHANGE_E){
+        E = -E;
+        R = obtainR(E, T);
+        test = checkTandR(T, R, f, img_pts1, img_pts2);
+
+        if(test ==check::CHANGE_T){                          // -E,-T => 3.
+            T = -T;
+            test = checkTandR(T, R, f, img_pts1, img_pts2);
+            success = (test == check::SUCCESS);
+        }
+        else if(test == check::CHANGE_E){                    // Repeat -> ERROR
+            cout << "ERROR: Reconstruction has failed" << endl;
+            success = false;
+        }
+        else{
+            success = true;
+        }
+    }
+    // E,T => SUCCESS
+    else{
+        success = true;
+    }
+
+    cout << "Rotación: " << endl << R << endl << endl << "Traslación: " << endl << T << endl << endl;
+
+    return success;
 }
