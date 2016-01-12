@@ -101,8 +101,8 @@ Camera::Camera( vector< pair<Vec3f, Vec2f> > matches ){
         Vec2f pt_2D = matches[i].second;
 
         float coeffs[2][12] = {
-            {pt_3D[0], pt_3D[1], pt_3D[2], 1, 0, 0, 0, 0, -pt_2D[0]*pt_3D[0], -pt_2D[0]*pt_3D[1], -pt_2D[0]*pt_3D[2], -pt_2D[0]},
-            {0, 0, 0, 0, -pt_3D[0], -pt_3D[1], -pt_3D[2], 1, pt_2D[1]*pt_3D[0], pt_2D[1]*pt_3D[1], pt_2D[1]*pt_3D[2], pt_2D[1]}
+            {0,0,0,0, -pt_3D[0], -pt_3D[1], -pt_3D[2], -1, pt_2D[1]*pt_3D[0], pt_2D[1]*pt_3D[1], pt_2D[1]*pt_3D[2], pt_2D[1]},
+            {pt_3D[0], pt_3D[1], pt_3D[2], 1, 0,0,0,0, -pt_2D[0]*pt_3D[0], -pt_2D[0]*pt_3D[1], -pt_2D[0]*pt_3D[2], -pt_2D[0]}
         };
 
         mat_system.push_back( Mat(2, 12, CV_32F, coeffs) );
