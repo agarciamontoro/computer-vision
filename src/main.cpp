@@ -5,29 +5,6 @@
 
 using namespace std;
 
-string type2str(int type) {
-  string r;
-
-  uchar depth = type & CV_MAT_DEPTH_MASK;
-  uchar chans = 1 + (type >> CV_CN_SHIFT);
-
-  switch ( depth ) {
-    case CV_8U:  r = "8U"; break;
-    case CV_8S:  r = "8S"; break;
-    case CV_16U: r = "16U"; break;
-    case CV_16S: r = "16S"; break;
-    case CV_32S: r = "32S"; break;
-    case CV_32F: r = "32F"; break;
-    case CV_64F: r = "64F"; break;
-    default:     r = "User"; break;
-  }
-
-  r += "C";
-  r += (chans+'0');
-
-  return r;
-}
-
 void updateMinMax(float &min_x, float &max_x, float &min_y, float &max_y, Vec2f projected_point){
     if(projected_point[0] > max_x)
         max_x = projected_point[0];
@@ -225,7 +202,6 @@ int main(){
     success01 = reconstruction_0.reconstruction(reconstruction_1, K, R01, T01);
     success02 = reconstruction_0.reconstruction(reconstruction_2, K, R02, T02);
     success12 = reconstruction_1.reconstruction(reconstruction_2, K, R12, T12);
-
 
     cout << "SECTION 4: Success of the three reconstructions: ";
     cout << success01 << ", " << success02 << ", " << success12 << endl;
