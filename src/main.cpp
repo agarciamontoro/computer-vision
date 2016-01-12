@@ -87,9 +87,6 @@ int main(){
     // // Frobenius norm of the difference of simulated and estimated cameras
     // cout << "Error:" << estimated.error(simulated) << endl;
     //
-    // simulated.printCamera();
-    // estimated.printCamera();
-    //
     // // Drawing of both set of points in a single image, transforming
     // // [min_x, max_x]  and [min_y, max_y] intervals into the [0,img_size]
     // // interval.
@@ -110,7 +107,7 @@ int main(){
     //     Point draw_simulated((simulated_point[0]-min_x)*scale_x, (simulated_point[1]-min_y)*scale_y);
     //     Point draw_estimated((estimated_point[0]-min_x)*scale_x, (estimated_point[1]-min_y)*scale_y);
     //
-    //     circle(canvas, draw_simulated, 1, green);
+    //     circle(canvas, draw_simulated, 3, green);
     //     circle(canvas, draw_estimated, 1, red);
     // }
     //
@@ -200,22 +197,40 @@ int main(){
         {0, 0, 1}
     };
 
-    Mat cam_params(3, 3, CV_64F, intrinsic_params);
+    Mat K(3, 3, CV_64F, intrinsic_params);
 
     Image reconstruction_0("./imagenes/rdimage.000.ppm");
     Image reconstruction_1("./imagenes/rdimage.001.ppm");
     Image reconstruction_2("./imagenes/rdimage.004.ppm");
 
-    Mat fund_01 = reconstruction_0.fundamentalMat(reconstruction_1);
+    Mat F = reconstruction_0.fundamentalMat(reconstruction_1);
     // Mat fund_02 = reconstruction_0.fundamentalMat(reconstruction_2);
     // Mat fund_12 = reconstruction_1.fundamentalMat(reconstruction_2);
 
-    Mat essential_01 = cam_params.t() * fund_01 * cam_params;
-    // Mat essential_02 = cam_params.t() * fund_02 * cam_params;
-    // Mat essential_12 = cam_params.t() * fund_12 * cam_params;
+    cout << F << endl;
 
-    float trace_val = trace(essential_01.t()*essential_01)[0];
+    Mat E = K.t() * F * K;
 
-    float norm = sqrt(trace_val/2);
-    Mat EtE_01 = (essential_01.t()*essential_01) / norm;
+    double trace_val = trace(E.t() * E)[0];
+    E /= trace_val;
+
+    double norm = sqrt(trace_val/2);
+    Mat EtE = E.t() * E;
+
+    double T_x = sqrt(1-EtE.at<double>(0,0));
+    double T_y = -EtE.at<double>(0,1) / T_x;
+    double T_z = -EtE.at<double>(0,2) / T_x;
+
+    Point3d T(T_x, T_y, T_z);
+
+    Mat row_i, w_i;
+    Mat R;
+    for (size_t i = 0; i < 3; i++) {
+        row_i = E.row(i);
+        w_i = row_i.cross(Mat(T).t());
+
+        R.push_back( w_i );
+    }
+
+    cout << R << endl << T << endl;
 }
