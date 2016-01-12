@@ -73,8 +73,8 @@ int main(){
     }
 
     // Frobenius norm of the difference of simulated and estimated cameras
-    cout << "SECTION 1: Frobenius norm of the cameras difference: ";
-    cout << estimated.error(simulated) << endl;
+    cout << "SECTION 1:\tFrobenius norm of the cameras difference:" << endl;
+    cout << "\t\t" << estimated.error(simulated) << endl;
 
     // Drawing of both set of points in a single image, transforming
     // [min_x, max_x]  and [min_y, max_y] intervals into the [0,img_size]
@@ -151,14 +151,32 @@ int main(){
     vector<Mat> rvecs, tvecs;
 
     // Actual calibration of the camera.
-    // The CALIB_RATIONAL_MODEL flag lowers the error from 127 to 103 :(
-    double calibration_error = calibrateCamera(patterns, boards, Size(640,480),
-                                               camera_matrix, dist_coeffs,
-                                               rvecs, tvecs,
-                                               CV_CALIB_RATIONAL_MODEL);
 
-    cout << "SECTION 2: Calibration error: ";
-    cout << calibration_error << endl;
+    // Without optic distortion
+    // The 1st flag disables tangential correction; the other three disable
+    // radial correction.
+    int flags = CV_CALIB_ZERO_TANGENT_DIST |
+                CV_CALIB_FIX_K1 |
+                CV_CALIB_FIX_K2 |
+                CV_CALIB_FIX_K3;
+
+    double calib_error_without = calibrateCamera(patterns, boards,
+                                                 Size(640,480),
+                                                 camera_matrix, dist_coeffs,
+                                                 rvecs, tvecs,
+                                                 flags);
+
+    // With optic distortion
+    //By default, tangential and radial correction are enabled
+    flags = 0;
+    double calib_error = calibrateCamera(patterns, boards, Size(640,480),
+                                         camera_matrix, dist_coeffs,
+                                         rvecs, tvecs,
+                                         flags);
+
+    cout << "SECTION 2:\tCalibration errors:" << endl;
+    cout << "\t\t\tWithout distortion:\t" << calib_error_without << endl;
+    cout << "\t\t\tWith distortion:\t" << calib_error << endl;
 
     //############################################################# EJERCICIO 3
     printSection(3);
@@ -174,8 +192,8 @@ int main(){
     vmort_1.draw();
     vmort_2.draw();
 
-    cout << "SECTION 3: Mean error in the epipolar lines: ";
-    cout << epilines_error << endl;
+    cout << "SECTION 3:\tMean error in the epipolar lines:" << endl;
+    cout << "\t\t" << epilines_error << endl;
 
     waitKey(0);
     destroyAllWindows();
@@ -203,7 +221,7 @@ int main(){
     success02 = reconstruction_0.reconstruction(reconstruction_2, K, R02, T02);
     success12 = reconstruction_1.reconstruction(reconstruction_2, K, R12, T12);
 
-    cout << "SECTION 4: Success of the three reconstructions: ";
-    cout << success01 << ", " << success02 << ", " << success12 << endl;
+    cout << "SECTION 4:\tSuccess of the three reconstructions:" << endl;
+    cout << "\t\t" << success01 << ", " << success02 << ", " << success12 << endl;
 
 }
