@@ -496,6 +496,8 @@ cout << "\t\t\tWithout distortion:\t" << calib_error_without << endl;
 cout << "\t\t\tWith tang. distortion:\t" << calib_error_tangent << endl;
 cout << "\t\t\tWith radial distortion:\t" << calib_error_radial << endl;
 cout << "\t\t\tWith distortion:\t" << calib_error << endl;
+
+cout << "Camera matrix (with all distortion): " << endl << camera_matrix/camera_matrix.at<double>(0,0) << endl << endl << "Distortion coefficientes (with all distortion): " << endl << dist_coeffs << endl;
     \end{lstlisting}
 
     Como vemos, con la estructura que tenemos ya sólo queda llamar a la función \emph{calibrateCamera} con los parámetros apropiados.
