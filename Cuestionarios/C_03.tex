@@ -82,14 +82,56 @@
     \end{ejercicio}
 
     \begin{solucion}
-
+        El problema es inherente a la reconstrucción, y viene de la matriz esencial $E$. Esta sólo puede ser conocida salvo un factor de escala, por lo que al intentar
     \end{solucion}
 
     \begin{ejercicio}
-        Verificar matemáticamente que se deben de cumplir las ecuaciones $Fe = 0$, and $F T e' = 0$.
+        Verificar matemáticamente que se deben de cumplir las ecuaciones $Fe = 0$, and $F^T e' = 0$.
     \end{ejercicio}
 
     \begin{solucion}
+        Partimos de que todas las líneas epipolares $l'$ contienen al epipolo $e'$; es decir:
+        \begin{equation}
+            e'^Tl' = 0
+            \label{eq:epipole}
+        \end{equation}
+
+        Además, de la definición de línea epipolar, tenemos que
+        \begin{equation}
+            l' = Fp
+            \label{eq:defLine}
+        \end{equation}
+        con $p$ un punto imagen izquierda.
+
+        Sustituyendo \ref{eq:defLine} en \ref{eq:epipole}, tenemos que
+        \[
+            e'^TFp = 0
+        \]
+
+        Como lo anterior se cumple para todo $p$, concluimos que
+        \[
+            e'^TF = 0
+        \]
+        y, por tanto, llegamos a la igualdad buscada:
+        \[
+            F^T e' = 0
+        \]
+
+        De la misma forma, con $q$ un punto imagen derecha, sabemos que
+        \[
+            e^T F^T q = 0
+        \]
+
+        Razonando como antes, como $q$ es arbitrario, podemos concluir que
+        \[
+            e^T F^T = 0
+        \]
+        y obtenemos la otra igualdad:
+
+        \[
+            F e = 0
+        \]
+
 
     \end{solucion}
 
@@ -106,7 +148,12 @@
     \end{ejercicio}
 
     \begin{solucion}
-
+        En \emph{Multiple View Geometry in Computer Vision}, de Hartley y Zisserman, se da una descripción muy precisa de cada fila y columna de una matriz cámara $P$. Denotando $P^i$ a la i-ésima fila de la matriz y $p_j$ a la j-ésima columna, tenemos lo siguiente:
+        \begin{itemize}
+            \item Las tres primeras columnas, $p_1$, $p_2$ y $p_3$ son puntos vanishing en la imagen que corresponden, respectivamente, a los ejes $X$, $Y$ y $Z$. La \item La última columna, $p_4$, es la imagen del origen de coordenadas.
+            \item $P^1$ y $P^2$, primera y segunda filas de $P$, son planos en el espacio que contienen al centro de la cámara, y corresponden a los puntos cuya proyección se encuentra, respectivamente, en las líneas $x=0$ e $y=0$
+            \item La última fila de $P$, $P^3$, es el llamado plano principal de la cámara; es decir, el plano que pasa por el centro de la cámara y es paralelo al plano imagen.
+        \end{itemize}
     \end{solucion}
 
     \begin{ejercicio}
@@ -142,7 +189,7 @@
     \end{solucion}
 
     \begin{ejercicio}
-        Si nos dan las coordenadas de proyección de un punto escena en la cámara_1 y nos dicen cuál es el movimiento relativo de la cámara_2 respecto de la cámara_1, ¿es posible reconstruir la profundidad el punto si las cámaras están calibradas? Justificar la contestación
+        Si nos dan las coordenadas de proyección de un punto escena en la cámara\_1 y nos dicen cuál es el movimiento relativo de la cámara\_2 respecto de la cámara\_1, ¿es posible reconstruir la profundidad el punto si las cámaras están calibradas? Justificar la contestación
     \end{ejercicio}
 
     \begin{solucion}
