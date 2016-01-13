@@ -8,19 +8,19 @@
 %Importante que esta sea la última órden del preámbulo
 \usepackage{hyperref}
 \hypersetup{
-  pdftitle={Informe de prácticas - 3},
-  pdfauthor={Alejandro García Montoro},
-  unicode,
-  plainpages=false,
-  colorlinks,
-  citecolor=black,
-  filecolor=black,
-  linkcolor=black,
-  urlcolor=black,
+pdftitle={Informe de prácticas - 3},
+pdfauthor={Alejandro García Montoro},
+unicode,
+plainpages=false,
+colorlinks,
+citecolor=black,
+filecolor=black,
+linkcolor=black,
+urlcolor=black,
 }
 
 \newcommand\fnurl[2]{%
-  \href{#2}{#1}\footnote{\url{#2}}%
+\href{#2}{#1}\footnote{\url{#2}}%
 }
 
 %Paquetes matemáticos
@@ -42,25 +42,25 @@
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 
 \lstset{frame=tb,
-  language=C++,
-  aboveskip=3mm,
-  belowskip=3mm,
-  showstringspaces=false,
-  columns=flexible,
-  basicstyle={\small\ttfamily},
-  numbers=left,
-  numberstyle=\tiny\color{gray},
-  keywordstyle=\color{blue},
-  commentstyle=\color{gray},
-  stringstyle=\color{mauve},
-  breaklines=true,
-  breakatwhitespace=true,
-  tabsize=3
+language=C++,
+aboveskip=3mm,
+belowskip=3mm,
+showstringspaces=false,
+columns=flexible,
+basicstyle={\small\ttfamily},
+numbers=left,
+numberstyle=\tiny\color{gray},
+keywordstyle=\color{blue},
+commentstyle=\color{gray},
+stringstyle=\color{mauve},
+breaklines=true,
+breakatwhitespace=true,
+tabsize=3
 }
 
 \title{Informe de prácticas \\ 3}
 \author{Alejandro García Montoro\\
-    \href{mailto:agarciamontoro@correo.ugr.es}{agarciamontoro@correo.ugr.es}}
+\href{mailto:agarciamontoro@correo.ugr.es}{agarciamontoro@correo.ugr.es}}
 \date{\today}
 
 \theoremstyle{definition}
@@ -74,6 +74,608 @@
 
 \begin{document}
 
-  \maketitle
-  
+    \maketitle
+
+    \section*{Introducción}
+    Al igual que al principio de las prácticas se definió la clase \emph{Image} para agrupar todos los métodos relativos a las imágenes, en esta última práctica se ha añadido una segunda clase: \emph{Camera}. La definición de la clase, con sus atributos y métodos, es la siguiente:
+
+    \begin{lstlisting}
+    class Camera{
+    private:
+    Mat camera;
+    bool isFinite();
+
+    public:
+
+    Camera();
+    Camera( vector< pair<Vec3f, Vec2f> > matches );
+
+    void randomFinite(float min = 0.0, float max = 1.0);
+    Vec2f projectPoint(Vec3f point);
+
+    void printCamera();
+    float error(const Camera& other);
+        };
+    \end{lstlisting}
+
+    La práctica sigue, por tanto, una estructura dirigida a objetos cuyo núcleo está ahora, además de en \emph{Image}, en \emph{Camera}.
+
+    \section{Estimación de la matriz de una cámara}
+    \subsection{Generación aleatoria de una cámara finita}
+
+    Para la generación aleatoria de una cámara finita, se ha implementado la siguiente función, que recibe dos valores reales ---que definen el intervalo en el que estarán los elementos de la matriz--- y devuelve una matriz de dimensión $3\times4$ que es finita; esto es, cuya submatriz $3\times3$ derecha tiene determinante distinto de cero:
+
+    \begin{lstlisting}
+    void Camera::randomFinite(float min, float max){
+    do{
+    theRNG().state = clock();
+    randu(this->camera, Scalar::all(min), Scalar::all(max));
+    }while( !this->isFinite() );
+    }
+    \end{lstlisting}
+
+    La primera línea simplemente actualiza el generador aleatorio con el estado del reloj para tener mayor aleatoriedad.
+
+    La segunda línea es una llamada a \emph{randu()}, una función de \emph{OpenCV} que rellena todos los valores de una matriz con valores aleatorios en un rango dado.
+
+    Para ver que es finita, se llama a la función propia \emph{isFinite()}, cuyo código es el siguiente:
+
+    \begin{lstlisting}
+    bool Camera::isFinite(){
+    Mat sub = this->camera(Rect(0,0,3,3));
+    return determinant(sub) != 0.0;
+    }
+    \end{lstlisting}
+
+    Así, la función \emph{randomFinite()} genera indefinidamente matrices aleatorias hasta que encuentra una que es finita.
+
+    \subsection{Generación de puntos y proyección}
+    La generación de puntos se hace siguiendo el patrón descrito en el guión de prácticas con el primer bucle doble anidado que aparece en el siguiente código:
+
+    \begin{lstlisting}
+    // Generation of 3D points
+    vector<Vec3f> points;
+    for (double x1 = 0.1; x1 <= 1.0; x1 += 0.1) {
+    for (double x2 = 0.1; x2 <= 1.0; x2 += 0.1) {
+    points.push_back(Vec3f(0,x1,x2));
+    points.push_back(Vec3f(x2,x1,0));
+    }
+    }
+
+    // Projection of points and extraction of minimum and maximum coordinates
+    // (for visual purposes only)
+    vector<pair<Vec3f, Vec2f> > projected_points;
+
+    float max_x, max_y, min_x, min_y;
+
+    max_x = max_y = -9999999;
+    min_x = min_y = +9999999;
+
+    for (size_t i = 0; i < points.size(); i++) {
+    Vec3f point = points[i];
+    Vec2f projected_point = simulated.projectPoint(point);
+
+    pair<Vec3f, Vec2f> match(point, projected_point);
+    projected_points.push_back(match);
+
+    updateMinMax(min_x, max_x, min_y, max_y, projected_point);
+    }
+    \end{lstlisting}
+
+    En el último bucle vemos cómo se proyectan todos los puntos generados con la cámara simulada, guardando en un vector las parejas \emph{punto escena}----\emph{punto-proyectado} para después poder estimar la cámara. Además, la línea X actualiza unas variables en las que se almacenarán los valores mínimos y máximos de las coordenadas de todas las proyecciones, para después visualizar los puntos de forma óptima en una imagen.
+
+    La función importante de este bloque de código es la de la línea Y, cuyo código es el siguiente:
+    \begin{lstlisting}
+    Vec2f Camera::projectPoint(Vec3f point){
+    float hom_vector[4] = {point[0], point[1], point[2], 1.0};
+    Mat hom_point = Mat(4, 1, CV_32F, hom_vector);
+
+    Mat projection = this->camera * hom_point;
+
+    float p_x = projection.at<float>(0)/projection.at<float>(2);
+    float p_y = projection.at<float>(1)/projection.at<float>(2);
+
+    return Vec2f(p_x, p_y);
+    }
+    \end{lstlisting}
+
+    El código implementa la proyección usual: el producto de la cámara por el punto escena con coordenadas homogéneas. Para retomar las coordenadas píxel de la proyección, basta dividir todas las coordenadas del resultado por la tercera y quedarse las dos primeras.
+
+    \subsection{Algoritmo DLT}
+    Tras generar todas las proyecciones de los puntos escena, esta información se usa para estimar la cámara ---que debe ser igual a la simulada---. Además, se reproyectan los puntos escena con la cámara estimada para actualizar las variables de coordenads mínimas y máximas:
+
+    \begin{lstlisting}
+    // Generation of an estimated camera with 3D-2D points pairs
+    Camera estimated(projected_points);
+
+    // Update of the minimum and maximum coordinates with the estimated camera
+    // (in order to update the [min-max]_[x-y] values)
+    for (size_t i = 0; i < points.size(); i++) {
+    Vec3f point = points[i];
+    Vec2f projected_point = estimated.projectPoint(point);
+
+    updateMinMax(min_x, max_x, min_y, max_y, projected_point);
+    }
+    \end{lstlisting}
+
+    El núcleo de este bloque de código es el constructor de la cámara a partir de un vector de parejas \emph{punto escena}----\emph{punto-proyectado}. El código de este constructor es el siguiente:
+
+    \begin{lstlisting}
+    Camera::Camera( vector< pair<Vec3f, Vec2f> > matches ){
+    // Build the equations system.
+    Mat mat_system, sing_values, l_sing_vectors, r_sing_vectors;
+
+    for (unsigned int i = 0; i < matches.size(); i++) {
+    Vec3f pt_3D = matches[i].first;
+    Vec2f pt_2D = matches[i].second;
+
+    float coeffs[2][12] = {
+    {0,0,0,0, -pt_3D[0], -pt_3D[1], -pt_3D[2], -1, pt_2D[1]*pt_3D[0], pt_2D[1]*pt_3D[1], pt_2D[1]*pt_3D[2], pt_2D[1]},
+    {pt_3D[0], pt_3D[1], pt_3D[2], 1, 0,0,0,0, -pt_2D[0]*pt_3D[0], -pt_2D[0]*pt_3D[1], -pt_2D[0]*pt_3D[2], -pt_2D[0]}
+    };
+
+    mat_system.push_back( Mat(2, 12, CV_32F, coeffs) );
+    }
+
+    // Solve the equations system using SVD decomposition
+    SVD::compute( mat_system, sing_values, l_sing_vectors, r_sing_vectors );
+
+    Mat last_row = r_sing_vectors.row(r_sing_vectors.rows-1);
+
+    this->camera = last_row.reshape(1,3);
+    }
+    \end{lstlisting}
+
+    Esta función simplemente genera, para cada par de puntos, las dos filas siguientes:
+
+    \[
+    \left(
+    \begin{array}{cccccccccccc}
+        0 & 0 & 0 & 0 & -X & -Y & -Z & -1 & yX & yY & yZ & y \\
+        X & Y & Z & 1 & 0 & 0 & 0 & 0 & -xX & -xY & -xZ & -x
+    \end{array}
+    \right)
+    \]
+    donde $[X,Y,Z,1]$ es el punto escena y $[x,y,1]$, el punto proyectado.
+
+    Estas parejas de filas se apilan formando una matriz a la que se la aplica una descomposición SVD. Como en la práctica anterior, a la última fila de $V$ se le da la forma correcta, $3\times4$, constituyendo así la matriz cámara que queríamos estimar.
+
+    \subsection{Cálculo del error de la estimación}
+    Para el cálculo del error de la estimación se ha recurrido a la función \emph{norm} de \emph{OpenCV}, que con el \emph{flag} \emph{NORM\_L2SQR}, hace exactamente lo que queremos: la norma de Frobenius al cuadrado de la diferencia de dos matrices. La función que implementa esto es sencilla:
+
+    \begin{lstlisting}
+    float Camera::error(const Camera& other){
+    float norm_this = 0, norm_other = 0;
+    bool found = false;
+
+    for (size_t i = 1; i < 4 && !found; i++) {
+    float current_this = this->camera.at<float>(0,i);
+    float current_other = other.camera.at<float>(0,i);
+    if(current_this != 0 && current_other != 0){
+    norm_this = current_this;
+    norm_other = current_other;
+    found = true;
+    }
+    }
+
+    assert(norm_this != 0 && norm_other != 0);
+
+    Mat cam_1 = this->camera / norm_this;
+    Mat cam_2 = other.camera / norm_other;
+
+    return norm(cam_1, cam_2, NORM_L2SQR);
+    }
+    \end{lstlisting}
+
+    Como vemos, el núcleo de la función se encuentra en la sentencia \emph{return}, que llama a la función \emph{norm} de \emph{OpenCV}. Sin embargo, antes de esto normalizamos ambas cámaras para medir un error real.
+
+    Esto lo hacemos porque el algoritmo \emph{DLT}, por su naturaleza, estima la matriz cámara salvo un factor escala. Así, si ponemos a 1 un elemento común de ambas matrices ---en este caso el $a_{1,2}$, $a_{1,3}$ o $a_{1,4}$---, las normalizamos a una escala común, donde podemos medir el error con garantías de que será el real.
+
+    Es claro, por otro lado, que alguno de los elementos de la primera fila de la submatriz $3\times3$ derecha tiene que ser no cero; si no fuera así, el determinante de esta submatriz sería cero, así que estaríamos estimando una matriz que no es finita.
+
+    \subsection{Generación de una imagen con los puntos}
+    Es aquí donde usaremos las variables \emph{min\_x}, \emph{max\_x}, \emph{min\_y}, \emph{max\_y}, que definen los intervalos exactos en los que se mueven las coordenadas $x$ e $y$ de los píxeles en los que caen las proyecciones por ambas cámaras.
+
+    Para generar una imagen de $M \times M$ píxeles, por tanto, definiremos dos homeomorfismos de intervalos:
+    \begin{align*}
+        [min\_x, max\_x] &\longmapsto [0, M] \\
+        [min\_y, max\_y] &\longmapsto [0, M]
+    \end{align*}
+
+    Así, para cada punto, aplicaremos estos homeomorfismos a ambas proyecciones para generar una imagen de $M \times M$ píxeles en la que mostrar todos los puntos.
+
+    El código que implementa toda esta funcionalidad es el siguiente:
+
+    \begin{lstlisting}
+    // Drawing of both set of points in a single image, transforming
+    // [min_x, max_x]  and [min_y, max_y] intervals into the [0,img_size]
+    // interval.
+    const int img_size = 400;
+    const float scale_x = img_size/(max_x-min_x);
+    const float scale_y = img_size/(max_y-min_y);
+
+    const Scalar red(0, 0, 255);
+    const Scalar green(0, 255, 0);
+
+    Mat canvas(img_size, img_size, CV_8UC3);
+
+    for (size_t i = 0; i < points.size(); i++) {
+    Vec3f point = points[i];
+    Vec2f simulated_point = simulated.projectPoint(point);
+    Vec2f estimated_point = estimated.projectPoint(point);
+
+    Point draw_simulated((simulated_point[0]-min_x)*scale_x, (simulated_point[1]-min_y)*scale_y);
+    Point draw_estimated((estimated_point[0]-min_x)*scale_x, (estimated_point[1]-min_y)*scale_y);
+
+    circle(canvas, draw_simulated, 3, green);
+    circle(canvas, draw_estimated, 1, red);
+    }
+
+    namedWindow( "Points", WINDOW_AUTOSIZE );
+    imshow( "Points", canvas );
+
+    waitKey(0);
+    destroyAllWindows();
+    \end{lstlisting}
+
+    Como se puede apreciar, dibujamos un círculo por cada proyección: en verde los proyectados por la cámara simulada y, en rojo, los proyectados por la estimada. Ponemos además radios diferentes para visualizar las dos proyecciones aunque recaigan sobre el mismo píxel.
+
+    \subsection{Resultados}
+    Los resultados de este apartado son los esperados: al tener 200 parejas de puntos escena y proyectados con la mayor exactitud posible, la estimación tiene que ser casi perfecta.
+
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[width=60mm]{../imagenes/capturas/I03-00_camara1.png}
+        \caption{Error: 8,89067\cdot10^{-13} \label{camara1}}
+    \end{figure}
+
+    Y así es: los errores, diferentes en cada ejecución por la naturaleza aleatoria de la cámara simulada, son por lo general del orden de $10^{-12}$, una cantidad debida únicamente a los errores de redondeo de la máquina, pues la descomposición $SVD$ es matemáticamente correcta y las parejas de puntos son exactas.
+
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[width=60mm]{../imagenes/capturas/I03-01_camara2.png}
+        \caption{Error:  1,74973\cdot10^{-12} \label{camara2}}
+    \end{figure}
+
+    Las figuras \ref{camara1} y \ref{camara2} corresponden a dos ejecuciones diferentes del código. Como se puede apreciar, todos las parejas de puntos están perfectamente alineadas y el error de la estimación, que se lee en el pie de foto, es despreciable.
+
+    \newpage
+    \section{Calibración de la cámara usando homografías}
+
+
+    Este apartado se ha implementado haciendo uso de las funciones disponibles en \emph{OpenCV} para extraer los parámetros de una cámara basándose en varias imágenes de un mismo patrón: en este caso, un tablero de ajedrez.
+
+    \subsection{Detección de las esquinas}
+    Para cada una de las 25 imágenes de entrada se ha usado la función \emph{findChessboardCorners()}, que recibe una imagen de entrada y un objeto \emph{Size} que indica el patrón de puntos por fila y columna del tablero y devuelve, además de un booleano que indica si se ha encontrado o no el patrón especificado, un vector de puntos que marcan cada esquina del tablero.
+
+    Esta comprobación, junto con el posterior refinamiento de las coordenadas píxel y el dibujado de las marcas, se ha encapsulado en la función \emph{findAndDrawChessBoardCorners()} de la clase \emph{Image}. Su código es el siguiente:
+
+    \begin{lstlisting}
+        bool Image::findAndDrawChessBoardCorners(Size pattern_size, vector<Point2f> &corners){
+            int flags = CV_CALIB_CB_ADAPTIVE_THRESH +
+                        CV_CALIB_CB_NORMALIZE_IMAGE +
+                        CALIB_CB_FAST_CHECK;
+            bool success = findChessboardCorners(this->image, pattern_size,
+                                                 corners, flags);
+
+            if(success){
+                cornerSubPix(this->image, corners, Size(5, 5), Size(-1, -1),
+                             TermCriteria());
+                drawChessboardCorners(this->image, pattern_size, Mat(corners), true);
+            }
+
+            return success;
+        }
+    \end{lstlisting}
+
+    A los \emph{flags} por defecto se ha añadido \emph{CALIB\_CB\_FAST\_CHECK}, que simplemente ayuda a optimizar el tiempo de procesado en aquellas imágenes en las que no se encuentra el patrón especificado.
+
+    En caso de que se hayan encontrado todas las marcas y se hayan podido ordenar tal y como indica el patrón, se refinan las coordenadas de las mismas con \emph{cornerSubPix()}, que ayuda a mejorar la posterior calibración.
+
+    Además, se imprime en la imagen el conjunto de marcas ordenadas con ayuda de la función \emph{drawChessboardCorners()}.
+
+    Esta función se llama desde el \emph{main} como sigue:
+
+    \begin{lstlisting}
+    // Chessboard pattern and a vector to store it as many times as the number
+    // of successfully-detected chessboards, for the later calibration.
+    vector<vector<Point3f> > patterns;
+    vector<Point3f> pattern;
+    for (size_t i = 0; i < 12; i++) {
+        for (size_t j = 0; j < 13; j++) {
+            pattern.push_back(Point3f(i,j,0));
+        }
+    }
+
+    // Vector to store the corners in each iteration and a vector to keep all
+    // the iterations for the later calibration.
+    vector<vector<Point2f> > boards;
+    vector<Point2f> corners;
+
+    string prefix, suffix, filename;
+    prefix = "./imagenes/Image";
+    suffix = ".tif";
+
+    for (size_t i = 1; i <= 25; i++) {
+        //Open i-th image
+        filename = prefix + to_string(i) + suffix;
+        Image img(filename, false);
+
+        //If the corners are found, treat them, store the detected corners
+        // and repeat the pattern for the calibration.
+        if(img.findAndDrawChessBoardCorners(Size(13,12), corners)){
+            boards.push_back(corners);
+            patterns.push_back(pattern);
+
+            // Show the image
+            img.setName(filename);
+            img.draw();
+            waitKey(0);
+            destroyAllWindows();
+        }
+    }
+    \end{lstlisting}
+
+    Como vemos en el bucle principal, para cada imagen se llama a la función que acabamos de describir y, en caso de terminar con éxito, se almacenan en sendos vectores de vectores tanto las esquinas encontrados como un patrón fijo de puntos objeto, igual para todas las imágenes. Estos dos vectores se usarán inmediatamente después para la calibración de la cámara.
+
+    El patrón que se va almacenando es el conjunto de puntos $(i,j,0)$, donde $i\in\{1,2,3,\dots,12\}$ y $j\in\{1,2,3,\dots,13\}$, pues tenemos 12 filas y 13 columnas. Hemos supuesto que las casillas tienen de ancho unidad 1 y que las mediciones son en el plano de la cámara ---de ahí que la tercera coordenada sea cero---.
+
+    Por otro lado, llamamos a la función \emph{findAndDrawChessBoardCorners()} con el objeto \emph{Size(13,12)}, pues la función  \emph{findChessboardCorners()} espera un objeto $($puntos por columna, puntos por fila$)$ que determine el número de esquinas a buscar y su disposición.
+
+    \begin{figure}[!htb]
+        \minipage{0.49\textwidth}
+        \includegraphics[width=\linewidth]{../imagenes/capturas/I03-03_tablero1.png}
+        \endminipage\hfill
+        \minipage{0.49\textwidth}
+        \includegraphics[width=\linewidth]{../imagenes/capturas/I03-04_tablero2.png}
+        \endminipage\vfill\vfill
+        \minipage{0.49\textwidth}
+        \includegraphics[width=\linewidth]{../imagenes/capturas/I03-03_tablero1.png}
+        \endminipage\hfill
+        \minipage{0.49\textwidth}
+        \includegraphics[width=\linewidth]{../imagenes/capturas/I03-04_tablero2.png}
+        \endminipage
+        \caption{Figuras Tableros}\label{fig:tableros}
+    \end{figure}
+
+    En el caso de que las esquinas sean encontradas, se muestra la imagen con las marcas dibujadas y se espera a que el usuario pulse una tecla. La figura \ref{fig:tableros} muestra las 4 imágenes que se analizan con éxito.
+
+    \subsection{Calibración de la cámara}
+
+    Tras esta primera fase de detección ya sólo falta calibrar la cámara con los datos obtenidos. Veamos primero el código:
+
+    \begin{lstlisting}
+Mat camera_matrix, dist_coeffs;
+vector<Mat> rvecs, tvecs;
+
+// Actual calibration of the camera.
+
+// Without optic distortion
+// The 1st flag disables tangential correction; the other three disable
+// radial correction.
+int flags = CV_CALIB_ZERO_TANGENT_DIST |
+            CV_CALIB_FIX_K1 |
+            CV_CALIB_FIX_K2 |
+            CV_CALIB_FIX_K3;
+double calib_error_without = calibrateCamera(patterns, boards,
+                                             Size(640,480),
+                                             camera_matrix, dist_coeffs,
+                                             rvecs, tvecs,
+                                             flags);
+
+// Only radial distortion
+flags = CV_CALIB_ZERO_TANGENT_DIST;
+double calib_error_radial = calibrateCamera(patterns, boards,
+                                      Size(640,480),
+                                      camera_matrix, dist_coeffs,
+                                      rvecs, tvecs,
+                                      flags);
+
+// Only tangential distortion
+flags = CV_CALIB_FIX_K1 |
+        CV_CALIB_FIX_K2 |
+        CV_CALIB_FIX_K3;
+double calib_error_tangent = calibrateCamera(patterns, boards,
+                                    Size(640,480),
+                                    camera_matrix, dist_coeffs,
+                                    rvecs, tvecs,
+                                    flags);
+
+// With all optic distortion
+//By default, tangential and radial correction are enabled
+flags = 0;
+double calib_error = calibrateCamera(patterns, boards, Size(640,480),
+                                     camera_matrix, dist_coeffs,
+                                     rvecs, tvecs,
+                                     flags);
+cout << "SECTION 2:\tCalibration errors:" << endl;
+cout << "\t\t\tWithout distortion:\t" << calib_error_without << endl;
+cout << "\t\t\tWith tang. distortion:\t" << calib_error_tangent << endl;
+cout << "\t\t\tWith radial distortion:\t" << calib_error_radial << endl;
+cout << "\t\t\tWith distortion:\t" << calib_error << endl;
+    \end{lstlisting}
+
+    Como vemos, con la estructura que tenemos ya sólo queda llamar a la función \emph{calibrateCamera} con los parámetros apropiados.
+
+    Los dos primeros parámetros corresponden a los vectores de los puntos objeto y de las esquinas, respectivamente; los cuatro siguientes son los parámetros de salida y el último es el de las opciones. Como veremos en la sección de resultados, jugando con estas opciones podremos mejorar el error de calibración.
+
+    \subsection{Resultados}
+    Como acabamos de observar en el código, tenemos bastante margen de prueba para mejorar el error de calibración. Centrémonos primero en el modelo que se busca al calibrar la cámara.
+
+    Las cuatro llamadas a \emph{calibrateCamera} se hacen con opciones diferentes; a saber: indicando que se dejen fijos todos los parámetros de distorsión ---suponiendo entonces que no existe distorsión radial ni tangencial---, indicando que se modele toda la distorsión óptica,  restringiendo esta a la tangencial dejando fijos los parámetros de la radial y viceversa.
+
+    Tenemos así cuatro llamadas diferentes que devuelven errores cada vez mejores, y que reproducimos a continuación:
+
+    \begin{array}{rl}
+        \textrm{Without distortion}: & 1.3254 \\
+        \textrm{With tang. distortion}: & 1.30143 \\
+        \textrm{With radial distortion}: & 0.163034 \\
+        \textrm{With distortion}: & 0.162133
+    \end{array}
+
+    Vemos que si aplicamos un modelo sin distorsión el error es un orden de magnitud mayor que si tenemos en cuenta toda la distorsión. Se ve además, afinando con más detalle en las opciones sólo-distorsión o sólo-tangencial que los parámetros que influyen significativamente en la mejora del error son los de la distorsión radial; los de la tangencial, aunque también mejoran el error, lo hacen en un orden mucho menor, casi despreciable.
+
+    Es evidente que el modelo, y con él la calibración, mejoran notablemente teniendo en cuenta todos los parámetros de distorsión óptica.
+
+    Por otro lado, podemos estudiar la mejora que introduce el refinamiento de las coordenadas píxel de las esquinas detectadas en los tableros. Si omitimos la llamada a la función \emph{cornerSubPix()}, los errores son los siguientes:
+
+    \begin{array}{rl}
+        \textrm{Without distortion}: & 1.54567 \\
+        \textrm{With tang. distortion}: & 1.52576 \\
+        \textrm{With radial distortion}: & 0.775207 \\
+        \textrm{With distortion}: & 0.773218
+    \end{array}
+
+    Es clara la ventaja de refinar las coordenadas píxel de las esquinas, ya que el mejor error que conseguimos sin refinamiento es casi 5 veces mayor que el mejor error que obtenemos con refinamiento.
+
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[width=120mm]{../imagenes/capturas/I03-07_tableroMal1.png}
+        \caption{Imprecisiones en las esquinas al no usar \emph{cornerSubPix()}. \label{sinSubPix}}
+    \end{figure}
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[width=120mm]{../imagenes/capturas/I03-03_tablero1.png}
+        \caption{Imagen usando \emph{cornerSubPix()}. \label{conSubPix}}
+    \end{figure}
+
+    Esto se ve incluso en las marcas superpuestas en las imágenes. La figura \ref{sinSubPix} muestra una de las imágenes que se calculan al ejecutar el código sin la llamada a \emph{cornerSubPix()} en ella se aprecia cómo las marcas no están exactamente en las esquinas, sino algo desplazadas ---ver, por ejemplo, la parte izquierda de la cuarta fila de marcas o la primera marca de la última fila---. Se incluye de nuevo la imagen en la que se ha usado refinamiento, ampliada en la figura \ref{conSubPix}, para poder comparar.
+
+    \newpage
+    \section{Estimación de la matriz fundamental}
+    Todo el código referente a este apartado ha sido encapsulado en la función \emph{computeAndDrawEpiLines()} de la clase \emph{Image}, que actúa sobre dos objetos \emph{Image}: uno sobre el que se llama a la función y el otro pasado por referencia. La función devuelve el error de la estimación de la matriz fundamental como la media de la distancia entre los puntos clave y sus líneas epipolars y, además, dibuja sobra ambas imágenes un subconjunto de las líneas epipolares calculadas.
+
+    El código de la función es el siguiente:
+
+    \begin{lstlisting}
+    float Image::computeAndDrawEpiLines(Image &other, int num_lines){
+        vector<Point2d> good_matches_1;
+        vector<Point2d> good_matches_2;
+
+        Mat fund_mat = this->fundamentalMat(other, good_matches_1, good_matches_2);
+
+        vector<Vec3d> lines_1, lines_2;
+
+        computeCorrespondEpilines(good_matches_1, 1, fund_mat, lines_1);
+        computeCorrespondEpilines(good_matches_2, 2, fund_mat, lines_2);
+
+        RNG rng;
+        theRNG().state = clock();
+
+        // Draws both sets of epipolar lines and computes the distances between
+        // the lines and their corresponding points.
+        float distance_1 = 0.0, distance_2 = 0.0;
+        for (size_t i = 0; i < lines_1.size(); i++) {
+            Vec2d point_1 = good_matches_1[i];
+            Vec2d point_2 = good_matches_2[i];
+
+            Vec3d line_1 = lines_1[i];
+            Vec3d line_2 = lines_2[i];
+
+            // Draws only num_lines lines
+            if(i % (lines_1.size()/num_lines) == 0 ){
+                Scalar color(rng.uniform(0, 255),
+                             rng.uniform(0, 255),
+                             rng.uniform(0, 255));
+
+                line(this->image,
+                     Point(0,
+                           -line_1[2]/line_1[1]),
+                     Point(this->cols(),
+                           -(line_1[2] + line_1[0]*this->cols())/line_1[1]),
+                     color
+                     );
+
+                line(other.image,
+                     Point(0,
+                           -line_2[2]/line_2[1]),
+                     Point(other.cols(),
+                           -(line_2[2] + line_2[0]*other.cols())/line_2[1]),
+                     color
+                     );
+            }
+
+            // Error computation with distance point-to-line
+            distance_1 += abs(line_1[0]*point_1[0] +
+                              line_1[1]*point_1[1] +
+                              line_1[2]) /
+                          sqrt(line_1[0]*line_1[0] + line_1[1]*line_1[1]);
+
+            distance_2 += abs(line_2[0]*point_2[0] +
+                              line_2[1]*point_2[1] +
+                              line_2[2]) /
+                          sqrt(line_2[0]*line_2[0] + line_2[1]*line_2[1]);
+         }
+
+         return (distance_1+distance_2)/(2*lines_1.size());
+    }
+    \end{lstlisting}
+
+    \subsection{Puntos en correspondencia y matriz fundamental}
+    La primera parte del apartado, correspondiente a la detección de los puntos en correspondencia entre las dos imágenes y a la obtención de la matriz fundamental, se ha encapsulado en la función \emph{fundamentalMat} de la clase \emph{Image}:
+
+    \begin{lstlisting}
+    Mat Image::fundamentalMat(Image &other,
+                              vector<Point2d> &good_matches_1,
+                              vector<Point2d> &good_matches_2){
+
+        pair<vector<Point2f>, vector<Point2f> > matches;
+        Mat F;
+
+        matches = this->match(other, descriptor_id::BRUTE_FORCE, detector_id::ORB);
+
+        vector<unsigned char> mask;
+        F = findFundamentalMat(matches.first, matches.second,
+                               CV_FM_8POINT | CV_FM_RANSAC,
+                               1., 0.99, mask );
+
+        for (size_t i = 0; i < mask.size(); i++) {
+            if(mask[i] == 1){
+                good_matches_1.push_back(matches.first[i]);
+                good_matches_2.push_back(matches.second[i]);
+            }
+        }
+
+        return F;
+    }
+    \end{lstlisting}
+
+    Tras obtener las parejas de puntos en correspondencia entre las dos imágenes con la función \emph{Image::match}, que ya describimos en la práctica anterior, se llama a la función \emph{findFundamentalMat} de \emph{OpenCV}, con las opciones \emph{CV\_FM\_8POINT | CV\_FM\_RANSAC}, que permiten hacer el cálculo con el algoritmo de los 8 puntos junto con \emph{RANSAC}.
+
+    Se ha elegido el menor umbral posible para RANSAC ---el antepenúltimo parámetro, cuyo valor debe estar entre 1 y 3 según la documentación de \emph{OpenCV}---, de manera que se filtren adecuadamente los falsos positivos. Además, se ha indicado que la confianza en la bondad de la matriz estimada sea de un 99\%.
+
+    Un aspecto muy importante de esta implementación es el uso del vector \emph{mask}, en el que la posición $i$ contiene un 0 o un 1, indicando si se ha usado o no la pareja $i$ de puntos en correspondencia. Esto se usa después para filtrar el conjunto de puntos en correspondencia, quedándonos sólo con aquellos en los que más confiamos.
+
+    \subsection{Líneas epipolares}
+    Para calcular las líneas epipolares se ha usado la llamada a la función \emph{computeCorrespondEpilines()}, que devuelve un vector de ternas de valores de la forma $[A,B,C]$. Estos valores se interpretan como los coeficientes de la recta
+    \[
+    Ax + By + C = 0
+    \]
+    lo que hace muy sencillo el posterior cálculo de distancias.
+
+    Una vez se tienen las líneas epipolares ---nótese que las tenemos en el mismo orden que las parejas de puntos en correspondencia---, para dibujarlas basta obtener dos puntos para cada una y superponerlas en las imágenes con la función \emph{line}.
+
+    Para dibujar sólo un número M de las N líneas que tenemos, seleccionamos sólo aquellas iteraciones en las que el índice es congruente con 0 módulo N/M.
+
+    En el mismo bucle de dibujado, pero esta vez ya sí con todas las iteraciones, calculamos todas las distancias entre puntos y su correspondientes líneas epipolares ---esto es directo, pues al tener la recta en la forma $Ax+By+C = 0$, la fórmula de la distancia punto-recta es muy simple---. Vamos entonces sumando todos los valores y al final del bucle dividimos entre todas las iteraciones para tomar la distancia medio.
+
+    La función devuelve la media de los dos errores medios de cada imagen.
+
+    \subsection{Resultados}
+    Los resultados de este apartado son incluso mejores de lo esperado, siendo el error obtenido ---como la media de la distancia de los puntos a sus líneas epipolares--- de $1,88951\cdot10^{-14}$.
+
+    En la figura \ref{fig:vmort} se ven las imágenes de entrada con las líneas epipolares obtenidas superpuestas
+
+    \begin{figure}[!htb]
+        \minipage{0.49\textwidth}
+        \includegraphics[width=\linewidth]{../imagenes/capturas/I03-08_vmort1.png}
+        \endminipage\hfill
+        \minipage{0.49\textwidth}
+        \includegraphics[width=\linewidth]{../imagenes/capturas/I03-09_vmort2.png}
+        \endminipage
+        \caption{Par de imágenes en correspondencia y sus líneas epipolares.}\label{fig:vmort}
+    \end{figure}
+
+    \newpage
+    \section{Movimiento de la cámara}
 \end{document}

@@ -47,7 +47,7 @@ Camera::Camera( vector< pair<Vec3f, Vec2f> > matches ){
     SVD::compute( mat_system, sing_values, l_sing_vectors, r_sing_vectors );
 
     Mat last_row = r_sing_vectors.row(r_sing_vectors.rows-1);
-    
+
     this->camera = last_row.reshape(1,3);
 }
 
@@ -94,7 +94,7 @@ float Camera::error(const Camera& other){
     float norm_this = 0, norm_other = 0;
     bool found = false;
 
-    for (size_t i = 0; i < 3 && !found; i++) {
+    for (size_t i = 1; i < 4 && !found; i++) {
         float current_this = this->camera.at<float>(0,i);
         float current_other = other.camera.at<float>(0,i);
         if(current_this != 0 && current_other != 0){

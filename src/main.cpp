@@ -65,6 +65,7 @@ int main(){
     Camera estimated(projected_points);
 
     // Update of the minimum and maximum coordinates with the estimated camera
+    // (in order to update the [min-max]_[x-y] values)
     for (size_t i = 0; i < points.size(); i++) {
         Vec3f point = points[i];
         Vec2f projected_point = estimated.projectPoint(point);
@@ -159,14 +160,31 @@ int main(){
                 CV_CALIB_FIX_K1 |
                 CV_CALIB_FIX_K2 |
                 CV_CALIB_FIX_K3;
-
     double calib_error_without = calibrateCamera(patterns, boards,
                                                  Size(640,480),
                                                  camera_matrix, dist_coeffs,
                                                  rvecs, tvecs,
                                                  flags);
 
-    // With optic distortion
+    // Only radial distortion
+    flags = CV_CALIB_ZERO_TANGENT_DIST;
+    double calib_error_radial = calibrateCamera(patterns, boards,
+                                          Size(640,480),
+                                          camera_matrix, dist_coeffs,
+                                          rvecs, tvecs,
+                                          flags);
+
+    // Only tangential distortion
+    flags = CV_CALIB_FIX_K1 |
+            CV_CALIB_FIX_K2 |
+            CV_CALIB_FIX_K3;
+    double calib_error_tangent = calibrateCamera(patterns, boards,
+                                        Size(640,480),
+                                        camera_matrix, dist_coeffs,
+                                        rvecs, tvecs,
+                                        flags);
+
+    // With all optic distortion
     //By default, tangential and radial correction are enabled
     flags = 0;
     double calib_error = calibrateCamera(patterns, boards, Size(640,480),
@@ -176,6 +194,8 @@ int main(){
 
     cout << "SECTION 2:\tCalibration errors:" << endl;
     cout << "\t\t\tWithout distortion:\t" << calib_error_without << endl;
+    cout << "\t\t\tWith tang. distortion:\t" << calib_error_tangent << endl;
+    cout << "\t\t\tWith radial distortion:\t" << calib_error_radial << endl;
     cout << "\t\t\tWith distortion:\t" << calib_error << endl;
 
     //############################################################# EJERCICIO 3

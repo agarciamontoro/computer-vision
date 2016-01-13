@@ -13,15 +13,12 @@ using namespace std;
 class Camera{
 private:
     Mat camera;
-
     bool isFinite();
 
 public:
 
     Camera();
     Camera( vector< pair<Vec3f, Vec2f> > matches );
-    // Camera(Mat camera);
-    // Camera(const Camera& clone);
 
     void randomFinite(float min = 0.0, float max = 1.0);
     Vec2f projectPoint(Vec3f point);
