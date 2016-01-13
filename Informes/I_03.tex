@@ -5,6 +5,9 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc} %Necesario para el uso de las comillas latinas.
 
+\usepackage{titlesec}
+\newcommand{\sectionbreak}{\clearpage}
+
 %Importante que esta sea la última órden del preámbulo
 \usepackage{hyperref}
 \hypersetup{
@@ -81,21 +84,21 @@ tabsize=3
 
     \begin{lstlisting}
     class Camera{
-    private:
-    Mat camera;
-    bool isFinite();
+        private:
+        Mat camera;
+        bool isFinite();
 
-    public:
+        public:
 
-    Camera();
-    Camera( vector< pair<Vec3f, Vec2f> > matches );
+        Camera();
+        Camera( vector< pair<Vec3f, Vec2f> > matches );
 
-    void randomFinite(float min = 0.0, float max = 1.0);
-    Vec2f projectPoint(Vec3f point);
+        void randomFinite(float min = 0.0, float max = 1.0);
+        Vec2f projectPoint(Vec3f point);
 
-    void printCamera();
-    float error(const Camera& other);
-        };
+        void printCamera();
+        float error(const Camera& other);
+    };
     \end{lstlisting}
 
     La práctica sigue, por tanto, una estructura dirigida a objetos cuyo núcleo está ahora, además de en \emph{Image}, en \emph{Camera}.
@@ -107,10 +110,10 @@ tabsize=3
 
     \begin{lstlisting}
     void Camera::randomFinite(float min, float max){
-    do{
-    theRNG().state = clock();
-    randu(this->camera, Scalar::all(min), Scalar::all(max));
-    }while( !this->isFinite() );
+        do{
+            theRNG().state = clock();
+            randu(this->camera, Scalar::all(min), Scalar::all(max));
+        }while( !this->isFinite() );
     }
     \end{lstlisting}
 
@@ -122,8 +125,8 @@ tabsize=3
 
     \begin{lstlisting}
     bool Camera::isFinite(){
-    Mat sub = this->camera(Rect(0,0,3,3));
-    return determinant(sub) != 0.0;
+        Mat sub = this->camera(Rect(0,0,3,3));
+        return determinant(sub) != 0.0;
     }
     \end{lstlisting}
 
@@ -136,10 +139,10 @@ tabsize=3
     // Generation of 3D points
     vector<Vec3f> points;
     for (double x1 = 0.1; x1 <= 1.0; x1 += 0.1) {
-    for (double x2 = 0.1; x2 <= 1.0; x2 += 0.1) {
-    points.push_back(Vec3f(0,x1,x2));
-    points.push_back(Vec3f(x2,x1,0));
-    }
+        for (double x2 = 0.1; x2 <= 1.0; x2 += 0.1) {
+            points.push_back(Vec3f(0,x1,x2));
+            points.push_back(Vec3f(x2,x1,0));
+        }
     }
 
     // Projection of points and extraction of minimum and maximum coordinates
@@ -152,13 +155,13 @@ tabsize=3
     min_x = min_y = +9999999;
 
     for (size_t i = 0; i < points.size(); i++) {
-    Vec3f point = points[i];
-    Vec2f projected_point = simulated.projectPoint(point);
+        Vec3f point = points[i];
+        Vec2f projected_point = simulated.projectPoint(point);
 
-    pair<Vec3f, Vec2f> match(point, projected_point);
-    projected_points.push_back(match);
+        pair<Vec3f, Vec2f> match(point, projected_point);
+        projected_points.push_back(match);
 
-    updateMinMax(min_x, max_x, min_y, max_y, projected_point);
+        updateMinMax(min_x, max_x, min_y, max_y, projected_point);
     }
     \end{lstlisting}
 
@@ -167,15 +170,15 @@ tabsize=3
     La función importante de este bloque de código es la de la línea Y, cuyo código es el siguiente:
     \begin{lstlisting}
     Vec2f Camera::projectPoint(Vec3f point){
-    float hom_vector[4] = {point[0], point[1], point[2], 1.0};
-    Mat hom_point = Mat(4, 1, CV_32F, hom_vector);
+        float hom_vector[4] = {point[0], point[1], point[2], 1.0};
+        Mat hom_point = Mat(4, 1, CV_32F, hom_vector);
 
-    Mat projection = this->camera * hom_point;
+        Mat projection = this->camera * hom_point;
 
-    float p_x = projection.at<float>(0)/projection.at<float>(2);
-    float p_y = projection.at<float>(1)/projection.at<float>(2);
+        float p_x = projection.at<float>(0)/projection.at<float>(2);
+        float p_y = projection.at<float>(1)/projection.at<float>(2);
 
-    return Vec2f(p_x, p_y);
+        return Vec2f(p_x, p_y);
     }
     \end{lstlisting}
 
@@ -191,10 +194,10 @@ tabsize=3
     // Update of the minimum and maximum coordinates with the estimated camera
     // (in order to update the [min-max]_[x-y] values)
     for (size_t i = 0; i < points.size(); i++) {
-    Vec3f point = points[i];
-    Vec2f projected_point = estimated.projectPoint(point);
+        Vec3f point = points[i];
+        Vec2f projected_point = estimated.projectPoint(point);
 
-    updateMinMax(min_x, max_x, min_y, max_y, projected_point);
+        updateMinMax(min_x, max_x, min_y, max_y, projected_point);
     }
     \end{lstlisting}
 
@@ -202,27 +205,27 @@ tabsize=3
 
     \begin{lstlisting}
     Camera::Camera( vector< pair<Vec3f, Vec2f> > matches ){
-    // Build the equations system.
-    Mat mat_system, sing_values, l_sing_vectors, r_sing_vectors;
+        // Build the equations system.
+        Mat mat_system, sing_values, l_sing_vectors, r_sing_vectors;
 
-    for (unsigned int i = 0; i < matches.size(); i++) {
-    Vec3f pt_3D = matches[i].first;
-    Vec2f pt_2D = matches[i].second;
+        for (unsigned int i = 0; i < matches.size(); i++) {
+            Vec3f pt_3D = matches[i].first;
+            Vec2f pt_2D = matches[i].second;
 
-    float coeffs[2][12] = {
-    {0,0,0,0, -pt_3D[0], -pt_3D[1], -pt_3D[2], -1, pt_2D[1]*pt_3D[0], pt_2D[1]*pt_3D[1], pt_2D[1]*pt_3D[2], pt_2D[1]},
-    {pt_3D[0], pt_3D[1], pt_3D[2], 1, 0,0,0,0, -pt_2D[0]*pt_3D[0], -pt_2D[0]*pt_3D[1], -pt_2D[0]*pt_3D[2], -pt_2D[0]}
-    };
+            float coeffs[2][12] = {
+                {0,0,0,0, -pt_3D[0], -pt_3D[1], -pt_3D[2], -1, pt_2D[1]*pt_3D[0], pt_2D[1]*pt_3D[1], pt_2D[1]*pt_3D[2], pt_2D[1]},
+                {pt_3D[0], pt_3D[1], pt_3D[2], 1, 0,0,0,0, -pt_2D[0]*pt_3D[0], -pt_2D[0]*pt_3D[1], -pt_2D[0]*pt_3D[2], -pt_2D[0]}
+            };
 
-    mat_system.push_back( Mat(2, 12, CV_32F, coeffs) );
-    }
+            mat_system.push_back( Mat(2, 12, CV_32F, coeffs) );
+        }
 
-    // Solve the equations system using SVD decomposition
-    SVD::compute( mat_system, sing_values, l_sing_vectors, r_sing_vectors );
+        // Solve the equations system using SVD decomposition
+        SVD::compute( mat_system, sing_values, l_sing_vectors, r_sing_vectors );
 
-    Mat last_row = r_sing_vectors.row(r_sing_vectors.rows-1);
+        Mat last_row = r_sing_vectors.row(r_sing_vectors.rows-1);
 
-    this->camera = last_row.reshape(1,3);
+        this->camera = last_row.reshape(1,3);
     }
     \end{lstlisting}
 
@@ -245,25 +248,25 @@ tabsize=3
 
     \begin{lstlisting}
     float Camera::error(const Camera& other){
-    float norm_this = 0, norm_other = 0;
-    bool found = false;
+        float norm_this = 0, norm_other = 0;
+        bool found = false;
 
-    for (size_t i = 1; i < 4 && !found; i++) {
-    float current_this = this->camera.at<float>(0,i);
-    float current_other = other.camera.at<float>(0,i);
-    if(current_this != 0 && current_other != 0){
-    norm_this = current_this;
-    norm_other = current_other;
-    found = true;
-    }
-    }
+        for (size_t i = 1; i < 4 && !found; i++) {
+            float current_this = this->camera.at<float>(0,i);
+            float current_other = other.camera.at<float>(0,i);
+            if(current_this != 0 && current_other != 0){
+                norm_this = current_this;
+                norm_other = current_other;
+                found = true;
+            }
+        }
 
-    assert(norm_this != 0 && norm_other != 0);
+        assert(norm_this != 0 && norm_other != 0);
 
-    Mat cam_1 = this->camera / norm_this;
-    Mat cam_2 = other.camera / norm_other;
+        Mat cam_1 = this->camera / norm_this;
+        Mat cam_2 = other.camera / norm_other;
 
-    return norm(cam_1, cam_2, NORM_L2SQR);
+        return norm(cam_1, cam_2, NORM_L2SQR);
     }
     \end{lstlisting}
 
@@ -300,15 +303,15 @@ tabsize=3
     Mat canvas(img_size, img_size, CV_8UC3);
 
     for (size_t i = 0; i < points.size(); i++) {
-    Vec3f point = points[i];
-    Vec2f simulated_point = simulated.projectPoint(point);
-    Vec2f estimated_point = estimated.projectPoint(point);
+        Vec3f point = points[i];
+        Vec2f simulated_point = simulated.projectPoint(point);
+        Vec2f estimated_point = estimated.projectPoint(point);
 
-    Point draw_simulated((simulated_point[0]-min_x)*scale_x, (simulated_point[1]-min_y)*scale_y);
-    Point draw_estimated((estimated_point[0]-min_x)*scale_x, (estimated_point[1]-min_y)*scale_y);
+        Point draw_simulated((simulated_point[0]-min_x)*scale_x, (simulated_point[1]-min_y)*scale_y);
+        Point draw_estimated((estimated_point[0]-min_x)*scale_x, (estimated_point[1]-min_y)*scale_y);
 
-    circle(canvas, draw_simulated, 3, green);
-    circle(canvas, draw_estimated, 1, red);
+        circle(canvas, draw_simulated, 3, green);
+        circle(canvas, draw_estimated, 1, red);
     }
 
     namedWindow( "Points", WINDOW_AUTOSIZE );
@@ -323,7 +326,7 @@ tabsize=3
     \subsection{Resultados}
     Los resultados de este apartado son los esperados: al tener 200 parejas de puntos escena y proyectados con la mayor exactitud posible, la estimación tiene que ser casi perfecta.
 
-    \begin{figure}[h!]
+    \begin{figure}[htb!]
         \centering
         \includegraphics[width=60mm]{../imagenes/capturas/I03-00_camara1.png}
         \caption{Error: 8,89067\cdot10^{-13} \label{camara1}}
@@ -331,7 +334,7 @@ tabsize=3
 
     Y así es: los errores, diferentes en cada ejecución por la naturaleza aleatoria de la cámara simulada, son por lo general del orden de $10^{-12}$, una cantidad debida únicamente a los errores de redondeo de la máquina, pues la descomposición $SVD$ es matemáticamente correcta y las parejas de puntos son exactas.
 
-    \begin{figure}[h!]
+    \begin{figure}[htb!]
         \centering
         \includegraphics[width=60mm]{../imagenes/capturas/I03-01_camara2.png}
         \caption{Error:  1,74973\cdot10^{-12} \label{camara2}}
@@ -339,7 +342,7 @@ tabsize=3
 
     Las figuras \ref{camara1} y \ref{camara2} corresponden a dos ejecuciones diferentes del código. Como se puede apreciar, todos las parejas de puntos están perfectamente alineadas y el error de la estimación, que se lee en el pie de foto, es despreciable.
 
-    \newpage
+
     \section{Calibración de la cámara usando homografías}
 
 
@@ -351,21 +354,21 @@ tabsize=3
     Esta comprobación, junto con el posterior refinamiento de las coordenadas píxel y el dibujado de las marcas, se ha encapsulado en la función \emph{findAndDrawChessBoardCorners()} de la clase \emph{Image}. Su código es el siguiente:
 
     \begin{lstlisting}
-        bool Image::findAndDrawChessBoardCorners(Size pattern_size, vector<Point2f> &corners){
-            int flags = CV_CALIB_CB_ADAPTIVE_THRESH +
-                        CV_CALIB_CB_NORMALIZE_IMAGE +
-                        CALIB_CB_FAST_CHECK;
-            bool success = findChessboardCorners(this->image, pattern_size,
-                                                 corners, flags);
+    bool Image::findAndDrawChessBoardCorners(Size pattern_size, vector<Point2f> &corners){
+        int flags = CV_CALIB_CB_ADAPTIVE_THRESH +
+                    CV_CALIB_CB_NORMALIZE_IMAGE +
+                    CALIB_CB_FAST_CHECK;
+        bool success = findChessboardCorners(this->image, pattern_size,
+                                             corners, flags);
 
-            if(success){
-                cornerSubPix(this->image, corners, Size(5, 5), Size(-1, -1),
-                             TermCriteria());
-                drawChessboardCorners(this->image, pattern_size, Mat(corners), true);
-            }
-
-            return success;
+        if(success){
+            cornerSubPix(this->image, corners, Size(5, 5), Size(-1, -1),
+                         TermCriteria());
+            drawChessboardCorners(this->image, pattern_size, Mat(corners), true);
         }
+
+        return success;
+    }
     \end{lstlisting}
 
     A los \emph{flags} por defecto se ha añadido \emph{CALIB\_CB\_FAST\_CHECK}, que simplemente ayuda a optimizar el tiempo de procesado en aquellas imágenes en las que no se encuentra el patrón especificado.
@@ -528,12 +531,12 @@ cout << "\t\t\tWith distortion:\t" << calib_error << endl;
 
     Es clara la ventaja de refinar las coordenadas píxel de las esquinas, ya que el mejor error que conseguimos sin refinamiento es casi 5 veces mayor que el mejor error que obtenemos con refinamiento.
 
-    \begin{figure}[h!]
+    \begin{figure}[htb!]
         \centering
         \includegraphics[width=120mm]{../imagenes/capturas/I03-07_tableroMal1.png}
         \caption{Imprecisiones en las esquinas al no usar \emph{cornerSubPix()}. \label{sinSubPix}}
     \end{figure}
-    \begin{figure}[h!]
+    \begin{figure}[htb!]
         \centering
         \includegraphics[width=120mm]{../imagenes/capturas/I03-03_tablero1.png}
         \caption{Imagen usando \emph{cornerSubPix()}. \label{conSubPix}}
@@ -541,7 +544,7 @@ cout << "\t\t\tWith distortion:\t" << calib_error << endl;
 
     Esto se ve incluso en las marcas superpuestas en las imágenes. La figura \ref{sinSubPix} muestra una de las imágenes que se calculan al ejecutar el código sin la llamada a \emph{cornerSubPix()} en ella se aprecia cómo las marcas no están exactamente en las esquinas, sino algo desplazadas ---ver, por ejemplo, la parte izquierda de la cuarta fila de marcas o la primera marca de la última fila---. Se incluye de nuevo la imagen en la que se ha usado refinamiento, ampliada en la figura \ref{conSubPix}, para poder comparar.
 
-    \newpage
+
     \section{Estimación de la matriz fundamental}
     Todo el código referente a este apartado ha sido encapsulado en la función \emph{computeAndDrawEpiLines()} de la clase \emph{Image}, que actúa sobre dos objetos \emph{Image}: uno sobre el que se llama a la función y el otro pasado por referencia. La función devuelve el error de la estimación de la matriz fundamental como la media de la distancia entre los puntos clave y sus líneas epipolars y, además, dibuja sobra ambas imágenes un subconjunto de las líneas epipolares calculadas.
 
@@ -578,31 +581,42 @@ cout << "\t\t\tWith distortion:\t" << calib_error << endl;
                              rng.uniform(0, 255),
                              rng.uniform(0, 255));
 
-                line(this->image,
+                line(other.image,
                      Point(0,
                            -line_1[2]/line_1[1]),
                      Point(this->cols(),
                            -(line_1[2] + line_1[0]*this->cols())/line_1[1]),
                      color
                      );
+                circle(this->image,
+                        Point2f(point_1[0], point_1[1]),
+                        4,
+                        color,
+                        CV_FILLED);
 
-                line(other.image,
+                line(this->image,
                      Point(0,
                            -line_2[2]/line_2[1]),
                      Point(other.cols(),
                            -(line_2[2] + line_2[0]*other.cols())/line_2[1]),
                      color
                      );
+                circle(other.image,
+                        Point2f(point_2[0], point_2[1]),
+                        4,
+                        color,
+                        CV_FILLED);
+
             }
 
             // Error computation with distance point-to-line
-            distance_1 += abs(line_1[0]*point_1[0] +
-                              line_1[1]*point_1[1] +
+            distance_1 += abs(line_1[0]*point_2[0] +
+                              line_1[1]*point_2[1] +
                               line_1[2]) /
                           sqrt(line_1[0]*line_1[0] + line_1[1]*line_1[1]);
 
-            distance_2 += abs(line_2[0]*point_2[0] +
-                              line_2[1]*point_2[1] +
+            distance_2 += abs(line_2[0]*point_1[0] +
+                              line_2[1]*point_1[1] +
                               line_2[2]) /
                           sqrt(line_2[0]*line_2[0] + line_2[1]*line_2[1]);
          }
@@ -655,16 +669,16 @@ cout << "\t\t\tWith distortion:\t" << calib_error << endl;
 
     Una vez se tienen las líneas epipolares ---nótese que las tenemos en el mismo orden que las parejas de puntos en correspondencia---, para dibujarlas basta obtener dos puntos para cada una y superponerlas en las imágenes con la función \emph{line}.
 
-    Para dibujar sólo un número M de las N líneas que tenemos, seleccionamos sólo aquellas iteraciones en las que el índice es congruente con 0 módulo N/M.
+    Para dibujar sólo un número $M$ de las $N$ líneas que tenemos, seleccionamos sólo aquellas iteraciones en las que el índice es congruente con 0 módulo $N/M$.
 
     En el mismo bucle de dibujado, pero esta vez ya sí con todas las iteraciones, calculamos todas las distancias entre puntos y su correspondientes líneas epipolares ---esto es directo, pues al tener la recta en la forma $Ax+By+C = 0$, la fórmula de la distancia punto-recta es muy simple---. Vamos entonces sumando todos los valores y al final del bucle dividimos entre todas las iteraciones para tomar la distancia medio.
 
     La función devuelve la media de los dos errores medios de cada imagen.
 
     \subsection{Resultados}
-    Los resultados de este apartado son incluso mejores de lo esperado, siendo el error obtenido ---como la media de la distancia de los puntos a sus líneas epipolares--- de $1,88951\cdot10^{-14}$.
+    Los resultados de este apartado son los esperados, con un error entre 0 y 1. Con los parámetros que ahora mismo tiene el código, el error obtenido ---entendido como la media de la distancia de los puntos a sus líneas epipolares--- es de $0.388278$.
 
-    En la figura \ref{fig:vmort} se ven las imágenes de entrada con las líneas epipolares obtenidas superpuestas
+    En la figura \ref{fig:vmort} se ven las imágenes de entrada con las líneas epipolares obtenidas superpuestas, además de los puntos en correspondencia.
 
     \begin{figure}[!htb]
         \minipage{0.49\textwidth}
@@ -673,9 +687,354 @@ cout << "\t\t\tWith distortion:\t" << calib_error << endl;
         \minipage{0.49\textwidth}
         \includegraphics[width=\linewidth]{../imagenes/capturas/I03-09_vmort2.png}
         \endminipage
-        \caption{Par de imágenes en correspondencia y sus líneas epipolares.}\label{fig:vmort}
+        \caption{Par de imágenes en correspondencia y sus líneas epipolares (ORB).}\label{fig:vmort}
     \end{figure}
 
-    \newpage
+    La cantidad de parámetros a tener en cuenta en este caso es importante, ya que la detección de puntos y su posterior puesta en correspondencia dependen de los detectores usados, cuyo comportamiento depende mucho de los parámetros con los que se llaman, como ya vimos en la práctica anterior.
+
+    Por ejemplo, podemos jugar con el tipo de detector usado. Los resultados anteriores corresponden a una ejecución con el detector ORB, que es el que al final se ha dejado por devolver un error menor. La figura \ref{fig:vmort_BRISK} muestra, por otro lado, el resultado de una ejecución con el detector BRISK. En este caso, el error es de 0.394629, algo mayor que con OBR.
+
+    \begin{figure}[!htb]
+        \minipage{0.49\textwidth}
+        \includegraphics[width=\linewidth]{../imagenes/capturas/I03-11_vmort4.png}
+        \endminipage\hfill
+        \minipage{0.49\textwidth}
+        \includegraphics[width=\linewidth]{../imagenes/capturas/I03-10_vmort3.png}
+        \endminipage
+        \caption{Par de imágenes en correspondencia y sus líneas epipolares (BRISK).}\label{fig:vmort_BRISK}
+    \end{figure}
+
     \section{Movimiento de la cámara}
+    El código correspondiente a este último apartado se encuentra en la función \emph{reconstruction()} de la clase \emph{Image}. Este método actúa sobre dos imágenes, recibe además la matriz de parámetros intrínsecos de la cámara y devuelve, en caso de éxito, las matrices de rotación y traslación que definen el movimiento de la cámara entre las dos imágenes. El algoritmo usado es el de reconstrucción euclídea descrito en los apuntes.
+
+    Las llamadas a esta función entre las tres parejas de imágenes que podemos formar ---de la 0 a la 1, de la 0 a la 2 y de la 1 a la 2--- son las siguientes:
+    \begin{lstlisting}
+    double intrinsic_params[3][3] = {
+        {1839.6300000000001091, 0, 1024.2000000000000455},
+        {0, 1848.0699999999999363, 686.5180000000000291},
+        {0, 0, 1}
+    };
+
+    Mat K(3, 3, CV_64F, intrinsic_params);
+
+    Image reconstruction_0("./imagenes/rdimage.000.ppm");
+    Image reconstruction_1("./imagenes/rdimage.001.ppm");
+    Image reconstruction_2("./imagenes/rdimage.004.ppm");
+
+    bool success01, success02, success12;
+    Mat R01, R02, R12;
+    Point3d T01, T02, T12;
+
+    success01 = reconstruction_0.reconstruction(reconstruction_1, K, R01, T01);
+    success02 = reconstruction_0.reconstruction(reconstruction_2, K, R02, T02);
+    success12 = reconstruction_1.reconstruction(reconstruction_2, K, R12, T12);
+
+    cout << "SECTION 4:\tSuccess of the three reconstructions:" << endl;
+    cout << "\t\t" << success01 << ", " << success02 << ", " << success12 << endl;
+
+    cout << R01 << endl << T01 << endl << endl;
+    cout << R02 << endl << T02 << endl << endl;
+    cout << R12 << endl << T12 << endl << endl;
+    \end{lstlisting}
+
+    La matriz $K$, cuyos valores están codificados manualmente, se ha tomado de los archivos de calibración de las cámaras. Durante todo este apartado trabajaremos con el tipo de dato \emph{double} y objetos Mat con datos \emph{CV\_64F}, pues la precisión será muy importante.
+
+    El código de la función \emph{reconstruction()} es el siguiente:
+    \begin{lstlisting}
+    bool Image::reconstruction(Image &other, Mat K, Mat &R, Point3d &T){
+        // FUNDAMENTAL MATRIX
+        vector<Point2d> img_pts1;
+        vector<Point2d> img_pts2;
+
+        Mat F = this->fundamentalMat(other, img_pts1, img_pts2);
+
+        // ESSENTIAL MATRIX
+        Mat E = K.t() * F * K;
+
+        double trace_val = abs(trace(E.t() * E)[0]);
+        double norm = sqrt(trace_val/2);
+
+        E /= norm;
+
+        // ALGORITHM
+        // 1.
+        T = obtainT(E);
+
+        // 2.
+        R = obtainR(E, T);
+
+        // 3., 4.
+        double f = K.at<double>(0,0);
+        enum check test = checkTandR(T, R, f, img_pts1, img_pts2);
+        bool success;
+
+        // E,-T => 3.
+        if(test == check::CHANGE_T){
+            T = -T;
+            test = checkTandR(T, R, f, img_pts1, img_pts2);
+            if(test == check::CHANGE_T){                         // Repeat -> ERROR
+                cout << "ERROR: Reconstruction has failed" << endl;
+                success = false;
+            }
+            else if(test == check::CHANGE_E){                    // -E,-T => 2.
+                E = -E;
+                R = obtainR(E, T);
+                test = checkTandR(T, R, f, img_pts1, img_pts2);
+                success = (test == check::SUCCESS);
+            }
+            else{
+                success = true;
+            }
+        }
+        // -E,T => 2.
+        else if(test == check::CHANGE_E){
+            E = -E;
+            R = obtainR(E, T);
+            test = checkTandR(T, R, f, img_pts1, img_pts2);
+
+            if(test ==check::CHANGE_T){                          // -E,-T => 3.
+                T = -T;
+                test = checkTandR(T, R, f, img_pts1, img_pts2);
+                success = (test == check::SUCCESS);
+            }
+            else if(test == check::CHANGE_E){                    // Repeat -> ERROR
+                cout << "ERROR: Reconstruction has failed" << endl;
+                success = false;
+            }
+            else{
+                success = true;
+            }
+        }
+        // E,T => SUCCESS
+        else{
+            success = true;
+        }
+
+        return success;
+    }
+    \end{lstlisting}
+
+    \subsection{Puntos en correspondencia, matrices fundamental y esencial}
+    Como vemos, lo primero que se hace es llamar a la función \emph{findFundamentalMat()}, descrita anteriormente. De ella obtenemos la matriz fundamental que, junto con la matriz $K$ de parámetros intrínsecos, nos sirve para calcular la matriz esencial. Para ello, usamos su definición:
+    \[
+    E  = K^TFK
+    \]
+
+    \subsection{Normalización de E}
+    Un paso muy importante en el algoritmo es la normalización de $E$, que nos asegura obtener un vector traslación normalizado.
+
+    Obtenemos así la $E$ normalizada, $\hat{E}$, dividiendo todos los elementos de $E$ como sigue:
+    \[
+    \hat{E} = E / \sqrt{\frac{Traza(E^TE)}{2}}
+    \]
+
+    \subsection{Algoritmo de reconstrucción euclídea}
+    Tras estos pasos previos estamos en disposición de implementar el algoritmo, que consiste en calcular el vector de traslación $T$ a partir de la matriz normalizada $\hat{E}$, la matriz de rotación $R$ a partir de $\hat{E}$ y $T$ y comprobar que son correctas; esto es, que las proyecciones de todos los puntos por ambas cámaras tienen una coordenada de profundidad positiva.
+
+    En caso contrario, tenemos dos posibilidades:
+    \begin{enumerate}
+        \item Algún punto tiene profundidad negativa en las dos cámaras.
+        \item Algún punto tiene profundidad negativa en una cámara y positiva en la otra.
+    \end{enumerate}
+
+    En la primera posibilidad, basta tomar $-T$ como vector de traslación y comprobar de nuevo las profundidades. En la segunda, hay que tomar $-\hat{E}$, recalcular $R$ y comprobar de nuevo las profundidades.
+
+    Tenemos entonces cuatro posibilidades:
+    \begin{enumerate}
+        \item $E,T$
+        \item $E,-T$
+        \item $-E,T$
+        \item $-E,-T$
+    \end{enumerate}
+
+    En el caso de que el algoritmo intente cambiar sucesivamente una de las dos matrices por su negativa, intentando repetir un proceso ya calculado, debemos abortar y devolver un error, como así hace la función. Toda esta lógica está implementada en el conjunto de \emph{if-else} del código.
+
+    El algoritmo es claro, y sólo falta saber cómo calcular $T$ y $R$. Estos cálculos se encuentran encapsulados en las funciones \emph{obtainT()} y \emph{obtainR()}.
+
+    \subsubsection{Cálculo del vector de traslación}
+    El cálculo del vector $\hat{T}$ es directo de la matriz $\hat{E}^T\hat{E}$. El código es el siguiente:
+    \begin{lstlisting}
+    Point3d obtainT(Mat E){
+        // Squared essential matrix
+        Mat EtE = E.t() * E;
+
+        // Translation vector
+        double T_x = sqrt(1-EtE.at<double>(0,0));
+        double T_y = -EtE.at<double>(0,1) / T_x;
+        double T_z = -EtE.at<double>(0,2) / T_x;
+
+        return Point3d(T_x, T_y, T_z);
+    }
+    \end{lstlisting}
+
+    Las líneas anteriores simplemente calculan $\hat{T}$ resolviendo las ecuaciones
+    \begin{align*}
+        E'_{1,1} &= 1 - \hat{T}_x^2 \\
+        E'_{1,2} &= -\hat{T}_x\hat{T}_y \\
+        E'_{1,3} &= -\hat{T}_x\hat{T}_z
+    \end{align*}
+    donde $E'=\hat{E}^T\hat{E}$.
+
+    \subsubsection{Cálculo de la matriz de rotación}
+    Calcular $R$ dadas las matrices $\hat{E}$ y $\hat{T}$ es directo, y se ha implementado como sigue:
+    \begin{lstlisting}
+        Mat obtainR(Mat E, Point3d T){
+            // Rotation matrix
+            Mat row_i, w_i;
+            vector<Mat> w;
+            Mat R;
+
+            for (size_t i = 0; i < 3; i++) {
+                row_i = E.row(i);
+                w_i = row_i.cross(Mat(T).t());
+                w.push_back(w_i);
+            }
+
+            int j,k;
+            for (size_t i = 0; i < 3; i++) {
+                j = (i+1)%3;
+                k = (j+1)%3;
+
+                R.push_back(w[i] + w[j].cross(w[k]));
+            }
+
+            return R;
+        }
+    \end{lstlisting}
+
+    La matriz $R$ se calcula así:
+    \[
+    R = \left(
+    \begin{array}{c}
+        w_1 + w_2 \times w_3 \\
+        w_2 + w_3 \times w_1 \\
+        w_3 + w_1 \times w_2 \\
+    \end{array}
+    \right)
+    \]
+    donde $w_i = \hat{E}_i \times \hat{T}$, con $\hat{E}_i$ la i-ésima fila de $\hat{E}$.
+
+    \subsection{Comprobación de la bondad de $R$ y $T$}
+    Sólo una de las cuatro posibilidades vistas anteriormente es correcta. Falta explicar cómo, en la lógica de los \emph{if-else} que vimos antes, se decide cuándo cambiar el signo de $\hat{T}$ y cuándo el de $\hat{E}$. Esto se implementa con la función \emph{checkTandR()}, cuyo código es el siguiente:
+    \begin{lstlisting}
+    enum check checkTandR(Point3d T, Mat R, double f,
+                          vector<Point2d> img_pts1,
+                          vector<Point2d> img_pts2){
+
+        vector<double> ptZ_i, ptZ_d;
+        Mat mat_Z_i, mat_Z_d, pt_3D_i;
+        double Z_i, Z_d, x_d;
+        Mat pt_i, pt_d;
+
+        for (size_t i = 0; i < img_pts1.size(); i++) {
+            pt_i = Mat(Vec3d(img_pts1[i].x,img_pts1[i].y,1.));
+            pt_d = Mat(Vec3d(img_pts2[i].x,img_pts2[i].y,1.));
+            x_d = pt_d.at<double>(0,0);
+
+            mat_Z_i = f * (f*R.row(0) - x_d*R.row(2)) * Mat(T)
+                      /
+                      ((f*R.row(0) - x_d*R.row(2)) * pt_i);
+            Z_i = mat_Z_i.at<double>(0,0);
+
+            pt_3D_i = Z_i * pt_i / f;
+
+            mat_Z_d = R.row(2) * (pt_3D_i - Mat(T));
+            Z_d = mat_Z_d.at<double>(0,0);
+
+            if(Z_i < 0 && Z_d < 0){
+                return check::CHANGE_T; // Go to step 3.
+            }
+            else if(Z_i*Z_d < 0){
+                return check::CHANGE_E; // Go to step 2.
+            }
+        }
+
+        return check::SUCCESS; // Finish
+    }
+    \end{lstlisting}
+
+    Simplemente se reconstruyen las coordenadas de profundidad $Z_i$ y $Z_d$ ---los subíndices se refieren a las imágenes $i$zquierda y $d$erecha--- de todos los puntos  con las siguientes fórmulas:
+    \begin{align*}
+        Z_i &= f \frac{(fR_1-x_dR_3)^T\hat{T}}{(fR_1-x_dR_3)^Tp_i} \\
+        Z_d &= R_3^T(Z_i\frac{p_i}{f}-\hat{T})
+    \end{align*}
+    donde
+    \begin{itemize}
+        \item $f$ es el elemento $(1,1)$ de la matriz $K$
+        \item $R_j$ es la fila j-ésima de la matriz $R$
+        \item $x_d$ es la primera coordenada del punto $p_d$, proyección en la imagen del punto $P$ por la cámara de la derecha.
+    \end{itemize}
+
+    Si hay algún punto con ambas proyecciones con profundidad negativa, se devuelve el estado \emph{CHANGE\_T}; si sólo una de las proyecciones tiene profundidad negativa, \emph{CHANGE\_E}; en caso de que todos los puntos tengan ambas proyecciones positivas, se devuelve \emph{SUCCESS}.
+
+    Estos estados se han implementado como un \emph{enum} en el archivo \emph{consts.hpp} como sigue:
+    \begin{lstlisting}
+        enum check{
+            CHANGE_E = -1,
+            CHANGE_T = 0,
+            SUCCESS = 1
+        };
+    \end{lstlisting}
+
+    \subsection{Resultados}
+    En todos los casos probados se encuentran matrices de rotación y traslación coherentes con el modelo, que son las siguientes:
+
+    \subsubsection*{Entre imágenes 0 y 1}
+    \[
+    R_{0,1}\left(
+    \begin{array}{ccc}
+        0.9773680768147368 & -0.02268527605130709 & -0.005673345999255498 \\
+        0.01640790268699308 & 0.9528832785661331 & -0.1159468621215086 \\
+        0.002751299120479188 & 0.130216904310353 & 0.9693117838582967
+    \end{array}
+    \right)
+    \]
+
+    \[
+    T_{0,1}\left(
+    \begin{array}{ccc}
+        0.0971566 &  0.893906 & -0.389973
+    \end{array}
+    \right)
+    \]
+
+    \subsubsection*{Entre imágenes 0 y 2}
+
+    \[
+    R_{0,2}\left(
+    \begin{array}{ccc}
+        0.7875735463181901 & 0.007627829477894865 & 0.1829250849645255 \\
+        -0.004885372766241861 & 0.766512518229334 & 0.1094451690870099 \\
+        -0.06827156302888834 & -0.02395283502877557 & 0.6597912367539547
+    \end{array}
+    \right)
+    \]
+
+    \[
+    T_{0,2}\left(
+    \begin{array}{ccc}
+        0.314713 &  0.265056 & -0.697594
+    \end{array}
+    \right)
+    \]
+
+    \subsubsection*{Entre imágenes 1 y 2}
+
+    \[
+    R_{1,2}\left(
+    \begin{array}{ccc}
+        0.8639698545556994 & -0.1033214448681555 & 0.167476964219665 \\
+        -0.008170064326311092 & 0.8142781316600718 & -0.2748569419796844 \\
+        0.006007306904464715 & 0.1375011844621707 & 0.8588456519791023
+    \end{array}
+    \right)
+    \]
+
+    \[
+    T_{1,2}\left(
+    \begin{array}{ccc}
+        0.674835  & -0.176223 & -0.60376
+    \end{array}
+    \right)
+    \]
 \end{document}

@@ -804,31 +804,42 @@ float Image::computeAndDrawEpiLines(Image &other, int num_lines){
                          rng.uniform(0, 255),
                          rng.uniform(0, 255));
 
-            line(this->image,
+            line(other.image,
                  Point(0,
                        -line_1[2]/line_1[1]),
                  Point(this->cols(),
                        -(line_1[2] + line_1[0]*this->cols())/line_1[1]),
                  color
                  );
+            circle(this->image,
+                    Point2f(point_1[0], point_1[1]),
+                    4,
+                    color,
+                    CV_FILLED);
 
-            line(other.image,
+            line(this->image,
                  Point(0,
                        -line_2[2]/line_2[1]),
                  Point(other.cols(),
                        -(line_2[2] + line_2[0]*other.cols())/line_2[1]),
                  color
                  );
+            circle(other.image,
+                    Point2f(point_2[0], point_2[1]),
+                    4,
+                    color,
+                    CV_FILLED);
+
         }
 
         // Error computation with distance point-to-line
-        distance_1 += abs(line_1[0]*point_1[0] +
-                          line_1[1]*point_1[1] +
+        distance_1 += abs(line_1[0]*point_2[0] +
+                          line_1[1]*point_2[1] +
                           line_1[2]) /
                       sqrt(line_1[0]*line_1[0] + line_1[1]*line_1[1]);
 
-        distance_2 += abs(line_2[0]*point_2[0] +
-                          line_2[1]*point_2[1] +
+        distance_2 += abs(line_2[0]*point_1[0] +
+                          line_2[1]*point_1[1] +
                           line_2[2]) /
                       sqrt(line_2[0]*line_2[0] + line_2[1]*line_2[1]);
      }
@@ -843,7 +854,7 @@ Mat Image::fundamentalMat(Image &other,
     pair<vector<Point2f>, vector<Point2f> > matches;
     Mat F;
 
-    matches = this->match(other, descriptor_id::BRUTE_FORCE, detector_id::ORB);
+    matches = this->match(other, descriptor_id::BRUTE_FORCE, detector_id::BRISK);
 
     vector<unsigned char> mask;
     F = findFundamentalMat(matches.first, matches.second,
@@ -937,8 +948,6 @@ bool Image::reconstruction(Image &other, Mat K, Mat &R, Point3d &T){
 
     Mat F = this->fundamentalMat(other, img_pts1, img_pts2);
 
-    cout << "Fundamental: " << endl << F << endl << endl;
-
     // ESSENTIAL MATRIX
     Mat E = K.t() * F * K;
 
@@ -946,8 +955,6 @@ bool Image::reconstruction(Image &other, Mat K, Mat &R, Point3d &T){
     double norm = sqrt(trace_val/2);
 
     E /= norm;
-
-    cout << "Esencial: " << endl << E << endl << endl;
 
     // ALGORITHM
     // 1.
@@ -1002,8 +1009,6 @@ bool Image::reconstruction(Image &other, Mat K, Mat &R, Point3d &T){
     else{
         success = true;
     }
-
-    cout << "Rotación: " << endl << R << endl << endl << "Traslación: " << endl << T << endl << endl;
 
     return success;
 }
