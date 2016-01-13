@@ -82,7 +82,11 @@
     \end{ejercicio}
 
     \begin{solucion}
-        El problema es inherente a la reconstrucción, y viene de la matriz esencial $E$. Esta sólo puede ser conocida salvo un factor de escala, por lo que al intentar
+        El problema es inherente a la reconstrucción. Supongamos la siguiente situación: un punto escena $P$ se encuentra a distancia $d_{izqda}$ de la cámara de la izquierda y a distancia $d_{dcha}$ de la de la derecha. Ambas cámaras se encuentran a distancia $d$ la una de la otra.
+
+        Supongamos que tenemos las proyecciones del punto $P$ por las dos cámaras pero no sabemos ninguna de las distancias. Es evidente que en una situación con distancias $d_{izqda}$, $d_{dcha}$ y $d$ se producirán exactamente las mismas proyecciones ---podemos argumentar esto por simple semejanza de triángulos--- que en una situación con distancias $kd_{izqda}$, $kd_{dcha}$ y $kd$, con $k\in\mathbb{R}^+$.
+
+        Es imposible por tanto conocer el módulo del cálculo del vector de traslación, cuya dirección sin embargo sí conocemos, ya que esto correspondería a conocer, con la notación que hemos usado, la distancia $d$. Y esto es imposible, pues de antemano no conocemos ni $d_{izqda}$ ni $d_{dcha}$.
     \end{solucion}
 
     \begin{ejercicio}
@@ -169,15 +173,29 @@
     \end{ejercicio}
 
     \begin{solucion}
+        Cabría pensar en un primer momento que con un algoritmo de ese tipo mejoraríamos la precisión del cálculo de la profundidad de cada punto. Sin embargo, esto no tiene ningún sentido: las profundidades de los puntos son independientes las unas de las otras, y la precisión de su cálculo no se verá lógicamente afectada por el aumento de puntos.
 
+        Sin embargo, el calcular profundidades lo podemos usar para algo en principio diferente: así, cuantos más puntos tengamos en cuenta a la vez, mejor será la aproximación de los parámetros extrínsecos de la cámara. La justificación de esto es clara: cuantos más puntos tengamos, mejor será la estimación de la matriz y por tanto de los parámetros.
+
+        Las desventajas de un algoritmo así son claras: cuantos más puntos haya, más costosos serán todos los cálculos y, aunque ganemos en precisión, perderemos en eficiencia.
     \end{solucion}
 
     \begin{ejercicio}
-        Deducir la expresión para la matriz esencial $E = [t]x R = R[RTt]x$. Justificar cada uno de los pasos.
+        Deducir la expresión para la matriz esencial $E = [t]_x R = R[R^Tt]_x$. Justificar cada uno de los pasos.
     \end{ejercicio}
 
     \begin{solucion}
+        Sabemos que
+        \[
+        E = K^T F K
+        \]
 
+        Por otro lado, en el ejercicio 12 hemos deducido que $F = [K't]_xK'RK^{-1}$. Por tanto, sustituyendo en la definición de $E$ tenemos:
+        \begin{align*}
+            E &= K^T [K't]_xK'RK^{-1} K = \\
+            &= K^T [K't]_xK'R =\\
+            &= [t]_x R
+        \end{align*}
     \end{solucion}
 
     \begin{ejercicio}
@@ -189,11 +207,15 @@
     \end{solucion}
 
     \begin{ejercicio}
-        Si nos dan las coordenadas de proyección de un punto escena en la cámara\_1 y nos dicen cuál es el movimiento relativo de la cámara\_2 respecto de la cámara\_1, ¿es posible reconstruir la profundidad el punto si las cámaras están calibradas? Justificar la contestación
+        Si nos dan las coordenadas de proyección de un punto escena en la cámara 1 y nos dicen cuál es el movimiento relativo de la cámara 2 respecto de la cámara 1, ¿es posible reconstruir la profundidad el punto si las cámaras están calibradas? Justificar la contestación
     \end{ejercicio}
 
     \begin{solucion}
+        No, para reconstruir el punto escena $p$ necesitaríamos su proyección en la segunda cámara.
 
+        Aunque podemos obtener la segunda cámara a partir de la primera, pues sabemos su movimiento relativo, para realizar el cálculo del punto escena necesitamos los dos rayos que nos definan la intersección donde está $p$.
+
+        El primer rayo, correspondiente a la primera imagen, lo tenemos; pero no así el segundo, pues aunque conocemos la segunda cámara no conocemos la proyección de $p$ por ella.
     \end{solucion}
 
     \begin{ejercicio}
@@ -217,6 +239,47 @@
     \end{ejercicio}
 
     \begin{solucion}
+        De nuevo, Hartley y Zisserman desarrollan varios cálculos en los que obtienen la matriz fundamental a partir de diversas formas. Entre ellas, se encuentra la siguiente deducción:
 
+        Llamando $P^+$ a la pseudo-inversa de $P$; es decir, aquella matriz tal que $P^+ P = I$, su expresión es
+        \[
+        P^+ = \left[\begin{array}{c}
+            K^{-1} \\
+            0^T
+        \end{array}\right]
+        \]
+
+        EL centro de la cámara $P$, definido por $PC = 0$ es
+        \[
+        C = \left(\begin{array}{c}
+            0 \\
+            1
+        \end{array}\right)
+        \]
+
+        Si suponemos la familia de soluciones para $X$ de la ecuación $PX = x$, con $x$ punto de la imagen, podemos coger dos puntos que se encuentran en el rayo solución; a saber: $P^+x$ y el centro de la cámara $P$: el punto $C$.
+
+        Las proyecciones de estos dos puntos por la cámara $P'$ nos da dos puntos: $P'P^+x$ y $P'C$, que definen la línea epipolar como sigue:
+        \[
+            l' = (P'C) \times (P'P^+x)
+        \]
+
+        Podemos escribir la ecuación anterior como
+        \[
+            l' =[P'C]_x(P'P^+)x
+        \]
+
+        Esto nos da la definición de matriz fundamental, $F = [P'C]_x(P'P^+)$.
+
+        Podemos ahora sustituir $P$ y $P'$ por las definiciones del enunciado y operar:
+        \begin{align*}
+            F &= [P'C]_x(P'P^+) = \\
+            &= [(K'[R|t])C]_x(K'[R|t]\left[\begin{array}{c}
+                K^-1 \\
+                0^T
+            \end{array}\right]) = \\
+            &= [K't]_xK'RK^{-1}
+        \end{align*}
+        llegando así a una expresión de $F$ en función únicamente de $K$, parámetros intrínsecos de la cámara y $R$ y $t$, parámetros extrínsecos.
     \end{solucion}
 \end{document}
