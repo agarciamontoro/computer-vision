@@ -127,7 +127,7 @@ int main(){
     vector<Point2f> corners;
 
     string prefix, suffix, filename;
-    prefix = "./imagenes/Image";
+    prefix = "imagenes/Image";
     suffix = ".tif";
 
     for (size_t i = 1; i <= 25; i++) {
@@ -204,8 +204,8 @@ int main(){
     //############################################################# EJERCICIO 3
     printSection(3);
 
-    Image vmort_1("./imagenes/Vmort1.pgm");
-    Image vmort_2("./imagenes/Vmort2.pgm");
+    Image vmort_1("imagenes/Vmort1.pgm");
+    Image vmort_2("imagenes/Vmort2.pgm");
 
     vmort_1.setName("Vmort1");
     vmort_2.setName("Vmort2");
@@ -233,9 +233,9 @@ int main(){
 
     Mat K(3, 3, CV_64F, intrinsic_params);
 
-    Image reconstruction_0("./imagenes/rdimage.000.ppm");
-    Image reconstruction_1("./imagenes/rdimage.001.ppm");
-    Image reconstruction_2("./imagenes/rdimage.004.ppm");
+    Image reconstruction_0("imagenes/rdimage.000.ppm");
+    Image reconstruction_1("imagenes/rdimage.001.ppm");
+    Image reconstruction_2("imagenes/rdimage.004.ppm");
 
     bool success01, success02, success12;
     Mat R01, R02, R12;

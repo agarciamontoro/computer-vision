@@ -154,7 +154,7 @@
     \begin{solucion}
         En \emph{Multiple View Geometry in Computer Vision}, de Hartley y Zisserman, se da una descripción muy precisa de cada fila y columna de una matriz cámara $P$. Denotando $P^i$ a la i-ésima fila de la matriz y $p_j$ a la j-ésima columna, tenemos lo siguiente:
         \begin{itemize}
-            \item Las tres primeras columnas, $p_1$, $p_2$ y $p_3$ son puntos vanishing en la imagen que corresponden, respectivamente, a los ejes $X$, $Y$ y $Z$. La \item La última columna, $p_4$, es la imagen del origen de coordenadas.
+            \item Las tres primeras columnas, $p_1$, $p_2$ y $p_3$ son puntos de fuga en la imagen que corresponden, respectivamente, a los ejes $X$, $Y$ y $Z$. La \item La última columna, $p_4$, es la imagen del origen de coordenadas.
             \item $P^1$ y $P^2$, primera y segunda filas de $P$, son planos en el espacio que contienen al centro de la cámara, y corresponden a los puntos cuya proyección se encuentra, respectivamente, en las líneas $x=0$ e $y=0$
             \item La última fila de $P$, $P^3$, es el llamado plano principal de la cámara; es decir, el plano que pasa por el centro de la cámara y es paralelo al plano imagen.
         \end{itemize}
@@ -203,7 +203,9 @@
     \end{ejercicio}
 
     \begin{solucion}
+        El plano epipolar asociado a un punto $P$ se define como aquel en el que yacen el punto y los centros de las dos cámaras: $C$ y $C'$.
 
+        Tres puntos definen un plano único sólo cuando no son colineales. Por tanto, los puntos del espacio que no tienen un plano epipolar asociado serán aquellos que yacen en la línea que une ambos centros.
     \end{solucion}
 
     \begin{ejercicio}
