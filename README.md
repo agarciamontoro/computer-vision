@@ -23,6 +23,6 @@ This repo contains some assignments and exercises (all of them in spanish) on Co
 
 ## How is this done?
 
-The magic in the code of this repo is the awesome OpenCV library, that provides with really cool tools to develop computer vision algorithms.
+The magic in the code of this repo relies on the awesome OpenCV library, that provides the user with really cool tools to develop computer vision algorithms.
 
-The code follows an object-oriented pattern, with two main classes: [Camera](https://github.com/agarciamontoro/computer-vision/blob/master/inc/camera.hpp) and [Image](https://github.com/agarciamontoro/computer-vision/blob/master/inc/image.hpp). The main file uses the objects and methods defined in those headers to make the magic happen :)
+The code itself follows an object-oriented pattern, with two main classes: [Camera](https://github.com/agarciamontoro/computer-vision/blob/master/inc/camera.hpp) and [Image](https://github.com/agarciamontoro/computer-vision/blob/master/inc/image.hpp). The main file uses the objects and methods defined in those headers to make the magic happen :)
